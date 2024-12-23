@@ -20,3 +20,5 @@ terminal tab. I decided to take it a step further and created its own desktop fi
 the opportunity to have a custom icon and search name for the app. It does mean that a
 different terminal needs to run outside my main one, but I end up with features like
 shown below. The `.png` file was taken from the ranger GitHub README.
+
+![gnome-search-ranger](https://github.com/user-attachments/assets/cd8a1bf5-4fc5-45de-a1d2-e3ffe5f48e7e)
