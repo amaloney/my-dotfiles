@@ -1,0 +1,5 @@
+font-family = SauceCodePro Nerd Font Mono
+theme = Gruvbox Dark Hard
+mouse-hide-while-typing = true
+shell-integration = bash
+scrollback-limit = 1000000000

@@ -1,0 +1,19 @@
+[[plugin.deps]]
+use = "macydnah/office"
+rev = "41ebef8"
+hash = "5805affd3ae8adcb3c72b6997d21c0a6"
+
+[[plugin.deps]]
+use = "AnirudhG07/rich-preview"
+rev = "831234e"
+hash = "ed3363e256e210593f0f8e4cec3e36a9"
+
+[[plugin.deps]]
+use = "imsi32/yatline-gruvbox"
+rev = "f570b77"
+hash = "244048d1c3e7c557796f372c5c01de5d"
+
+[[flavor.deps]]
+use = "bennyyip/gruvbox-dark"
+rev = "2c61c90"
+hash = "3685f7557e7425381b65c883c688f593"
