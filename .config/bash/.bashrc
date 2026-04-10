@@ -28,27 +28,26 @@ export TERM=xterm-ghostty
 # prevent duplicates in the path
 append_path() {
     case ":$PATH:" in
-        *:"$1":*)
-            ;;
-        *)
-            PATH="${PATH:+$PATH:}$1"
+    *:"$1":*)
+        ;;
+    *)
+        PATH="${PATH:+$PATH:}$1"
+        ;;
     esac
 }
 prepend_path() {
     case ":$PATH:" in
-        *:"$1":*)
-            ;;
-        *)
-            PATH="$1:${PATH:+$PATH:}"
+    *:"$1":*)
+        ;;
+    *)
+        PATH="$1:${PATH:+$PATH:}"
+        ;;
     esac
 }
 
 # PATH updates
 PIXI=$HOME/.pixi
 append_path $PIXI/bin
-if hash pixi 2>/dev/null; then
-    eval "$(pixi completion --shell bash)"
-fi
 CARGO_HOME=$HOME/.cargo
 append_path $CARGO_HOME/bin
 TEX_HOME=/usr/local/texlive/2025/bin/x86_64-linux
@@ -58,11 +57,11 @@ append_path $LOCAL_HOME/bin
 
 # yazi - yank
 function y() {
-	local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
-	command yazi "$@" --cwd-file="$tmp"
-	IFS= read -r -d '' cwd < "$tmp"
-	[ -n "$cwd" ] && [ "$cwd" != "$PWD" ] && builtin cd -- "$cwd"
-	rm -f -- "$tmp"
+    local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
+    command yazi "$@" --cwd-file="$tmp"
+    IFS= read -r -d '' cwd <"$tmp"
+    [ -n "$cwd" ] && [ "$cwd" != "$PWD" ] && builtin cd -- "$cwd"
+    rm -f -- "$tmp"
 }
 
 # ━━ macOS ━━
@@ -100,7 +99,7 @@ if [[ $OSTYPE == linux* ]]; then
     # git completions
     source /usr/share/git/completion/git-prompt.sh
 
-    #export SHELL=/opt/homebrew/bin/bash
+    export SHELL=/usr/bin/bash
 fi
 
 # start starship
@@ -108,4 +107,15 @@ if hash starship 2>/dev/null; then
     eval "$(starship init bash)"
 fi
 
+# Activate pixi
+function pixi_activate() {
+    # default to current directory if no path is given
+    local manifest_path="${1:-.}"
+    eval "$(pixi shell-hook --manifest-path $manifest_path --environment dev)"
+}
+
 export PATH
+
+function aws_login() {
+    aws sso login --profile Sandbox-621741996708
+}
