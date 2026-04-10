@@ -4,11 +4,6 @@
 # check the window size after each command and, if necessary, update the values of LINES and COLUMNS.
 shopt -s checkwinsize
 
-# bash completion(s)
-# git
-source /usr/share/bash-completion/completions/git
-source /usr/share/git/completion/git-prompt.sh
-
 # history
 export HISTCONTROL=ignoreboth:erasedups
 export HISTFILE=~/.bash_history
@@ -24,16 +19,9 @@ export PAGER=nvimpager
 export VISUAL=nvim
 export TERM=xterm-ghostty
 
-# Python
-#eval "$(uv generate-shell-completion bash)"
-#eval "$(uvx --generate-shell-completion bash)"
-
 # bash alias(es)
 [[ -f ~/.bash_aliases ]] &&
-    . ~/.bash_aliases
-
-# start starship
-eval "$(starship init bash)"
+    source ~/.bash_aliases
 
 # prevent duplicates in the path
 append_path () {
@@ -45,13 +33,30 @@ append_path () {
     esac
 }
 
+# start starship
+if hash starship 2>/dev/null; then
+    eval "$(starship init bash)"
+fi
+
 # PATH environment variable
-CARGO_HOME=$HOME/.cargo
-append_path $CARGO_HOME/bin
+if hash pixi 2>/dev/null; then
+    PIXI=$HOME/.pixi
+    append_path $PIXI/bin
+    eval "$(pixi completion --shell bash)"
+fi
+
+if hash cargo 2>/dev/null; then
+    CARGO_HOME=$HOME/.cargo
+    append_path $CARGO_HOME/bin
+fi
+
+if hash latex 2>/dev/null; then
+    TEX_HOME=/usr/local/texlive/2025/bin/x86_64-linux
+    append_path $TEX_HOME
+fi
+
 LOCAL_HOME=$HOME/.local
 append_path $LOCAL_HOME/bin
-TEX_HOME=/usr/local/texlive/2025/bin/x86_64-linux
-append_path $TEX_HOME
 
 # yazi - yank
 function y() {
@@ -61,3 +66,40 @@ function y() {
 	[ -n "$cwd" ] && [ "$cwd" != "$PWD" ] && builtin cd -- "$cwd"
 	rm -f -- "$tmp"
 }
+
+# ━━ macOS ━━
+if [[ $OSTYPE == darwin* ]]; then
+    # turn off brew analytics
+    export HOMEBREW_NO_ANALYTICS=1
+
+    # bash completions
+    [[ -r /opt/homebrew/etc/profile.d/bash_completion.sh ]] &&
+        source /opt/homebrew/etc/profile.d/bash_completion.sh
+
+    # choose the shell from brew
+    export SHELL=/opt/homebrew/bin/bash
+
+    # Make ls more sane
+    export LSCOLORS=GxFxCxDxBxegedabagaced
+
+    # flags
+    export CPPFLAGS="-I/opt/homebrew/include"
+    export LDDFLAGS="-I/opt/homebrew/lib"
+
+    # PATH
+    if hash brew 2>/dev/null; then
+        HOMEBREW=/opt/homebrew
+        append_path $HOMEBREW/bin
+    fi
+fi
+
+# ━━ Linux ━━
+if [[ $OSTYPE == linux* ]]; then
+    # bash completions
+    source /usr/share/bash-completion/completions/git
+
+    # git completions
+    source /usr/share/git/completion/git-prompt.sh
+fi
+
+source $HOME/useful-conda-functions

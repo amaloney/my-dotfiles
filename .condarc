@@ -1,3 +1,6 @@
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# ~/.condarc
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 add_pip_as_python_dependency: true
 anaconda_upload: false
 allow_softlinks: true
@@ -5,7 +8,7 @@ always_yes: true
 auto_activate_base: true
 auto_update_conda: false
 channels:
-  - conda-forge
+  - defaults
 changeps1: false
 offline: false
 report_errors: false

@@ -1,0 +1,22 @@
+# vim:ft=bash
+
+function which_conda_channel() {
+    # Print the channel where the given package is found, within the available channels found in .condarc
+    # Example: which_conda_channel pandas
+    #          pandas : defaults
+    pkg_name="$1"
+    defaults=$(conda search --json defaults::$pkg_name | jq -r .exception_name)
+    if [ $defaults == 'null' ]; then
+        echo "$pkg_name : defaults"
+        return
+    else
+        conda_forge=$(conda search --json conda-forge::$pkg_name | jq -r .exception_name)
+        if [ $conda_forge == 'null' ]; then
+            echo "$pkg_name : conda-forge"
+            return
+        else
+            echo "$pkg_name : None"
+            return
+        fi
+    fi
+}
