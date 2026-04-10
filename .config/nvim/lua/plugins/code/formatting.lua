@@ -61,18 +61,18 @@ return {
             end
          end,
       },
-   },
-   formatters = {
-      shfmt = { prepend_args = { "-i", "4" } },
-      prettierd = { prepend_args = { "--single-quote=false" } },
-      taplo = {
-         append_args = {
-            "--option",
-            "align_comments=false",
-            "--option",
-            "indent_string=    ",
-            "--option",
-            "column_width=120",
+      formatters = {
+         shfmt = { prepend_args = { "-i", "4" } },
+         prettierd = { prepend_args = { "--single-quote=false" } },
+         taplo = {
+            append_args = {
+               "--option",
+               "align_comments=false",
+               "--option",
+               "indent_string=    ",
+               "--option",
+               "column_width=120",
+            },
          },
       },
    },
