@@ -1,6 +1,8 @@
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # ~/.bashrc
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+source $HOME/useful-conda-functions
+
 # check the window size after each command and, if necessary, update the values of LINES and COLUMNS.
 shopt -s checkwinsize
 
@@ -24,47 +26,42 @@ export TERM=xterm-ghostty
     source ~/.bash_aliases
 
 # prevent duplicates in the path
-append_path () {
+append_path() {
     case ":$PATH:" in
-        *:"$1":*)
-            ;;
-        *)
-            PATH="${PATH:+$PATH:}$1"
+    *:"$1":*)
+        ;;
+    *)
+        PATH="${PATH:+$PATH:}$1"
+        ;;
+    esac
+}
+prepend_path() {
+    case ":$PATH:" in
+    *:"$1":*)
+        ;;
+    *)
+        PATH="$1:${PATH:+$PATH:}"
+        ;;
     esac
 }
 
-# start starship
-if hash starship 2>/dev/null; then
-    eval "$(starship init bash)"
-fi
-
-# PATH environment variable
-if hash pixi 2>/dev/null; then
-    PIXI=$HOME/.pixi
-    append_path $PIXI/bin
-    eval "$(pixi completion --shell bash)"
-fi
-
-if hash cargo 2>/dev/null; then
-    CARGO_HOME=$HOME/.cargo
-    append_path $CARGO_HOME/bin
-fi
-
-if hash latex 2>/dev/null; then
-    TEX_HOME=/usr/local/texlive/2025/bin/x86_64-linux
-    append_path $TEX_HOME
-fi
-
+# PATH updates
+PIXI=$HOME/.pixi
+append_path $PIXI/bin
+CARGO_HOME=$HOME/.cargo
+append_path $CARGO_HOME/bin
+TEX_HOME=/usr/local/texlive/2025/bin/x86_64-linux
+append_path $TEX_HOME
 LOCAL_HOME=$HOME/.local
 append_path $LOCAL_HOME/bin
 
 # yazi - yank
 function y() {
-	local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
-	command yazi "$@" --cwd-file="$tmp"
-	IFS= read -r -d '' cwd < "$tmp"
-	[ -n "$cwd" ] && [ "$cwd" != "$PWD" ] && builtin cd -- "$cwd"
-	rm -f -- "$tmp"
+    local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
+    command yazi "$@" --cwd-file="$tmp"
+    IFS= read -r -d '' cwd <"$tmp"
+    [ -n "$cwd" ] && [ "$cwd" != "$PWD" ] && builtin cd -- "$cwd"
+    rm -f -- "$tmp"
 }
 
 # ━━ macOS ━━
@@ -87,10 +84,11 @@ if [[ $OSTYPE == darwin* ]]; then
     export LDDFLAGS="-I/opt/homebrew/lib"
 
     # PATH
-    if hash brew 2>/dev/null; then
-        HOMEBREW=/opt/homebrew
-        append_path $HOMEBREW/bin
-    fi
+    HOMEBREW=/opt/homebrew
+    prepend_path $HOMEBREW/bin
+
+    export SHELL=/opt/homebrew/bin/bash
+
 fi
 
 # ━━ Linux ━━
@@ -100,6 +98,24 @@ if [[ $OSTYPE == linux* ]]; then
 
     # git completions
     source /usr/share/git/completion/git-prompt.sh
+
+    export SHELL=/usr/bin/bash
 fi
 
-source $HOME/useful-conda-functions
+# start starship
+if hash starship 2>/dev/null; then
+    eval "$(starship init bash)"
+fi
+
+# Activate pixi
+function pixi_activate() {
+    # default to current directory if no path is given
+    local manifest_path="${1:-.}"
+    eval "$(pixi shell-hook --manifest-path $manifest_path --environment dev)"
+}
+
+export PATH
+
+function aws_login() {
+    aws sso login --profile Sandbox-621741996708
+}

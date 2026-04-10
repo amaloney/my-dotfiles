@@ -8,7 +8,13 @@ return {
       "ellisonleao/gruvbox.nvim",
       priority = 1000,
       config = true,
-      opts = {},
+      opts = {
+         contrast = "hard",
+         palette_overrides = {
+            dark0_hard = "#000000",
+         },
+         dim_inactive = true,
+      },
    },
 
    -- A blazing fast and easy to configure Neovim statusline written in Lua

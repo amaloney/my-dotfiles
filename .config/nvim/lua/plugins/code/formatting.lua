@@ -50,29 +50,23 @@ return {
             typescriptreact = { "prettierd" },
             yaml = { "prettierd" },
          },
-         format_on_save = function()
-            if vim.g.autoformat then
-               return {
-                  timeout_ms = 5000,
-                  lsp_format = "fallback",
-               }
-            else
-               return
-            end
-         end,
-      },
-   },
-   formatters = {
-      shfmt = { prepend_args = { "-i", "4" } },
-      prettierd = { prepend_args = { "--single-quote=false" } },
-      taplo = {
-         append_args = {
-            "--option",
-            "align_comments=false",
-            "--option",
-            "indent_string=    ",
-            "--option",
-            "column_width=120",
+         default_format_opts = {
+            lsp_format = "fallback",
+         },
+         format_on_save = { timeout_ms = 500 },
+         formatters = {
+            shfmt = { prepend_args = { "-i", "4" } },
+            prettierd = { prepend_args = { "--single-quote=false", "--print-width=120" } },
+            taplo = {
+               append_args = {
+                  "--option",
+                  "align_comments=false",
+                  "--option",
+                  "indent_string=    ",
+                  "--option",
+                  "column_width=120",
+               },
+            },
          },
       },
    },

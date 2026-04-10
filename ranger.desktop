@@ -1,9 +1,0 @@
-[Desktop Entry]
-Version=1.0
-Name=ranger
-StartupWMClass=ranger
-Exec=/usr/bin/kitty --hold --class ranger --name=ranger ranger
-Icon=~/.local/share/applications/ranger.png
-Terminal=false
-Type=Application
-Categories=Application;
