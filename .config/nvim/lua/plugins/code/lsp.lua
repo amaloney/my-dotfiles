@@ -24,25 +24,16 @@ return {
    {
       "neovim/nvim-lspconfig",
       event = { "BufReadPost", "BufWritePost", "BufNewFile" },
-      dependencies = {
-         { "williamboman/mason-lspconfig.nvim", dependencies = { "williamboman/mason.nvim" } },
-         { "j-hui/fidget.nvim", opts = {} },
-      },
-      -- `opts` are a table where:
-      --
-      --  - Keys (`String`) are the server name.
-      --  - Values (`Table`) are the settings for the lspconfig.
+      dependencies = { { "j-hui/fidget.nvim", opts = {} } },
+      opts_extend = { "enable", "attach" },
       config = function(_, opts)
-         for server_name, config in pairs(opts) do
-            vim.lsp.config(server_name, {
-               on_attach = on_attach,
-               settings = config,
-               filetypes = (config or {}).filetypes,
-            })
+         local servers = vim.list.unique(vim.list_extend(opts.attach or {}, opts.enable or {}))
+         for _, server in pairs(servers) do
+            vim.lsp.config(server, { on_attach = on_attach })
          end
-         -- https://www.reddit.com/r/neovim/comments/1l7pz1l/starting_from_0112_i_have_a_weird_issue/
+         -- https://www.reddit.com/r/neovim/comments/1l7pz1l
          vim.schedule(function()
-            require("mason-lspconfig").setup()
+            vim.lsp.enable(opts.enable or {})
          end)
       end,
    },

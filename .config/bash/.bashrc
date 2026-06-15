@@ -85,7 +85,7 @@ if [[ $OSTYPE == darwin* ]]; then
 
     # PATH
     HOMEBREW=/opt/homebrew
-    prepend_path $HOMEBREW/bin
+    prepend_path $HOMEBREW/bin:$HOMEBREW/sbin
 
     export SHELL=/opt/homebrew/bin/bash
 
