@@ -1,8 +1,9 @@
+custom_channels:
+  services: https://conda.anaconda.org
 channels:
   - defaults
+  - services
 default_channels:
-  - https://repo.anaconda.com/pkgs/main
-allowlist_channels:
   - https://repo.anaconda.com/pkgs/main
 denylist_channels: []
 allow_non_channel_urls: false

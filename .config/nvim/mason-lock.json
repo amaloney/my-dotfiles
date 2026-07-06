@@ -1,7 +1,8 @@
 {
   "prettierd": "0.28.0",
-  "pyrefly": "1.0.0",
-  "rust-analyzer": "2026-06-01",
+  "pyrefly": "1.1.1",
+  "ruff": "0.15.18",
+  "rust-analyzer": "2026-06-22",
   "shfmt": "v3.13.1",
   "stylua": "v2.5.2",
   "taplo": "0.10.0",
