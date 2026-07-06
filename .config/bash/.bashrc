@@ -1,49 +1,44 @@
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # ~/.bashrc
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-source $HOME/useful-conda-functions
+# conda functions
+[[ -f ~/useful-conda-functions ]] &&
+    source ~/useful-conda-functions
 
-# check the window size after each command and, if necessary, update the values of LINES and COLUMNS.
-shopt -s checkwinsize
+# local machine bash preferences
+[[ -f ~/.bashrc-local ]] &&
+    source ~/.bashrc-local
 
-# history
+# shared bash functions
+[[ -f ~/.bash-functions ]] &&
+    source ~/.bash-functions
+
+# bash completion(s)
+# git
+[[ -f  /usr/share/bash-completion/completions/git ]] &&
+    source /usr/share/bash-completion/completions/git
+[[ -f /usr/share/git/completion/git-prompt.sh ]] &&
+    source /usr/share/git/completion/git-prompt.sh
+
+# bash alias(es)
+[[ -f ~/.bash-aliases ]] &&
+    source ~/.bash-aliases
+
+# bash history
 export HISTCONTROL=ignoreboth:erasedups
 export HISTFILE=~/.bash_history
 export HISTFILESIZE=-1
 export HISTSIZE=-1
 shopt -s histappend
-bind '"\e[A": history-search-backward'
-bind '"\e[B": history-search-forward'
+
+# check the window size after each command and, if necessary, update the values of LINES and COLUMNS.
+shopt -s checkwinsize
 
 # pager and editor environment variables
 export EDITOR=nvim
-export PAGER=nvimpager
+export MANPAGER="nvim +Man!"
 export VISUAL=nvim
 export TERM=xterm-ghostty
-
-# bash alias(es)
-[[ -f ~/.bash_aliases ]] &&
-    source ~/.bash_aliases
-
-# prevent duplicates in the path
-append_path() {
-    case ":$PATH:" in
-    *:"$1":*)
-        ;;
-    *)
-        PATH="${PATH:+$PATH:}$1"
-        ;;
-    esac
-}
-prepend_path() {
-    case ":$PATH:" in
-    *:"$1":*)
-        ;;
-    *)
-        PATH="$1:${PATH:+$PATH:}"
-        ;;
-    esac
-}
 
 # PATH updates
 PIXI=$HOME/.pixi
@@ -54,15 +49,8 @@ TEX_HOME=/usr/local/texlive/2025/bin/x86_64-linux
 append_path $TEX_HOME
 LOCAL_HOME=$HOME/.local
 append_path $LOCAL_HOME/bin
-
-# yazi - yank
-function y() {
-    local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
-    command yazi "$@" --cwd-file="$tmp"
-    IFS= read -r -d '' cwd <"$tmp"
-    [ -n "$cwd" ] && [ "$cwd" != "$PWD" ] && builtin cd -- "$cwd"
-    rm -f -- "$tmp"
-}
+# GEM_HOME="$(ruby -e 'puts Gem.user_dir')"
+# append_path "$GEM_HOME/bin"
 
 # ━━ macOS ━━
 if [[ $OSTYPE == darwin* ]]; then
@@ -115,7 +103,3 @@ function pixi_activate() {
 }
 
 export PATH
-
-function aws_login() {
-    aws sso login --profile Sandbox-621741996708
-}

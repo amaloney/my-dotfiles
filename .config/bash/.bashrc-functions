@@ -1,0 +1,30 @@
+# vim: ft=bash
+
+# prevent duplicates in the path
+append_path() {
+    case ":$PATH:" in
+    *:"$1":*)
+        ;;
+    *)
+        PATH="${PATH:+$PATH:}$1"
+        ;;
+    esac
+}
+prepend_path() {
+    case ":$PATH:" in
+    *:"$1":*)
+        ;;
+    *)
+        PATH="$1:${PATH:+$PATH:}"
+        ;;
+    esac
+}
+
+# yazi yank
+function y() {
+	local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
+	command yazi "$@" --cwd-file="$tmp"
+	IFS= read -r -d '' cwd < "$tmp"
+	[ -n "$cwd" ] && [ "$cwd" != "$PWD" ] && builtin cd -- "$cwd"
+	rm -f -- "$tmp"
+}

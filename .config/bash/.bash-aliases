@@ -10,4 +10,3 @@ alias tree='eza --tree --level 2'
 alias grep="grep --color=auto --ignore-case"
 alias diff='diff --color=auto'
 alias ip='ip -color=auto'
-alias mux=$GEM_HOME/bin/tmuxinator
