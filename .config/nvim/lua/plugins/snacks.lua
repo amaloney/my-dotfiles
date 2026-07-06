@@ -50,6 +50,12 @@ return {
             files = { hidden = true, ignored = true },
             grep = { hidden = true, follow = true },
          },
+         layout = {
+            cycle = true,
+            preset = function()
+               return vim.o.columns >= 120 and "default" or "horizontal"
+            end,
+         },
       },
       profiler = { enabled = true },
 
