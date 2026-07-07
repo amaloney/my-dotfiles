@@ -10,12 +10,12 @@
     source ~/.bashrc-local
 
 # shared bash functions
-[[ -f ~/.bash-functions ]] &&
-    source ~/.bash-functions
+[[ -f ~/.bashrc-functions ]] &&
+    source ~/.bashrc-functions
 
 # bash completion(s)
 # git
-[[ -f  /usr/share/bash-completion/completions/git ]] &&
+[[ -f /usr/share/bash-completion/completions/git ]] &&
     source /usr/share/bash-completion/completions/git
 [[ -f /usr/share/git/completion/git-prompt.sh ]] &&
     source /usr/share/git/completion/git-prompt.sh
