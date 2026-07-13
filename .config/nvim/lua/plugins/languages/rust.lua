@@ -1,30 +1,17 @@
 -- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
--- Package Management for Neovim
+-- Rust Language Server Protocol
 -- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 return {
-
-   -- Portable package manager for Neovim that runs everywhere Neovim runs
    {
-      "mason-org/mason.nvim",
-      opts = {},
+      "nvim-treesitter/nvim-treesitter",
+      opts = { install = { "rust" } },
    },
-
-   -- Provides lockfile functionality to mason.nvim
    {
-      "zapling/mason-lock.nvim",
-      dependencies = "mason-org/mason.nvim",
-      opts = {},
-      event = "VeryLazy",
-      cmd = "MasonLockRestore",
+      "neovim/nvim-lspconfig",
+      opts = { enable = { "rust_analyzer" } },
    },
-
-   -- Install and update registry-managed tools (LSPs, formatters, DAPs). Language
-   -- and formatter specs extend `ensure_installed`; this is the canonical config.
    {
       "WhoIsSethDaniel/mason-tool-installer.nvim",
-      dependencies = "mason-org/mason.nvim",
-      event = "VeryLazy",
-      opts_extend = { "ensure_installed" },
-      opts = { ensure_installed = {} },
+      opts = { ensure_installed = { "rust-analyzer" } },
    },
 }

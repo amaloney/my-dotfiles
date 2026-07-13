@@ -1,30 +1,26 @@
 -- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
--- Package Management for Neovim
+-- Lua Language Server Protocol
 -- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 return {
-
-   -- Portable package manager for Neovim that runs everywhere Neovim runs
    {
-      "mason-org/mason.nvim",
-      opts = {},
+      "neovim/nvim-lspconfig",
+      opts = { enable = { "lua_ls" } },
    },
-
-   -- Provides lockfile functionality to mason.nvim
-   {
-      "zapling/mason-lock.nvim",
-      dependencies = "mason-org/mason.nvim",
-      opts = {},
-      event = "VeryLazy",
-      cmd = "MasonLockRestore",
-   },
-
-   -- Install and update registry-managed tools (LSPs, formatters, DAPs). Language
-   -- and formatter specs extend `ensure_installed`; this is the canonical config.
    {
       "WhoIsSethDaniel/mason-tool-installer.nvim",
-      dependencies = "mason-org/mason.nvim",
-      event = "VeryLazy",
-      opts_extend = { "ensure_installed" },
-      opts = { ensure_installed = {} },
+      opts = { ensure_installed = { "lua-language-server" } },
    },
+   {
+      "folke/lazydev.nvim",
+      ft = "lua",
+      opts = {
+         library = {
+            { path = "${3rd}/luv/library", words = { "vim%.uv" } },
+            { path = "luassert-types/library", words = { "assert" } },
+            { path = "busted-types/library", words = { "describe" } },
+         },
+      },
+   },
+   { "LuaCATS/luassert", name = "luassert-types", lazy = true },
+   { "LuaCATS/busted", name = "busted-types", lazy = true },
 }

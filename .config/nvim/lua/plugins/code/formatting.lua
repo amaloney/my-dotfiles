@@ -12,7 +12,7 @@ return {
          {
             "WhoIsSethDaniel/mason-tool-installer.nvim",
             opts = {
-               formatters = {
+               ensure_installed = {
                   "prettierd",
                   "shfmt",
                   "stylua",
