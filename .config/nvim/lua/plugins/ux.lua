@@ -12,8 +12,10 @@ return {
    -- Undotree visualizes the undo history and makes it easy to browse and switch between different undo branches
    {
       "mbbill/undotree",
+      keys = {
+         { "<leader>uT", "<cmd>UndotreeToggle<CR>", desc = "Toggle Undotree" },
+      },
       config = function()
-         vim.api.nvim_set_keymap("n", "<leader>ut", ":UndotreeToggle<CR>", { noremap = true })
          vim.cmd([[set undodir=$HOME/.config/undo]])
          vim.cmd([[set undofile]])
       end,
@@ -37,27 +39,6 @@ return {
          vim.o.timeoutlen = 300
       end,
       opts = {},
-   },
-
-   -- Toggle switch for turning formatting on/off
-   {
-      "folke/snacks.nvim",
-      opts = function()
-         vim.g.autoformat = true
-
-         Snacks.toggle
-            .new({
-               id = "Format on Save",
-               name = "Format on Save",
-               get = function()
-                  return vim.g.autoformat
-               end,
-               set = function(_)
-                  vim.g.autoformat = not vim.g.autoformat
-               end,
-            })
-            :map("<leader>uf")
-      end,
    },
 
    -- A comfortable CSV/TSV editing plugin for Neovim

@@ -84,9 +84,9 @@ return {
             vim.bo[bufnr].indentexpr = "v:lua.require('nvim-treesitter').indentexpr()"
             -- Folds
             vim.bo[bufnr].syntax = "on"
-            vim.wo.foldlevel = 99
-            vim.wo.foldmethod = "expr"
-            vim.wo.foldexpr = "v:lua.vim.treesitter.foldexpr()"
+            vim.wo[0].foldlevel = 99
+            vim.wo[0].foldmethod = "expr"
+            vim.wo[0].foldexpr = "v:lua.vim.treesitter.foldexpr()"
          end
          vim.api.nvim_create_autocmd("FileType", {
             group = autostart_group,

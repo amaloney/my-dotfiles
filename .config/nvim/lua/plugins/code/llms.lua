@@ -1,8 +1,6 @@
 -- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 -- LLM plugins
 -- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-local toggle_key = "<C-,>"
-
 return {
    --
    {
@@ -10,7 +8,16 @@ return {
       dependencies = { "folke/snacks.nvim" },
       opts = {
          terminal_cmd = "~/.local/bin/claude",
-         terminal = {},
+         terminal = {
+            snacks_win_opts = {
+               wo = {
+                  winhighlight = "Normal:TerminalNormal,NormalNC:TerminalNormalNC",
+               },
+               -- keys = {
+               --    ["<C-h>"] = { "<C-\\><C-n><C-w>h", mode = "t", expr = false },
+               -- },
+            },
+         },
       },
       config = true,
       keys = {

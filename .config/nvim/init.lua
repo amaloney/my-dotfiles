@@ -4,6 +4,50 @@
 vim.g.mapleader = " "
 vim.g.maplocalleader = "\\"
 
+-- Faster buffer refresh for agent-modified files
+vim.opt.autoread = true
+vim.opt.updatetime = 100
+
+-- More aggressive file change detection
+vim.api.nvim_create_autocmd({ "FocusGained", "BufEnter", "CursorHold", "CursorHoldI", "VimResume" }, {
+   pattern = "*",
+   callback = function()
+      if vim.fn.mode() ~= "c" then
+         vim.cmd("checktime")
+      end
+   end,
+})
+
+-- Watch for file changes using a timer (catches agent modifications faster)
+local watch_timer = vim.uv.new_timer()
+watch_timer:start(
+   500,
+   500,
+   vim.schedule_wrap(function()
+      if vim.fn.mode() ~= "c" and vim.api.nvim_get_mode().mode ~= "c" then
+         pcall(vim.cmd, "checktime")
+      end
+   end)
+)
+
+-- Notify when files are reloaded (uses Snacks if available)
+vim.api.nvim_create_autocmd("FileChangedShellPost", {
+   pattern = "*",
+   callback = function(args)
+      local filename = vim.fn.fnamemodify(args.file, ":t")
+      local snacks_ok, snacks = pcall(require, "snacks")
+      if snacks_ok and snacks.notify then
+         snacks.notify.info("Agent updated: " .. filename, {
+            title = "File Reloaded",
+            icon = "󰚰",
+            timeout = 3000,
+         })
+      else
+         vim.notify("Agent updated: " .. filename, vim.log.levels.INFO)
+      end
+   end,
+})
+
 -- Spelling
 vim.opt.spell = true -- enable spell checking
 vim.opt.spelllang = "en_us" -- using English
@@ -31,7 +75,6 @@ vim.opt.colorcolumn = { 121 } -- comma separated list of of columns to highlight
 
 -- UX
 vim.opt.autoindent = true -- automatically add indents
-vim.opt.autoread = true -- update file in Neovim if it has been changed outside of Neovim
 vim.opt.breakindent = true -- indents at line breaks
 vim.opt.expandtab = true -- make the tab key insert spaces instead of tabs
 vim.opt.linebreak = true -- breaks lines at textwidth
@@ -53,6 +96,10 @@ require("config.lazy")
 vim.opt.background = "dark"
 vim.cmd([[colorscheme gruvbox]])
 
+-- Terminal background to match gruvbox hard contrast
+vim.api.nvim_set_hl(0, "TerminalNormal", { bg = "#000000" })
+vim.api.nvim_set_hl(0, "TerminalNormalNC", { bg = "#1d2021" })
+
 -- blink syntax highlighting on signature
 vim.api.nvim_set_hl(0, "BlinkCmpSignatureHelpActiveParameter", { link = "CursorLine" })
 
@@ -69,9 +116,6 @@ vim.cmd([[set nofoldenable]])
 -- vim.opt.showmode = false
 vim.opt.showtabline = 2 -- always show tab page labels
 -- vim.opt.timeoutlen = 1000
--- vim.opt.updatetime = 300
 -- vim.opt.wildignore = "*.o,*~,*.pyc"
 -- vim.opt.wildmenu = true
 -- vim.opt.wildmode = "list:longest,full"
-
-vim.api.nvim_set_keymap("n", "<leader>h", ":nohl<CR>", { noremap = true })

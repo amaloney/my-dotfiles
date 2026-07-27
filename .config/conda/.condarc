@@ -9,6 +9,7 @@ auto_activate_base: true
 auto_update_conda: false
 channels:
   - defaults
+  - https://repo.anaconda.cloud/repo/main-x
 changeps1: false
 offline: false
 report_errors: false
