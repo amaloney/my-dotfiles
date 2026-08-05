@@ -75,6 +75,9 @@ if [[ $OSTYPE == darwin* ]]; then
     HOMEBREW=/opt/homebrew
     prepend_path $HOMEBREW/bin:$HOMEBREW/sbin
 
+    PERL="/opt/homebrew/Cellar/perl/5.42.2/"
+    prepend_path $PERL/bin:$PATH
+
     export SHELL=/opt/homebrew/bin/bash
 
 fi
@@ -92,6 +95,7 @@ fi
 
 # start starship
 if hash starship 2>/dev/null; then
+    export STARSHIP_CONFIG=$HOME/.config/starship.toml
     eval "$(starship init bash)"
 fi
 

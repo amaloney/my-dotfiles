@@ -5,11 +5,19 @@ add_pip_as_python_dependency: true
 anaconda_upload: false
 allow_softlinks: true
 always_yes: true
-auto_activate_base: true
+auto_activate_base: false
 auto_update_conda: false
 channels:
   - defaults
   - https://repo.anaconda.cloud/repo/main-x
+default_channels:
+  - https://repo.anaconda.cloud/repo/main
+  - https://repo.anaconda.cloud/repo/r
+  - https://repo.anaconda.cloud/repo/msys2
+channel_settings:
+  - channel: https://repo.anaconda.cloud/*
+    auth: anaconda-auth
 changeps1: false
 offline: false
 report_errors: false
+protect_frozen_env: true

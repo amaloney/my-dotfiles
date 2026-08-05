@@ -7,7 +7,7 @@ return {
       "coder/claudecode.nvim",
       dependencies = { "folke/snacks.nvim" },
       opts = {
-         terminal_cmd = "~/.local/bin/claude",
+         terminal_CMD = "~/.local/bin/claude",
          terminal = {
             snacks_win_opts = {
                wo = {
@@ -22,22 +22,22 @@ return {
       config = true,
       keys = {
          { "<leader>a", nil, desc = "AI/Claude Code" },
-         { "<leader>ac", "<cmd>ClaudeCode<cr>", desc = "Toggle Claude" },
-         { "<leader>af", "<cmd>ClaudeCodeFocus<cr>", desc = "Focus Claude" },
-         { "<leader>ar", "<cmd>ClaudeCode --resume<cr>", desc = "Resume Claude" },
-         { "<leader>aC", "<cmd>ClaudeCode --continue<cr>", desc = "Continue Claude" },
-         { "<leader>am", "<cmd>ClaudeCodeSelectModel<cr>", desc = "Select Claude model" },
-         { "<leader>ab", "<cmd>ClaudeCodeAdd %<cr>", desc = "Add current buffer" },
-         { "<leader>as", "<cmd>ClaudeCodeSend<cr>", mode = "v", desc = "Send to Claude" },
+         { "<leader>ac", "<CMD>ClaudeCode<CR>", desc = "Toggle Claude" },
+         { "<leader>af", "<CMD>ClaudeCodeFocus<CR>", desc = "Focus Claude" },
+         { "<leader>ar", "<CMD>ClaudeCode --resume<CR>", desc = "Resume Claude" },
+         { "<leader>aC", "<CMD>ClaudeCode --continue<CR>", desc = "Continue Claude" },
+         { "<leader>am", "<CMD>ClaudeCodeSelectModel<CR>", desc = "Select Claude model" },
+         { "<leader>ab", "<CMD>ClaudeCodeAdd %<CR>", desc = "Add current buffer" },
+         { "<leader>as", "<CMD>ClaudeCodeSend<CR>", mode = "v", desc = "Send to Claude" },
          {
             "<leader>as",
-            "<cmd>ClaudeCodeTreeAdd<cr>",
+            "<CMD>ClaudeCodeTreeAdd<CR>",
             desc = "Add file",
             ft = { "NvimTree", "neo-tree", "oil", "minifiles", "netrw" },
          },
          -- Diff management
-         { "<leader>aa", "<cmd>ClaudeCodeDiffAccept<cr>", desc = "Accept diff" },
-         { "<leader>ad", "<cmd>ClaudeCodeDiffDeny<cr>", desc = "Deny diff" },
+         { "<leader>aa", "<CMD>ClaudeCodeDiffAccept<CR>", desc = "Accept diff" },
+         { "<leader>ad", "<CMD>ClaudeCodeDiffDeny<CR>", desc = "Deny diff" },
       },
    },
 }

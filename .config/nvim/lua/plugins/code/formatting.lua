@@ -63,7 +63,10 @@ return {
          end,
          formatters = {
             shfmt = { prepend_args = { "-i", "4" } },
-            prettierd = { prepend_args = { "--single-quote=false", "--print-width=120" }, append_args = {} },
+            prettierd = {
+               prepend_args = { "--single-quote=false", "--print-width=120", "--prose-wrap=always" },
+               append_args = {},
+            },
             taplo = {
                append_args = {
                   "--option",
@@ -83,6 +86,7 @@ return {
       opts = function()
          vim.g.autoformat = true
 
+         ---@diagnostic disable-next-line: undefined-global
          Snacks.toggle
             .new({
                id = "Format on Save",
