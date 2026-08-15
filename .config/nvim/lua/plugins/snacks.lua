@@ -2,6 +2,36 @@
 -- https://github.com/folke/snacks.nvim
 -- A collection of small QoL plugins for Neovim.
 -- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+local function reformat_buffer_lines(width)
+   local saved_tw = vim.bo.textwidth
+   vim.bo.textwidth = width
+   local saved_pos = vim.fn.getpos(".")
+   vim.cmd("normal! ggVGgq")
+   vim.fn.setpos(".", saved_pos)
+   vim.bo.textwidth = saved_tw
+   Snacks.notify.info("Reformatted buffer to " .. width .. " columns", { title = "Reformat" })
+end
+
+local function reformat_menu()
+   local items = {
+      { text = "80 columns", width = 80 },
+      { text = "100 columns", width = 100 },
+      { text = "120 columns", width = 120 },
+      { text = "Current textwidth (" .. vim.bo.textwidth .. ")", width = vim.bo.textwidth },
+   }
+   Snacks.picker.select(items, {
+      prompt = "Reformat line width",
+      format_item = function(item)
+         return item.text
+      end,
+   }, function(choice)
+      if choice then
+         reformat_buffer_lines(choice.width)
+      end
+   end)
+end
+
 local exclude = {
    -- Git
    ".git/",
@@ -167,5 +197,6 @@ return {
       { "]]", function() Snacks.words.jump(vim.v.count1) end, desc = "Next Reference", mode = { "n", "t" } },
       { "[[", function() Snacks.words.jump(-vim.v.count1) end, desc = "Prev Reference", mode = { "n", "t" } },
       { "<leader>ut", function() Snacks.picker.undo() end, desc = "Undo history" },
+      { "<leader>rw", reformat_menu, desc = "Reformat line width" },
    },
 }

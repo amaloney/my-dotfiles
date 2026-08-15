@@ -31,6 +31,7 @@ return {
          indent = { enable = true },
          install = {
             "bash",
+            "bibtex",
             "css",
             "diff",
             "html",

@@ -41,16 +41,11 @@ export VISUAL=nvim
 export TERM=xterm-ghostty
 
 # PATH updates
-PIXI=$HOME/.pixi
-append_path $PIXI/bin
 CARGO_HOME=$HOME/.cargo
-append_path $CARGO_HOME/bin
-TEX_HOME=/usr/local/texlive/2025/bin/x86_64-linux
-append_path $TEX_HOME
+GEM_HOME="$(ruby -e 'puts Gem.user_dir')"
 LOCAL_HOME=$HOME/.local
-append_path $LOCAL_HOME/bin
-# GEM_HOME="$(ruby -e 'puts Gem.user_dir')"
-# append_path "$GEM_HOME/bin"
+MINICONDA=$HOME/miniconda3
+PIXI=$HOME/.pixi
 
 # ━━ macOS ━━
 if [[ $OSTYPE == darwin* ]]; then
@@ -74,9 +69,8 @@ if [[ $OSTYPE == darwin* ]]; then
     # PATH
     HOMEBREW=/opt/homebrew
     prepend_path $HOMEBREW/bin:$HOMEBREW/sbin
-
-    PERL="/opt/homebrew/Cellar/perl/5.42.2/"
-    prepend_path $PERL/bin:$PATH
+    PERL="/opt/homebrew/Cellar/perl/5.42.2"
+    prepend_path $PERL/bin
 
     export SHELL=/opt/homebrew/bin/bash
 
@@ -90,6 +84,10 @@ if [[ $OSTYPE == linux* ]]; then
     # git completions
     source /usr/share/git/completion/git-prompt.sh
 
+    # PATH
+    # TEX_HOME=/usr/local/texlive/2025/bin/x86_64-linux
+    # append_path $TEX_HOME
+
     export SHELL=/usr/bin/bash
 fi
 
@@ -99,11 +97,15 @@ if hash starship 2>/dev/null; then
     eval "$(starship init bash)"
 fi
 
-# Activate pixi
-function pixi_activate() {
-    # default to current directory if no path is given
-    local manifest_path="${1:-.}"
-    eval "$(pixi shell-hook --manifest-path $manifest_path --environment dev)"
-}
+# # Activate pixi
+# function pixi_activate() {
+#     # default to current directory if no path is given
+#     local manifest_path="${1:-.}"
+#     eval "$(pixi shell-hook --manifest-path $manifest_path --environment dev)"
+# }
 
+append_path $PIXI/bin
+append_path $CARGO_HOME/bin
+append_path $LOCAL_HOME/bin
+append_path $GEM_HOME/bin
 export PATH
