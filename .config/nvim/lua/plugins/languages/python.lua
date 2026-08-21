@@ -9,7 +9,51 @@ return {
    },
    {
       "WhoIsSethDaniel/mason-tool-installer.nvim",
-      opts = { ensure_installed = { "basedpyright" } },
+      opts = { ensure_installed = { "basedpyright", "debugpy" } },
+   },
+   {
+      "mfussenegger/nvim-dap",
+      opts = function(_, opts)
+         local adapters = {
+            python = function(callback)
+               if vim.fn.executable("debugpy") == 0 then
+                  vim.notify("`debugpy` is not installed", vim.log.levels.ERROR)
+                  return
+               end
+               callback({
+                  args = { "-m", "debugpy.adapter" },
+                  command = python_exe,
+                  options = { source_filetype = "python" },
+                  type = "executable",
+               })
+            end,
+         }
+         local configurations = {
+            {
+               name = "Launch: File",
+               type = "python",
+               request = "launch",
+               program = "${file}",
+               justMyCode = false,
+               cwd = "${fileDirname}",
+               console = "integratedTerminal",
+            },
+            {
+               name = "Launch: File with Args",
+               type = "python",
+               request = "launch",
+               program = "${file}",
+               justMyCode = false,
+               cwd = "${fileDirname}",
+               console = "integratedTerminal",
+               args = function()
+                  local input = vim.fn.input("Arguments: ")
+                  return vim.split(input, " ", { trimempty = true })
+               end,
+            },
+         }
+         opts.python = { adapters = adapters, configurations = configurations }
+      end,
    },
    {
       "nvim-neotest/neotest",

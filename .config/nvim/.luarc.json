@@ -1,0 +1,21 @@
+{
+  "$schema": "https://raw.githubusercontent.com/sumneko/vscode-lua/master/setting/schema.json",
+  "runtime": {
+    "version": "LuaJIT"
+  },
+  "diagnostics": {
+    "globals": ["vim"]
+  },
+  "workspace": {
+    "library": [
+      "${3rd}/luv/library",
+      "/opt/homebrew/share/nvim/runtime/lua",
+      "/usr/local/share/nvim/runtime/lua",
+      "/usr/share/nvim/runtime/lua",
+      "C:/Program Files/Neovim/share/nvim/runtime/lua",
+      "~/scoop/apps/neovim/current/share/nvim/runtime/lua",
+      "~/AppData/Local/nvim-data/lazy/lazydev.nvim/types"
+    ],
+    "checkThirdParty": false
+  }
+}
