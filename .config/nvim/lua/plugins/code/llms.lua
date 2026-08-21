@@ -1,8 +1,70 @@
 -- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 -- LLM plugins
 -- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+local current_cli = vim.env.AI_CLI or "kilo"
+
 return {
-   --
+   {
+      "folke/sidekick.nvim",
+      lazy = true,
+      opts = {
+         cli = {
+            tools = {
+               kilo = { cmd = { "sh", "-c", "kilo auth login && kilo" } },
+               claude = { cmd = { "claude" } },
+            },
+         },
+      },
+      keys = {
+         {
+            "<leader>ks",
+            function()
+               vim.ui.select({ "kilo", "claude" }, {
+                  prompt = "Select AI CLI",
+                  format_item = function(item)
+                     return item == current_cli and item .. " (current)" or item
+                  end,
+               }, function(choice)
+                  if choice then current_cli = choice end
+               end)
+            end,
+            desc = "Select AI CLI",
+         },
+         {
+            "<leader>kk",
+            function() require("sidekick.cli").toggle({ name = current_cli, focus = true }) end,
+            desc = "Toggle Kilo CLI",
+         },
+         {
+            "<leader>kd",
+            function() require("sidekick.cli").close() end,
+            desc = "Detach Kilo CLI",
+         },
+         {
+            "<leader>kt",
+            function() require("sidekick.cli").send({ name = current_cli, msg = "{this}" }) end,
+            mode = { "x", "n" },
+            desc = "Send This to Kilo",
+         },
+         {
+            "<leader>kf",
+            function() require("sidekick.cli").send({ name = current_cli, msg = "{file}" }) end,
+            desc = "Send File to Kilo",
+         },
+         {
+            "<leader>kv",
+            function() require("sidekick.cli").send({ name = current_cli, msg = "{selection}" }) end,
+            mode = { "x" },
+            desc = "Send Selection to Kilo",
+         },
+         {
+            "<leader>kp",
+            function() require("sidekick.cli").prompt({ name = current_cli }) end,
+            mode = { "n", "x" },
+            desc = "Kilo Prompt",
+         },
+      },
+   },
    {
       "coder/claudecode.nvim",
       dependencies = { "folke/snacks.nvim" },

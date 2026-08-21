@@ -37,11 +37,17 @@ watch_timer:start(
    end)
 )
 
--- Notify when files are reloaded (uses Snacks if available)
+-- Notify when files are reloaded (uses Snacks if available) with debounce
+local last_reload_notify = {}
 vim.api.nvim_create_autocmd("FileChangedShellPost", {
    pattern = "*",
    callback = function(args)
       local filename = vim.fn.fnamemodify(args.file, ":t")
+      local now = vim.uv.now()
+      if last_reload_notify[filename] and (now - last_reload_notify[filename]) < 3000 then
+         return
+      end
+      last_reload_notify[filename] = now
       local snacks_ok, snacks = pcall(require, "snacks")
       if snacks_ok and snacks.notify then
          snacks.notify.info("Agent updated: " .. filename, {

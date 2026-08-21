@@ -31,7 +31,7 @@ return {
             javascript = { "prettierd" },
             javascriptreact = { "prettierd" },
             json = { "prettierd" },
-            jsonc = { "prettierd" },
+            jsonc = { "prettierd_jsonc" },
             lua = { "stylua" },
             markdown = { "prettierd" },
             python = { "ruff_fix", "ruff_format" },
@@ -65,7 +65,11 @@ return {
             shfmt = { prepend_args = { "-i", "4" } },
             prettierd = {
                prepend_args = { "--single-quote=false", "--print-width=120", "--prose-wrap=always" },
-               append_args = {},
+            },
+            prettierd_jsonc = {
+               command = "prettierd",
+               args = { "--trailing-comma=none", "--stdin-filepath", "$FILENAME" },
+               stdin = true,
             },
             taplo = {
                append_args = {
