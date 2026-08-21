@@ -1,6 +1,6 @@
 # Windows Dotfiles Installation Script
 # Run as: powershell -ExecutionPolicy Bypass -File install.ps1
-# Requires: Developer Mode enabled OR run as Administrator
+# Uses directory junctions (no special permissions required)
 
 param(
     [switch]$Force,
@@ -25,7 +25,7 @@ function Write-Done {
     Write-Host "   OK: $Message" -ForegroundColor Green
 }
 
-function New-Symlink {
+function New-Junction {
     param(
         [string]$Link,
         [string]$Target
@@ -42,7 +42,7 @@ function New-Symlink {
 
     if (Test-Path $Link) {
         $existing = Get-Item $Link -Force
-        if ($existing.LinkType -eq "SymbolicLink") {
+        if ($existing.LinkType -eq "Junction") {
             $currentTarget = $existing.Target
             if ($currentTarget -eq $Target) {
                 Write-Skip "$Link already linked correctly"
@@ -54,7 +54,11 @@ function New-Symlink {
             if ($DryRun) {
                 Write-Host "   Would remove: $Link" -ForegroundColor Gray
             } else {
-                Remove-Item $Link -Recurse -Force
+                # For junctions, use rmdir to remove just the link, not the target contents
+                cmd /c "rmdir `"$Link`"" 2>$null
+                if (Test-Path $Link) {
+                    Remove-Item $Link -Recurse -Force
+                }
             }
         } else {
             Write-Skip "$Link exists (use -Force to overwrite)"
@@ -65,59 +69,35 @@ function New-Symlink {
     if ($DryRun) {
         Write-Host "   Would link: $Link -> $Target" -ForegroundColor Gray
     } else {
-        New-Item -ItemType SymbolicLink -Path $Link -Target $Target | Out-Null
-        Write-Done "$Link -> $Target"
+        # Use cmd mklink /J for directory junctions (no admin required)
+        $result = cmd /c "mklink /J `"$Link`" `"$Target`"" 2>&1
+        if ($LASTEXITCODE -eq 0) {
+            Write-Done "$Link -> $Target"
+        } else {
+            Write-Host "   ERROR: Failed to create junction: $result" -ForegroundColor Red
+        }
     }
-}
-
-# Check for symlink capability
-$testLink = "$env:TEMP\symlink_test_$(Get-Random)"
-$testTarget = "$env:TEMP"
-try {
-    New-Item -ItemType SymbolicLink -Path $testLink -Target $testTarget -ErrorAction Stop | Out-Null
-    Remove-Item $testLink -Force
-} catch {
-    Write-Host "ERROR: Cannot create symlinks." -ForegroundColor Red
-    Write-Host "Enable Developer Mode (Settings > Privacy & Security > For developers)" -ForegroundColor Yellow
-    Write-Host "Or run this script as Administrator." -ForegroundColor Yellow
-    exit 1
 }
 
 Write-Host ""
 Write-Host "Dotfiles Installer for Windows" -ForegroundColor Magenta
 Write-Host "===============================" -ForegroundColor Magenta
 Write-Host "Source: $dotfiles"
+Write-Host "Method: Directory junctions (no admin required)"
 if ($DryRun) { Write-Host "(DRY RUN - no changes will be made)" -ForegroundColor Yellow }
 Write-Host ""
 
 # Neovim
 Write-Status "Neovim"
-New-Symlink -Link "$env:LOCALAPPDATA\nvim" -Target "$dotfiles\.config\nvim"
+New-Junction -Link "$env:LOCALAPPDATA\nvim" -Target "$dotfiles\.config\nvim"
 
 # Yazi file manager
 Write-Status "Yazi"
-New-Symlink -Link "$env:APPDATA\yazi\config" -Target "$dotfiles\.config\yazi"
+New-Junction -Link "$env:APPDATA\yazi\config" -Target "$dotfiles\.config\yazi"
 
 # Eza (ls replacement)
 Write-Status "Eza"
-New-Symlink -Link "$env:APPDATA\eza" -Target "$dotfiles\.config\eza"
-
-# Claude Code
-Write-Status "Claude Code"
-New-Symlink -Link "$env:USERPROFILE\.claude" -Target "$dotfiles\.claude"
-
-# Git config (if exists)
-if (Test-Path "$dotfiles\.gitconfig") {
-    Write-Status "Git"
-    New-Symlink -Link "$env:USERPROFILE\.gitconfig" -Target "$dotfiles\.gitconfig"
-}
-
-# Windows Terminal settings (optional - uncomment if you have settings)
-# Write-Status "Windows Terminal"
-# $wtPath = Get-ChildItem "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_*\LocalState" -ErrorAction SilentlyContinue | Select-Object -First 1
-# if ($wtPath) {
-#     New-Symlink -Link "$($wtPath.FullName)\settings.json" -Target "$dotfiles\windows-terminal\settings.json"
-# }
+New-Junction -Link "$env:APPDATA\eza" -Target "$dotfiles\.config\eza"
 
 Write-Host ""
 Write-Host "Installation complete!" -ForegroundColor Green

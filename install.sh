@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # macOS/Linux Dotfiles Installation Script
-# Run as: ./install.sh [-f|--force] [-n|--dry-run]
+# Run as: bash install.sh [-f|--force] [-n|--dry-run]
 
 set -e
 
@@ -75,46 +75,6 @@ symlink "$DOTFILES/.config/yazi" "$HOME/.config/yazi"
 status "Eza"
 symlink "$DOTFILES/.config/eza" "$HOME/.config/eza"
 
-# Tmux
-status "Tmux"
-symlink "$DOTFILES/.config/tmux" "$HOME/.config/tmux"
-
-# Ghostty terminal
-status "Ghostty"
-symlink "$DOTFILES/.config/ghostty" "$HOME/.config/ghostty"
-
-# Bash config
-status "Bash"
-symlink "$DOTFILES/.config/bash" "$HOME/.config/bash"
-
-# Inputrc
-status "Inputrc"
-symlink "$DOTFILES/.config/.inputrc" "$HOME/.inputrc"
-
-# Claude Code
-status "Claude Code"
-symlink "$DOTFILES/.claude" "$HOME/.claude"
-
-# Conda
-status "Conda"
-symlink "$DOTFILES/.config/conda" "$HOME/.config/conda"
-
-# Pixi
-status "Pixi"
-symlink "$DOTFILES/.config/pixi" "$HOME/.config/pixi"
-
-# Colima (macOS only)
-if [[ "$(uname)" == "Darwin" ]]; then
-    status "Colima"
-    symlink "$DOTFILES/.colima" "$HOME/.colima"
-fi
-
-# Git config (if exists)
-if [[ -f "$DOTFILES/.gitconfig" ]]; then
-    status "Git"
-    symlink "$DOTFILES/.gitconfig" "$HOME/.gitconfig"
-fi
-
 echo ""
 echo -e "\033[32mInstallation complete!\033[0m"
 echo ""
@@ -125,4 +85,5 @@ else
     echo "  1. Install Neovim:  sudo apt install neovim (or your package manager)"
 fi
 echo "  2. Install tools:   Open Neovim and run :Mason"
-echo "  3. Install debugpy: pip install debugpy"
+echo "  3. Install Python:  brew install python (or your package manager)"
+echo "  4. Install debugpy: pip install debugpy"

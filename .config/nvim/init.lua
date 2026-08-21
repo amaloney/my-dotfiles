@@ -4,6 +4,13 @@
 vim.g.mapleader = " "
 vim.g.maplocalleader = "\\"
 
+-- Python provider (cross-platform)
+if vim.fn.has("win32") == 1 then
+   vim.g.python3_host_prog = vim.fn.exepath("python")
+else
+   vim.g.python3_host_prog = vim.fn.exepath("python3")
+end
+
 -- Faster buffer refresh for agent-modified files
 vim.opt.autoread = true
 vim.opt.updatetime = 100
@@ -89,6 +96,7 @@ vim.opt.whichwrap:append("<,>,h,l,[,]") -- handle moving the cursor between line
 vim.api.nvim_set_keymap("n", "<C-h>", "<CMD>tabp<CR>", { noremap = true }) -- move the tab focus to the left
 vim.api.nvim_set_keymap("n", "<C-l>", "<CMD>tabn<CR>", { noremap = true }) -- move the tab focus to the right
 vim.api.nvim_set_keymap("n", "<C-n>", "<CMD>tabnew<CR>", { noremap = true }) -- create a new tab
+vim.api.nvim_set_keymap("n", "<leader>R", "<CMD>e<CR>", { noremap = true }) -- manual reload
 
 require("config.lazy")
 
