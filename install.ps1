@@ -13,7 +13,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-$dotfiles = $PSScriptRoot
+$dotfiles = if ($PSScriptRoot) { $PSScriptRoot } else { $PWD.Path }
 
 function Write-Status {
     param([string]$Message, [string]$Color = "Cyan")
@@ -217,7 +217,7 @@ if (-not (Test-Path $ezaSource)) {
     New-Junction -Link $ezaPath -Target $ezaSource
 }
 
-# PowerShell profile
+# PowerShell profile (copy, since symlinks require admin)
 Write-Status "PowerShell Profile"
 $psProfileSource = "$dotfiles\.config\powershell\Microsoft.PowerShell_profile.ps1"
 $psProfileDir = "$env:USERPROFILE\Documents\PowerShell"
@@ -233,31 +233,31 @@ if (-not (Test-Path $psProfileSource)) {
         }
     }
     if (Test-Path $psProfilePath) {
-        $existing = Get-Item $psProfilePath -Force -ErrorAction SilentlyContinue
-        if ($existing.LinkType -eq "SymbolicLink" -or $existing.LinkType -eq "HardLink") {
-            Write-Skip "$psProfilePath already linked"
+        $sourceHash = (Get-FileHash $psProfileSource).Hash
+        $destHash = (Get-FileHash $psProfilePath).Hash
+        if ($sourceHash -eq $destHash) {
+            Write-Skip "$psProfilePath already up to date"
         } elseif ($Force) {
-            if (-not $DryRun) { Remove-Item $psProfilePath -Force }
             if ($DryRun) {
-                Write-Host "   Would link: $psProfilePath -> $psProfileSource" -ForegroundColor Gray
+                Write-Host "   Would copy: $psProfileSource -> $psProfilePath" -ForegroundColor Gray
             } else {
-                New-Item -ItemType SymbolicLink -Path $psProfilePath -Target $psProfileSource -Force | Out-Null
-                Write-Done "$psProfilePath -> $psProfileSource"
+                Copy-Item $psProfileSource $psProfilePath -Force
+                Write-Done "Updated $psProfilePath"
             }
         } else {
             Write-Skip "$psProfilePath exists (use -Force to overwrite)"
         }
     } else {
         if ($DryRun) {
-            Write-Host "   Would link: $psProfilePath -> $psProfileSource" -ForegroundColor Gray
+            Write-Host "   Would copy: $psProfileSource -> $psProfilePath" -ForegroundColor Gray
         } else {
-            New-Item -ItemType SymbolicLink -Path $psProfilePath -Target $psProfileSource -Force | Out-Null
-            Write-Done "$psProfilePath -> $psProfileSource"
+            Copy-Item $psProfileSource $psProfilePath
+            Write-Done "Copied to $psProfilePath"
         }
     }
 }
 
-# Starship config
+# Starship config (copy, since symlinks require admin)
 Write-Status "Starship Config"
 $starshipSource = "$dotfiles\.config\starship.toml"
 $starshipPath = "$env:USERPROFILE\.config\starship.toml"
@@ -273,26 +273,26 @@ if (-not (Test-Path $starshipSource)) {
         }
     }
     if (Test-Path $starshipPath) {
-        $existing = Get-Item $starshipPath -Force -ErrorAction SilentlyContinue
-        if ($existing.LinkType -eq "SymbolicLink" -or $existing.LinkType -eq "HardLink") {
-            Write-Skip "$starshipPath already linked"
+        $sourceHash = (Get-FileHash $starshipSource).Hash
+        $destHash = (Get-FileHash $starshipPath).Hash
+        if ($sourceHash -eq $destHash) {
+            Write-Skip "$starshipPath already up to date"
         } elseif ($Force) {
-            if (-not $DryRun) { Remove-Item $starshipPath -Force }
             if ($DryRun) {
-                Write-Host "   Would link: $starshipPath -> $starshipSource" -ForegroundColor Gray
+                Write-Host "   Would copy: $starshipSource -> $starshipPath" -ForegroundColor Gray
             } else {
-                New-Item -ItemType SymbolicLink -Path $starshipPath -Target $starshipSource -Force | Out-Null
-                Write-Done "$starshipPath -> $starshipSource"
+                Copy-Item $starshipSource $starshipPath -Force
+                Write-Done "Updated $starshipPath"
             }
         } else {
             Write-Skip "$starshipPath exists (use -Force to overwrite)"
         }
     } else {
         if ($DryRun) {
-            Write-Host "   Would link: $starshipPath -> $starshipSource" -ForegroundColor Gray
+            Write-Host "   Would copy: $starshipSource -> $starshipPath" -ForegroundColor Gray
         } else {
-            New-Item -ItemType SymbolicLink -Path $starshipPath -Target $starshipSource -Force | Out-Null
-            Write-Done "$starshipPath -> $starshipSource"
+            Copy-Item $starshipSource $starshipPath
+            Write-Done "Copied to $starshipPath"
         }
     }
 }
