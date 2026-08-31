@@ -1,6 +1,9 @@
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # ~/.bashrc
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# readline configuration
+export INPUTRC=$HOME/.config/.inputrc
+
 # conda functions
 [[ -f ~/useful-conda-functions ]] &&
     source ~/useful-conda-functions
@@ -97,12 +100,11 @@ if hash starship 2>/dev/null; then
     eval "$(starship init bash)"
 fi
 
-# # Activate pixi
-# function pixi_activate() {
-#     # default to current directory if no path is given
-#     local manifest_path="${1:-.}"
-#     eval "$(pixi shell-hook --manifest-path $manifest_path --environment dev)"
-# }
+# activate pixi in current shell (preserves readline, unlike `pixi shell`)
+pixi-activate() {
+    local manifest_path="${1:-.}"
+    eval "$(pixi shell-hook --manifest-path "$manifest_path")"
+}
 
 append_path $PIXI/bin
 append_path $CARGO_HOME/bin

@@ -76,7 +76,17 @@ return {
          enabled = true,
          exclude = exclude,
          sources = {
-            explorer = { hidden = true, ignored = true },
+            explorer = {
+               hidden = true,
+               ignored = true,
+               win = {
+                  list = {
+                     keys = {
+                        ["<C-h>"] = { "edit_split", mode = { "n", "i" } },
+                     },
+                  },
+               },
+            },
             files = { hidden = true, ignored = true },
             grep = { hidden = true, follow = true },
          },

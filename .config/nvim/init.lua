@@ -65,6 +65,13 @@ vim.api.nvim_create_autocmd("FileChangedShellPost", {
 vim.opt.spell = true -- enable spell checking
 vim.opt.spelllang = "en_us" -- using English
 
+-- Disable spell checking in terminal buffers
+vim.api.nvim_create_autocmd("TermOpen", {
+   callback = function()
+      vim.opt_local.spell = false
+   end,
+})
+
 -- Searches
 vim.opt.hlsearch = true -- highlight all matches
 vim.opt.ignorecase = true -- ignore the case of letters
@@ -103,6 +110,15 @@ vim.api.nvim_set_keymap("n", "<C-h>", "<CMD>tabp<CR>", { noremap = true }) -- mo
 vim.api.nvim_set_keymap("n", "<C-l>", "<CMD>tabn<CR>", { noremap = true }) -- move the tab focus to the right
 vim.api.nvim_set_keymap("n", "<C-n>", "<CMD>tabnew<CR>", { noremap = true }) -- create a new tab
 vim.api.nvim_set_keymap("n", "<leader>R", "<CMD>e<CR>", { noremap = true }) -- manual reload
+
+-- Terminal splits: <C-t><C-h> horizontal, <C-t><C-v> vertical
+vim.keymap.set("n", "<C-t><C-h>", "<CMD>botright split | terminal<CR>", { desc = "Terminal horizontal split" })
+vim.keymap.set("n", "<C-t><C-v>", "<CMD>botright vsplit | terminal<CR>", { desc = "Terminal vertical split" })
+vim.keymap.set("n", "<C-t><C-t>", "<CMD>terminal<CR>", { desc = "Terminal in current window" })
+
+-- Terminal mode keymaps
+vim.keymap.set("t", "<C-d>", "<C-\\><C-n>:bd!<CR>", { desc = "Close terminal" })
+vim.keymap.set("t", "<Esc><Esc>", "<C-\\><C-n>", { desc = "Exit terminal mode" })
 
 require("config.lazy")
 

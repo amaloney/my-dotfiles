@@ -1,4 +1,9 @@
 $include /etc/inputrc
 
+# history search - CSI format (normal mode)
 "\e[A":history-search-backward
 "\e[B":history-search-forward
+
+# history search - SS3 format (application keypad mode, used by ghostty/starship)
+"\eOA":history-search-backward
+"\eOB":history-search-forward

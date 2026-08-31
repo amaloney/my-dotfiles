@@ -9,6 +9,9 @@ return {
       lazy = true,
       opts = {
          cli = {
+            win = {
+               layout = "bottom",
+            },
             tools = {
                kilo = { cmd = { "sh", "-c", "kilo auth login && kilo" } },
                claude = { cmd = { "claude" } },
