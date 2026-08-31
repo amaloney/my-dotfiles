@@ -147,6 +147,16 @@ symlink "$DOTFILES/.config/eza" "$CONFIG_BASE/eza"
 status "Starship Config"
 symlink "$DOTFILES/.config/starship.toml" "$CONFIG_BASE/starship.toml"
 
+# Pixi config
+status "Pixi Config"
+symlink "$DOTFILES/.config/pixi" "$CONFIG_BASE/pixi"
+
+# Conda config (user only, not system-wide)
+if ! $SYSTEM; then
+    status "Condarc"
+    symlink "$DOTFILES/.config/conda/.condarc" "$HOME/.condarc"
+fi
+
 # Bash config (user only, not system-wide)
 if ! $SYSTEM; then
     status "Bash Profile"

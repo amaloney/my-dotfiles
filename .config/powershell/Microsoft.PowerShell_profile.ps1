@@ -23,10 +23,21 @@ Set-Alias -Name vi -Value nvim
 # eza (if installed)
 if (Get-Command eza -ErrorAction SilentlyContinue) {
     Remove-Item Alias:ls -ErrorAction SilentlyContinue
-    function ls { eza --icons @args }
-    function ll { eza -la --icons @args }
-    function la { eza -a --icons @args }
-    function lt { eza --tree --icons @args }
+    function ls { eza --icons=auto @args }
+    function ll { eza -la --icons=auto @args }
+    function la { eza -a --icons=auto @args }
+    function lt { eza --tree --icons=auto @args }
+}
+
+# Activate pixi in current shell (preserves readline, unlike `pixi shell`)
+function pixi-activate {
+    param([string]$ManifestPath = ".")
+    $hook = pixi shell-hook --manifest-path $ManifestPath
+    Invoke-Expression $hook
+    # Set CONDA_DEFAULT_ENV for starship (project-env format)
+    if ($env:PIXI_PROJECT_NAME) {
+        $env:CONDA_DEFAULT_ENV = "$($env:PIXI_PROJECT_NAME)-$($env:PIXI_ENVIRONMENT_NAME)"
+    }
 }
 
 # Starship prompt

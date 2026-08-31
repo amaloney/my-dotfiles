@@ -297,6 +297,78 @@ if (-not (Test-Path $starshipSource)) {
     }
 }
 
+# Pixi config (copy to %APPDATA%\pixi)
+Write-Status "Pixi Config"
+$pixiSource = "$dotfiles\.config\pixi\config.toml"
+$pixiDir = "$env:APPDATA\pixi"
+$pixiPath = "$pixiDir\config.toml"
+if (-not (Test-Path $pixiSource)) {
+    Write-Host "   ERROR: Source not found: $pixiSource" -ForegroundColor Red
+} else {
+    if (-not (Test-Path $pixiDir)) {
+        if ($DryRun) {
+            Write-Host "   Would create directory: $pixiDir" -ForegroundColor Gray
+        } else {
+            New-Item -ItemType Directory -Path $pixiDir -Force | Out-Null
+        }
+    }
+    if (Test-Path $pixiPath) {
+        $sourceHash = (Get-FileHash $pixiSource).Hash
+        $destHash = (Get-FileHash $pixiPath).Hash
+        if ($sourceHash -eq $destHash) {
+            Write-Skip "$pixiPath already up to date"
+        } elseif ($Force) {
+            if ($DryRun) {
+                Write-Host "   Would copy: $pixiSource -> $pixiPath" -ForegroundColor Gray
+            } else {
+                Copy-Item $pixiSource $pixiPath -Force
+                Write-Done "Updated $pixiPath"
+            }
+        } else {
+            Write-Skip "$pixiPath exists (use -Force to overwrite)"
+        }
+    } else {
+        if ($DryRun) {
+            Write-Host "   Would copy: $pixiSource -> $pixiPath" -ForegroundColor Gray
+        } else {
+            Copy-Item $pixiSource $pixiPath
+            Write-Done "Copied to $pixiPath"
+        }
+    }
+}
+
+# Conda config (copy to %USERPROFILE%\.condarc)
+Write-Status "Condarc"
+$condaSource = "$dotfiles\.config\conda\.condarc"
+$condaPath = "$env:USERPROFILE\.condarc"
+if (-not (Test-Path $condaSource)) {
+    Write-Host "   ERROR: Source not found: $condaSource" -ForegroundColor Red
+} else {
+    if (Test-Path $condaPath) {
+        $sourceHash = (Get-FileHash $condaSource).Hash
+        $destHash = (Get-FileHash $condaPath).Hash
+        if ($sourceHash -eq $destHash) {
+            Write-Skip "$condaPath already up to date"
+        } elseif ($Force) {
+            if ($DryRun) {
+                Write-Host "   Would copy: $condaSource -> $condaPath" -ForegroundColor Gray
+            } else {
+                Copy-Item $condaSource $condaPath -Force
+                Write-Done "Updated $condaPath"
+            }
+        } else {
+            Write-Skip "$condaPath exists (use -Force to overwrite)"
+        }
+    } else {
+        if ($DryRun) {
+            Write-Host "   Would copy: $condaSource -> $condaPath" -ForegroundColor Gray
+        } else {
+            Copy-Item $condaSource $condaPath
+            Write-Done "Copied to $condaPath"
+        }
+    }
+}
+
 # Install tools (unless skipped or update-only mode)
 if (-not $SkipTools -and -not $Update) {
     Write-Host ""

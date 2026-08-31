@@ -136,6 +136,7 @@ symbol = " "
 [conda]
 format = '[$symbol$environment ]($style)'
 style = 'bold fg:green bg:color_bg'
+ignore_base = false
 symbol = " "
 
 [container]

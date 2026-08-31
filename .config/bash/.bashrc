@@ -104,6 +104,10 @@ fi
 pixi-activate() {
     local manifest_path="${1:-.}"
     eval "$(pixi shell-hook --manifest-path "$manifest_path")"
+    # set CONDA_DEFAULT_ENV for starship (project-env format)
+    if [[ -n "$PIXI_PROJECT_NAME" ]]; then
+        export CONDA_DEFAULT_ENV="${PIXI_PROJECT_NAME}-${PIXI_ENVIRONMENT_NAME}"
+    fi
 }
 
 append_path $PIXI/bin
