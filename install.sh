@@ -143,6 +143,28 @@ symlink "$DOTFILES/.config/yazi" "$CONFIG_BASE/yazi"
 status "Eza"
 symlink "$DOTFILES/.config/eza" "$CONFIG_BASE/eza"
 
+# Starship config
+status "Starship Config"
+symlink "$DOTFILES/.config/starship.toml" "$CONFIG_BASE/starship.toml"
+
+# Bash config (user only, not system-wide)
+if ! $SYSTEM; then
+    status "Bash Profile"
+    symlink "$DOTFILES/.config/bash/.bash_profile" "$HOME/.bash_profile"
+
+    status "Bashrc"
+    symlink "$DOTFILES/.config/bash/.bashrc" "$HOME/.bashrc"
+
+    status "Bash Aliases"
+    symlink "$DOTFILES/.config/bash/.bash-aliases" "$HOME/.bash-aliases"
+
+    status "Bash Functions"
+    symlink "$DOTFILES/.config/bash/.bashrc-functions" "$HOME/.bashrc-functions"
+
+    status "Inputrc"
+    symlink "$DOTFILES/.config/.inputrc" "$HOME/.config/.inputrc"
+fi
+
 # Install tools (unless skipped or update-only mode)
 if ! $SKIP_TOOLS && ! $UPDATE; then
     echo ""
@@ -184,6 +206,7 @@ if ! $SKIP_TOOLS && ! $UPDATE; then
     fi
 
     install_tool "Eza" "eza" "eza" "eza"
+    install_tool "Starship" "starship" "starship" "starship"
 
     # Nerd Font - download and install SauceCodePro Nerd Font
     status "Nerd Font (SauceCodePro)"
