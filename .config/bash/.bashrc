@@ -41,6 +41,9 @@ shopt -s checkwinsize
 export EDITOR=nvim
 export MANPAGER="nvim +Man!"
 export VISUAL=nvim
+
+# prevent conda from modifying prompt (let starship handle it)
+export CONDA_CHANGEPS1=false
 export TERM=xterm-ghostty
 
 # PATH updates
