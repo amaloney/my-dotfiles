@@ -12,6 +12,8 @@ return {
       dependencies = {
          "nvim-mini/mini.snippets",
          "rafamadriz/friendly-snippets",
+         { "saghen/blink.compat", version = "*", opts = {} },
+         "rcarriga/cmp-dap",
       },
       opts = {
          completion = {
@@ -20,6 +22,10 @@ return {
          },
          sources = {
             default = { "lsp", "path", "snippets", "buffer" },
+            per_filetype = { ["dap-repl"] = { "dap" } },
+            providers = {
+               dap = { name = "dap", module = "blink.compat.source" },
+            },
          },
          keymap = {
             ["<Tab>"] = { "select_and_accept", "fallback" },

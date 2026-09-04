@@ -27,6 +27,11 @@ return {
                   type = "executable",
                })
             end,
+            debugpy_attach = {
+               type = "server",
+               host = "127.0.0.1",
+               port = 5678,
+            },
          }
          local configurations = {
             {
@@ -34,7 +39,7 @@ return {
                type = "python",
                request = "launch",
                program = "${file}",
-               justMyCode = false,
+               justMyCode = true,
                cwd = "${fileDirname}",
                console = "integratedTerminal",
             },
@@ -43,13 +48,19 @@ return {
                type = "python",
                request = "launch",
                program = "${file}",
-               justMyCode = false,
+               justMyCode = true,
                cwd = "${fileDirname}",
                console = "integratedTerminal",
                args = function()
                   local input = vim.fn.input("Arguments: ")
                   return vim.split(input, " ", { trimempty = true })
                end,
+            },
+            {
+               name = "Attach: debugpy (5678)",
+               type = "debugpy_attach",
+               request = "attach",
+               justMyCode = true,
             },
          }
          opts.python = { adapters = adapters, configurations = configurations }
@@ -65,7 +76,7 @@ return {
       },
       opts = {
          ["neotest-python"] = {
-            dap = { justMyCode = false, console = "integratedTerminal" },
+            dap = { justMyCode = true, console = "integratedTerminal" },
             python = python_exe,
             -- pytest_discover_instances = true,
             args = function(_, position)
