@@ -75,6 +75,7 @@ return {
       picker = {
          enabled = true,
          exclude = exclude,
+         focus = "list",
          sources = {
             explorer = {
                hidden = true,

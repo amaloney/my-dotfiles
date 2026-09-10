@@ -61,6 +61,15 @@ vim.api.nvim_create_autocmd("FileChangedShellPost", {
    end,
 })
 
+-- Treat Jinja-templated files with compound filetypes
+vim.filetype.add({
+   pattern = {
+      [".*%.md%.j2"] = "markdown.jinja",
+      [".*%.yaml%.j2"] = "yaml.jinja",
+      [".*%.yml%.j2"] = "yaml.jinja",
+   },
+})
+
 -- Spelling
 vim.opt.spell = true -- enable spell checking
 vim.opt.spelllang = "en_us" -- using English

@@ -106,7 +106,9 @@ fi
 # activate pixi in current shell (preserves readline, unlike `pixi shell`)
 pixi-activate() {
     local manifest_path="${1:-.}"
-    eval "$(pixi shell-hook --manifest-path "$manifest_path")"
+    local env_arg=""
+    [[ -n "$2" ]] && env_arg="--environment $2"
+    eval "$(pixi shell-hook --manifest-path "$manifest_path" $env_arg)"
     # set CONDA_DEFAULT_ENV for starship (project-env format)
     if [[ -n "$PIXI_PROJECT_NAME" ]]; then
         export CONDA_DEFAULT_ENV="${PIXI_PROJECT_NAME}-${PIXI_ENVIRONMENT_NAME}"

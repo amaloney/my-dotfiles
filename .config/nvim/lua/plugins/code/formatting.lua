@@ -13,7 +13,7 @@ return {
             "WhoIsSethDaniel/mason-tool-installer.nvim",
             opts = {
                ensure_installed = {
-                  "prettierd",
+                  "prettier",
                   "shfmt",
                   "stylua",
                   "ruff",
@@ -26,20 +26,22 @@ return {
       opts = {
          formatters_by_ft = {
             bash = { "shfmt" },
-            css = { "prettierd" },
-            html = { "prettierd" },
-            javascript = { "prettierd" },
-            javascriptreact = { "prettierd" },
-            json = { "prettierd" },
-            jsonc = { "prettierd_jsonc" },
+            css = { "prettier" },
+            html = { "prettier" },
+            javascript = { "prettier" },
+            javascriptreact = { "prettier" },
+            json = { "prettier" },
+            jsonc = { "prettier_jsonc" },
             lua = { "stylua" },
-            markdown = { "prettierd" },
+            markdown = { "prettier" },
+            ["markdown.jinja"] = { "prettier_markdown" },
+            ["yaml.jinja"] = { "prettier_yaml" },
             python = { "ruff_fix", "ruff_format" },
             sh = { "shfmt" },
             toml = { "taplo" },
-            typescript = { "prettierd" },
-            typescriptreact = { "prettierd" },
-            yaml = { "prettierd" },
+            typescript = { "prettier" },
+            typescriptreact = { "prettier" },
+            yaml = { "prettier" },
          },
          default_format_opts = {
             lsp_format = "fallback",
@@ -63,12 +65,23 @@ return {
          end,
          formatters = {
             shfmt = { prepend_args = { "-i", "4" } },
-            prettierd = {
+            prettier = {
+               command = vim.fn.stdpath("data") .. "/mason/bin/prettier",
                prepend_args = { "--single-quote=false", "--print-width=120", "--prose-wrap=always" },
             },
-            prettierd_jsonc = {
-               command = "prettierd",
-               args = { "--trailing-comma=none", "--stdin-filepath", "$FILENAME" },
+            prettier_markdown = {
+               command = vim.fn.stdpath("data") .. "/mason/bin/prettier",
+               args = { "--parser", "markdown", "--prose-wrap", "always", "--print-width", "120" },
+               stdin = true,
+            },
+            prettier_yaml = {
+               command = vim.fn.stdpath("data") .. "/mason/bin/prettier",
+               args = { "--parser", "yaml" },
+               stdin = true,
+            },
+            prettier_jsonc = {
+               command = vim.fn.stdpath("data") .. "/mason/bin/prettier",
+               args = { "--parser", "json", "--trailing-comma", "none" },
                stdin = true,
             },
             taplo = {

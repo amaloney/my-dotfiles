@@ -66,11 +66,27 @@ return {
    -- Preview Markdown in your modern browser with synchronized scrolling and flexible configuration
    {
       "iamcco/markdown-preview.nvim",
-      cmd = { "MarkdownPreviewToggle", "MarkdownPreview", "MarkdownPreviewStop" },
+      cmd = { "MarkdownPreviewToggle", "MarkdownPreview", "MarkdownPreviewStop", "JinjaMarkdownPreview" },
       build = "cd app && yarn install",
       init = function()
-         vim.g.mkdp_filetypes = { "markdown" }
+         vim.g.mkdp_filetypes = { "markdown", "markdown.jinja" }
+
+         vim.api.nvim_create_user_command("JinjaMarkdownPreview", function()
+            local script = vim.fn.stdpath("config") .. "/scripts/jinja-render.py"
+            local src = vim.fn.expand("%:p")
+            local tmp = vim.fn.tempname() .. ".md"
+
+            local result = vim.fn.system({ "python3", script, src })
+            if vim.v.shell_error ~= 0 then
+               vim.notify("Jinja render failed:\n" .. result, vim.log.levels.ERROR)
+               return
+            end
+
+            vim.fn.writefile(vim.split(result, "\n"), tmp)
+            vim.cmd("edit " .. tmp)
+            vim.cmd("MarkdownPreview")
+         end, { desc = "Preview Jinja-templated markdown" })
       end,
-      ft = { "markdown" },
+      ft = { "markdown", "markdown.jinja" },
    },
 }
