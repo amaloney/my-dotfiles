@@ -3,6 +3,47 @@
 -- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 local current_cli = vim.env.AI_CLI or "kilo"
 
+-- ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+-- Claude Code terminal layouts (snacks.nvim window options)
+-- ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+-- A size of 0 means "fill the parent" in snacks, so a vertical split is full height and a
+-- horizontal split is full width.
+local claude_layouts = {
+   vertical = { position = "right", width = 0.35, height = 0 },
+   horizontal = { position = "bottom", width = 0, height = 0.4 },
+}
+
+-- Layout used the last time the Claude terminal was opened.
+local claude_layout = "vertical"
+
+local function claude_win_opts(layout)
+   return vim.tbl_deep_extend("force", claude_layouts[layout] or claude_layouts.vertical, {
+      wo = {
+         winhighlight = "Normal:TerminalNormal,NormalNC:TerminalNormalNC",
+      },
+      -- keys = {
+      --    ["<C-h>"] = { "<C-\\><C-n><C-w>h", mode = "t", expr = false },
+      -- },
+   })
+end
+
+--- Toggle the Claude Code terminal using the given layout.
+---
+--- If a Claude terminal already exists in a different layout it is closed and relaunched
+--- with `--continue` so the conversation carries over into the new split.
+---@param layout? "vertical"|"horizontal" Defaults to the last used layout.
+---@param cmd_args? string Extra CLI arguments, e.g. "--resume".
+local function claude_toggle(layout, cmd_args)
+   layout = layout or claude_layout
+   local terminal = require("claudecode.terminal")
+   if layout ~= claude_layout and terminal.get_active_terminal_bufnr() then
+      terminal.close()
+      cmd_args = cmd_args or "--continue"
+   end
+   claude_layout = layout
+   terminal.toggle({ snacks_win_opts = claude_win_opts(layout) }, cmd_args)
+end
+
 return {
    {
       "folke/sidekick.nvim",
@@ -74,23 +115,19 @@ return {
       opts = {
          terminal_CMD = "~/.local/bin/claude",
          terminal = {
-            snacks_win_opts = {
-               wo = {
-                  winhighlight = "Normal:TerminalNormal,NormalNC:TerminalNormalNC",
-               },
-               -- keys = {
-               --    ["<C-h>"] = { "<C-\\><C-n><C-w>h", mode = "t", expr = false },
-               -- },
-            },
+            -- Default layout for the plain `:ClaudeCode` command.
+            snacks_win_opts = claude_win_opts(claude_layout),
          },
       },
       config = true,
       keys = {
          { "<leader>a", nil, desc = "AI/Claude Code" },
-         { "<leader>ac", "<CMD>ClaudeCode<CR>", desc = "Toggle Claude" },
+         { "<leader>ac", function() claude_toggle() end, desc = "Toggle Claude" },
+         { "<leader>av", function() claude_toggle("vertical") end, desc = "Toggle Claude (vertical split)" },
+         { "<leader>ah", function() claude_toggle("horizontal") end, desc = "Toggle Claude (horizontal split)" },
          { "<leader>af", "<CMD>ClaudeCodeFocus<CR>", desc = "Focus Claude" },
-         { "<leader>ar", "<CMD>ClaudeCode --resume<CR>", desc = "Resume Claude" },
-         { "<leader>aC", "<CMD>ClaudeCode --continue<CR>", desc = "Continue Claude" },
+         { "<leader>ar", function() claude_toggle(nil, "--resume") end, desc = "Resume Claude" },
+         { "<leader>aC", function() claude_toggle(nil, "--continue") end, desc = "Continue Claude" },
          { "<leader>am", "<CMD>ClaudeCodeSelectModel<CR>", desc = "Select Claude model" },
          { "<leader>ab", "<CMD>ClaudeCodeAdd %<CR>", desc = "Add current buffer" },
          { "<leader>as", "<CMD>ClaudeCodeSend<CR>", mode = "v", desc = "Send to Claude" },
