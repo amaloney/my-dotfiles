@@ -38,6 +38,7 @@ return {
             ["yaml.jinja"] = { "prettier_yaml" },
             python = { "ruff_fix", "ruff_format" },
             sh = { "shfmt" },
+            svg = { "html" },
             toml = { "taplo" },
             typescript = { "prettier" },
             typescriptreact = { "prettier" },
