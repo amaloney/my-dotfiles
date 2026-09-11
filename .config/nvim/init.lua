@@ -1,23 +1,20 @@
--- Make sure to setup `mapleader` and `maplocalleader` before
--- loading lazy.nvim so that mappings are correct.
--- This is also a good place to setup other settings (vim.opt)
 vim.g.mapleader = " "
 vim.g.maplocalleader = "\\"
 
--- Python provider (cross-platform)
-if vim.fn.has("win32") == 1 then
-   vim.g.python3_host_prog = vim.fn.exepath("python")
-else
-   vim.g.python3_host_prog = vim.fn.exepath("python3")
+-- Prepend Mason's bin to PATH early so LSP servers are found even when pixi/conda envs are active
+local mason_bin = vim.fn.stdpath("data") .. "/mason/bin"
+if vim.fn.isdirectory(mason_bin) == 1 then
+   vim.env.PATH = mason_bin .. ":" .. vim.env.PATH
 end
 
--- Faster buffer refresh for agent-modified files
+-- Python provider
+vim.g.python3_host_prog = vim.fn.exepath(vim.fn.has("win32") == 1 and "python" or "python3")
+
+-- File watching for agent-modified files
 vim.opt.autoread = true
 vim.opt.updatetime = 100
 
--- More aggressive file change detection
 vim.api.nvim_create_autocmd({ "FocusGained", "BufEnter", "CursorHold", "CursorHoldI", "VimResume" }, {
-   pattern = "*",
    callback = function()
       if vim.fn.mode() ~= "c" then
          vim.cmd("checktime")
@@ -25,22 +22,15 @@ vim.api.nvim_create_autocmd({ "FocusGained", "BufEnter", "CursorHold", "CursorHo
    end,
 })
 
--- Watch for file changes using a timer (catches agent modifications faster)
 local watch_timer = vim.uv.new_timer()
-watch_timer:start(
-   500,
-   500,
-   vim.schedule_wrap(function()
-      if vim.fn.mode() ~= "c" and vim.api.nvim_get_mode().mode ~= "c" then
-         pcall(vim.cmd, "checktime")
-      end
-   end)
-)
+watch_timer:start(500, 500, vim.schedule_wrap(function()
+   if vim.fn.mode() ~= "c" and vim.api.nvim_get_mode().mode ~= "c" then
+      pcall(vim.cmd, "checktime")
+   end
+end))
 
--- Notify when files are reloaded (uses Snacks if available) with debounce
 local last_reload_notify = {}
 vim.api.nvim_create_autocmd("FileChangedShellPost", {
-   pattern = "*",
    callback = function(args)
       local filename = vim.fn.fnamemodify(args.file, ":t")
       local now = vim.uv.now()
@@ -50,18 +40,14 @@ vim.api.nvim_create_autocmd("FileChangedShellPost", {
       last_reload_notify[filename] = now
       local snacks_ok, snacks = pcall(require, "snacks")
       if snacks_ok and snacks.notify then
-         snacks.notify.info("Agent updated: " .. filename, {
-            title = "File Reloaded",
-            icon = "󰚰",
-            timeout = 3000,
-         })
+         snacks.notify.info("Agent updated: " .. filename, { title = "File Reloaded", icon = "󰚰", timeout = 3000 })
       else
          vim.notify("Agent updated: " .. filename, vim.log.levels.INFO)
       end
    end,
 })
 
--- Treat Jinja-templated files with compound filetypes
+-- Filetypes
 vim.filetype.add({
    pattern = {
       [".*%.md%.j2"] = "markdown.jinja",
@@ -71,61 +57,50 @@ vim.filetype.add({
 })
 
 -- Spelling
-vim.opt.spell = true -- enable spell checking
-vim.opt.spelllang = "en_us" -- using English
+vim.opt.spell = true
+vim.opt.spelllang = "en_us"
+vim.api.nvim_create_autocmd("TermOpen", { callback = function() vim.opt_local.spell = false end })
 
--- Disable spell checking in terminal buffers
-vim.api.nvim_create_autocmd("TermOpen", {
-   callback = function()
-      vim.opt_local.spell = false
-   end,
-})
-
--- Searches
-vim.opt.hlsearch = true -- highlight all matches
-vim.opt.ignorecase = true -- ignore the case of letters
-vim.opt.incsearch = true -- show the pattern matches while typing
-vim.opt.smartcase = true -- ignore case when pattern contains lowercase letters only
-vim.api.nvim_set_keymap("n", "<leader>h", "<CMD>nohlsearch<CR>", { noremap = true })
-
--- Keyword completions in insert-mode
-vim.opt.infercase = true -- adjust the case of a match depending on the typed text
-
--- Brackets
-vim.opt.showmatch = true -- show matching brackets
+-- Search
+vim.opt.hlsearch = true
+vim.opt.ignorecase = true
+vim.opt.incsearch = true
+vim.opt.smartcase = true
+vim.opt.infercase = true
+vim.keymap.set("n", "<leader>h", "<CMD>nohlsearch<CR>")
 
 -- UI
-vim.opt.cursorline = true -- highlight the current line of the cursor
-vim.opt.ruler = true -- show the line and column number in the bottom right corner
-vim.opt.number = true -- show the line number
-vim.opt.numberwidth = 4 -- minimum number of columns to show for line numbers
-vim.opt.signcolumn = "yes" -- always show the sign column
-vim.opt.colorcolumn = { 121 } -- comma separated list of of columns to highlight
+vim.opt.cursorline = true
+vim.opt.ruler = true
+vim.opt.number = true
+vim.opt.numberwidth = 4
+vim.opt.signcolumn = "yes"
+vim.opt.colorcolumn = { 121 }
+vim.opt.showmatch = true
+vim.opt.showtabline = 2
 
--- UX
-vim.opt.autoindent = true -- automatically add indents
-vim.opt.breakindent = true -- indents at line breaks
-vim.opt.expandtab = true -- make the tab key insert spaces instead of tabs
-vim.opt.linebreak = true -- breaks lines at textwidth
-vim.opt.shiftwidth = 4 -- width of an indent measured in spaces
-vim.opt.smarttab = true -- indent by `shiftwidth` amount of spaces
-vim.opt.smartindent = true -- automatically add indents
-vim.opt.softtabstop = 0 -- do not simulate tab stops
-vim.opt.tabstop = 4 -- width of a tab character measured in spaces
-vim.opt.textwidth = 120 -- width of a single line
-vim.opt.swapfile = false -- disable swap files
-vim.opt.whichwrap:append("<,>,h,l,[,]") -- handle moving the cursor between lines more naturally
-vim.api.nvim_set_keymap("n", "<C-h>", "<CMD>tabp<CR>", { noremap = true }) -- move the tab focus to the left
-vim.api.nvim_set_keymap("n", "<C-l>", "<CMD>tabn<CR>", { noremap = true }) -- move the tab focus to the right
-vim.api.nvim_set_keymap("n", "<C-n>", "<CMD>tabnew<CR>", { noremap = true }) -- create a new tab
-vim.api.nvim_set_keymap("n", "<leader>R", "<CMD>e<CR>", { noremap = true }) -- manual reload
+-- Editing
+vim.opt.autoindent = true
+vim.opt.breakindent = true
+vim.opt.expandtab = true
+vim.opt.linebreak = true
+vim.opt.shiftwidth = 4
+vim.opt.smarttab = true
+vim.opt.smartindent = true
+vim.opt.softtabstop = 0
+vim.opt.tabstop = 4
+vim.opt.textwidth = 120
+vim.opt.swapfile = false
+vim.opt.whichwrap:append("<,>,h,l,[,]")
 
--- Terminal splits: <C-t><C-h> horizontal, <C-t><C-v> vertical
+-- Keymaps
+vim.keymap.set("n", "<C-h>", "<CMD>tabp<CR>")
+vim.keymap.set("n", "<C-l>", "<CMD>tabn<CR>")
+vim.keymap.set("n", "<C-n>", "<CMD>tabnew<CR>")
+vim.keymap.set("n", "<leader>R", "<CMD>e<CR>")
 vim.keymap.set("n", "<C-t><C-h>", "<CMD>botright split | terminal<CR>", { desc = "Terminal horizontal split" })
 vim.keymap.set("n", "<C-t><C-v>", "<CMD>botright vsplit | terminal<CR>", { desc = "Terminal vertical split" })
 vim.keymap.set("n", "<C-t><C-t>", "<CMD>terminal<CR>", { desc = "Terminal in current window" })
-
--- Terminal mode keymaps
 vim.keymap.set("t", "<C-d>", "<C-\\><C-n>:bd!<CR>", { desc = "Close terminal" })
 vim.keymap.set("t", "<Esc><Esc>", "<C-\\><C-n>", { desc = "Exit terminal mode" })
 
@@ -133,28 +108,8 @@ require("config.lazy")
 
 -- Colorscheme
 vim.opt.background = "dark"
-vim.cmd([[colorscheme gruvbox]])
-
--- Terminal background to match gruvbox hard contrast
+vim.cmd.colorscheme("gruvbox")
 vim.api.nvim_set_hl(0, "TerminalNormal", { bg = "#000000" })
 vim.api.nvim_set_hl(0, "TerminalNormalNC", { bg = "#1d2021" })
-
--- blink syntax highlighting on signature
 vim.api.nvim_set_hl(0, "BlinkCmpSignatureHelpActiveParameter", { link = "CursorLine" })
-
-vim.cmd([[set nofoldenable]])
-
--- vim.diagnostic.config({ virtual_text = false })
--- vim.opt.clipboard = "unnamedplus"
--- vim.opt.cmdheight = 1
--- vim.opt.completeopt = { "menuone", "preview", "noinsert", "noselect" }
--- vim.opt.conceallevel = 0
--- vim.opt.fileencoding = "utf-8"
--- vim.opt.history = 10000
--- vim.opt.pumheight = 10
--- vim.opt.showmode = false
-vim.opt.showtabline = 2 -- always show tab page labels
--- vim.opt.timeoutlen = 1000
--- vim.opt.wildignore = "*.o,*~,*.pyc"
--- vim.opt.wildmenu = true
--- vim.opt.wildmode = "list:longest,full"
+vim.opt.foldenable = false

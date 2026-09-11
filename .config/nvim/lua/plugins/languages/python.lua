@@ -1,69 +1,60 @@
 -- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 -- Python Language Server Protocol
 -- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-local python_exe = vim.fn.exepath("python")
+local python = require("lib.python")
 return {
-   {
-      "neovim/nvim-lspconfig",
-      opts = { enable = { "basedpyright" } },
-   },
-   {
-      "WhoIsSethDaniel/mason-tool-installer.nvim",
-      opts = { ensure_installed = { "basedpyright", "debugpy" } },
-   },
+   { "neovim/nvim-lspconfig", opts = { enable = { "basedpyright" } } },
+   { "WhoIsSethDaniel/mason-tool-installer.nvim", opts = { ensure_installed = { "basedpyright", "debugpy" } } },
    {
       "mfussenegger/nvim-dap",
       opts = function(_, opts)
-         local adapters = {
-            python = function(callback)
-               if vim.fn.executable("debugpy") == 0 then
-                  vim.notify("`debugpy` is not installed", vim.log.levels.ERROR)
-                  return
-               end
-               callback({
-                  args = { "-m", "debugpy.adapter" },
-                  command = python_exe,
-                  options = { source_filetype = "python" },
-                  type = "executable",
-               })
-            end,
-            debugpy_attach = {
-               type = "server",
-               host = "127.0.0.1",
-               port = 5678,
-            },
-         }
-         local configurations = {
-            {
-               name = "Launch: File",
-               type = "python",
-               request = "launch",
-               program = "${file}",
-               justMyCode = true,
-               cwd = "${fileDirname}",
-               console = "integratedTerminal",
-            },
-            {
-               name = "Launch: File with Args",
-               type = "python",
-               request = "launch",
-               program = "${file}",
-               justMyCode = true,
-               cwd = "${fileDirname}",
-               console = "integratedTerminal",
-               args = function()
-                  local input = vim.fn.input("Arguments: ")
-                  return vim.split(input, " ", { trimempty = true })
+         opts.python = {
+            adapters = {
+               python = function(callback)
+                  if vim.fn.executable("debugpy") == 0 then
+                     vim.notify("`debugpy` is not installed", vim.log.levels.ERROR)
+                     return
+                  end
+                  callback({
+                     args = { "-m", "debugpy.adapter" },
+                     command = python.get_exe(),
+                     options = { source_filetype = "python" },
+                     type = "executable",
+                  })
                end,
+               debugpy_attach = { type = "server", host = "127.0.0.1", port = 5678 },
             },
-            {
-               name = "Attach: debugpy (5678)",
-               type = "debugpy_attach",
-               request = "attach",
-               justMyCode = true,
+            configurations = {
+               {
+                  name = "Launch: File",
+                  type = "python",
+                  request = "launch",
+                  program = "${file}",
+                  justMyCode = true,
+                  cwd = "${fileDirname}",
+                  console = "integratedTerminal",
+               },
+               {
+                  name = "Launch: File with Args",
+                  type = "python",
+                  request = "launch",
+                  program = "${file}",
+                  justMyCode = true,
+                  cwd = "${fileDirname}",
+                  console = "integratedTerminal",
+                  args = function()
+                     local input = vim.fn.input("Arguments: ")
+                     return vim.split(input, " ", { trimempty = true })
+                  end,
+               },
+               {
+                  name = "Attach: debugpy (5678)",
+                  type = "debugpy_attach",
+                  request = "attach",
+                  justMyCode = true,
+               },
             },
          }
-         opts.python = { adapters = adapters, configurations = configurations }
       end,
    },
    {
@@ -77,8 +68,7 @@ return {
       opts = {
          ["neotest-python"] = {
             dap = { justMyCode = true, console = "integratedTerminal" },
-            python = python_exe,
-            -- pytest_discover_instances = true,
+            python = python.get_exe(),
             args = function(_, position)
                local Path = require("plenary.path")
                local elems = vim.split(position.path, Path.path.sep)
