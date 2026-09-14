@@ -56,7 +56,7 @@ return {
                win = { list = { keys = { ["<C-h>"] = { "edit_split", mode = { "n", "i" } } } } },
             },
             files = { hidden = true, ignored = true },
-            grep = { hidden = true, follow = true },
+            grep = { hidden = true, follow = true, args = { "--engine=auto" } },
          },
          layout = {
             cycle = true,
