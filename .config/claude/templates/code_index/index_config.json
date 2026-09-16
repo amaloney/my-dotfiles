@@ -1,0 +1,15 @@
+{
+  "source_patterns": ["**/*.py"],
+  "exclude_patterns": [
+    "**/test_*.py",
+    "**/*_test.py",
+    "**/conftest.py",
+    "**/__pycache__/**",
+    "**/.*/**",
+    "**/build/**",
+    "**/dist/**",
+    "**/.pixi/**",
+    "**/.venv/**"
+  ],
+  "collection_name": "code_entities"
+}

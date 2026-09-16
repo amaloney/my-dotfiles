@@ -174,6 +174,16 @@ if ($System) { Write-Host "(SYSTEM-WIDE - installing to ProgramData for all user
 if ($Admin) { Write-Host "(ADMIN USER - installing to Administrator's profile)" -ForegroundColor Yellow }
 Write-Host ""
 
+# Prompt to overwrite existing files (unless -Force already passed or dry run)
+if (-not $Force -and -not $DryRun) {
+    Write-Host "Existing config files will be skipped by default." -ForegroundColor Yellow
+    $response = Read-Host "Replace existing files with junctions? [y/N]"
+    if ($response -match "^[yY]") {
+        $Force = $true
+    }
+    Write-Host ""
+}
+
 # Set config paths based on install type
 if ($System) {
     $nvimPath = "$env:ProgramData\nvim"
@@ -259,7 +269,7 @@ if (-not (Test-Path $psProfileSource)) {
 
 # Starship config (copy, since symlinks require admin)
 Write-Status "Starship Config"
-$starshipSource = "$dotfiles\.config\starship.toml"
+$starshipSource = "$dotfiles\.config\starship\starship.toml"
 $starshipPath = "$env:USERPROFILE\.config\starship.toml"
 $starshipDir = "$env:USERPROFILE\.config"
 if (-not (Test-Path $starshipSource)) {
@@ -367,6 +377,63 @@ if (-not (Test-Path $condaSource)) {
             Write-Done "Copied to $condaPath"
         }
     }
+}
+
+# Claude Code config (junctions to %USERPROFILE%\.claude)
+$claudeBase = "$env:USERPROFILE\.claude"
+if (-not (Test-Path $claudeBase)) {
+    if (-not $DryRun) {
+        New-Item -ItemType Directory -Path $claudeBase -Force | Out-Null
+    }
+}
+
+Write-Status "Claude Code - CLAUDE.md"
+$claudeMdSource = "$dotfiles\.config\claude\CLAUDE.md"
+$claudeMdPath = "$claudeBase\CLAUDE.md"
+if (-not (Test-Path $claudeMdSource)) {
+    Write-Host "   ERROR: Source not found: $claudeMdSource" -ForegroundColor Red
+} else {
+    if (Test-Path $claudeMdPath) {
+        $sourceHash = (Get-FileHash $claudeMdSource).Hash
+        $destHash = (Get-FileHash $claudeMdPath).Hash
+        if ($sourceHash -eq $destHash) {
+            Write-Skip "$claudeMdPath already up to date"
+        } elseif ($Force) {
+            if ($DryRun) {
+                Write-Host "   Would copy: $claudeMdSource -> $claudeMdPath" -ForegroundColor Gray
+            } else {
+                Copy-Item $claudeMdSource $claudeMdPath -Force
+                Write-Done "Updated $claudeMdPath"
+            }
+        } else {
+            Write-Skip "$claudeMdPath exists (use -Force to overwrite)"
+        }
+    } else {
+        if ($DryRun) {
+            Write-Host "   Would copy: $claudeMdSource -> $claudeMdPath" -ForegroundColor Gray
+        } else {
+            Copy-Item $claudeMdSource $claudeMdPath
+            Write-Done "Copied to $claudeMdPath"
+        }
+    }
+}
+
+Write-Status "Claude Code - skills"
+$skillsSource = "$dotfiles\.config\claude\skills"
+$skillsPath = "$claudeBase\skills"
+if (-not (Test-Path $skillsSource)) {
+    Write-Host "   ERROR: Source not found: $skillsSource" -ForegroundColor Red
+} else {
+    New-Junction -Link $skillsPath -Target $skillsSource
+}
+
+Write-Status "Claude Code - templates"
+$templatesSource = "$dotfiles\.config\claude\templates"
+$templatesPath = "$claudeBase\templates"
+if (-not (Test-Path $templatesSource)) {
+    Write-Host "   ERROR: Source not found: $templatesSource" -ForegroundColor Red
+} else {
+    New-Junction -Link $templatesPath -Target $templatesSource
 }
 
 # Install tools (unless skipped or update-only mode)

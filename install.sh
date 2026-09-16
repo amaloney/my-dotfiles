@@ -91,9 +91,19 @@ symlink() {
             skip "$link already linked correctly"
             return
         fi
-    fi
-
-    if [[ -e "$link" ]]; then
+        # Symlink exists but points to wrong target (or is broken)
+        if $FORCE; then
+            if $DRY_RUN; then
+                echo "   Would remove: $link"
+            else
+                rm -f "$link"
+            fi
+        else
+            skip "$link exists (use -f to overwrite)"
+            return
+        fi
+    elif [[ -e "$link" ]]; then
+        # Regular file or directory exists
         if $FORCE; then
             if $DRY_RUN; then
                 echo "   Would remove: $link"
@@ -125,6 +135,16 @@ $UPDATE && echo -e "\033[33m(UPDATE MODE - settings only, no tool installation)\
 $SYSTEM && echo -e "\033[33m(SYSTEM-WIDE - installing to /etc/xdg for all users)\033[0m"
 echo ""
 
+# Prompt to overwrite existing files (unless -f already passed or dry run)
+if ! $FORCE && ! $DRY_RUN; then
+    echo -e "\033[33mExisting config files will be skipped by default.\033[0m"
+    read -r -p "Replace existing files with symlinks? [y/N] " response
+    case "$response" in
+        [yY][eE][sS]|[yY]) FORCE=true ;;
+    esac
+    echo ""
+fi
+
 if $SYSTEM; then
     CONFIG_BASE="/etc/xdg"
 else
@@ -145,7 +165,7 @@ symlink "$DOTFILES/.config/eza" "$CONFIG_BASE/eza"
 
 # Starship config
 status "Starship Config"
-symlink "$DOTFILES/.config/starship.toml" "$CONFIG_BASE/starship.toml"
+symlink "$DOTFILES/.config/starship/starship.toml" "$CONFIG_BASE/starship.toml"
 
 # Pixi config
 status "Pixi Config"
@@ -155,6 +175,18 @@ symlink "$DOTFILES/.config/pixi" "$CONFIG_BASE/pixi"
 if ! $SYSTEM; then
     status "Condarc"
     symlink "$DOTFILES/.config/conda/.condarc" "$HOME/.condarc"
+fi
+
+# Claude Code config (user only, not system-wide)
+if ! $SYSTEM; then
+    status "Claude Code - CLAUDE.md"
+    symlink "$DOTFILES/.config/claude/CLAUDE.md" "$HOME/.claude/CLAUDE.md"
+
+    status "Claude Code - skills"
+    symlink "$DOTFILES/.config/claude/skills" "$HOME/.claude/skills"
+
+    status "Claude Code - templates"
+    symlink "$DOTFILES/.config/claude/templates" "$HOME/.claude/templates"
 fi
 
 # Bash config (user only, not system-wide)
@@ -172,7 +204,7 @@ if ! $SYSTEM; then
     symlink "$DOTFILES/.config/bash/.bashrc-functions" "$HOME/.bashrc-functions"
 
     status "Inputrc"
-    symlink "$DOTFILES/.config/.inputrc" "$HOME/.config/.inputrc"
+    symlink "$DOTFILES/.config/input/.inputrc" "$HOME/.inputrc"
 fi
 
 # Install tools (unless skipped or update-only mode)

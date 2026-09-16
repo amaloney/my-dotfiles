@@ -1,0 +1,94 @@
+---
+name: windows/powershell
+description: Gotchas, patterns, and best practices for Windows PowerShell (.ps1) scripts
+invocation: auto
+---
+
+# Windows PowerShell
+
+**Error handling**: `$ErrorActionPreference = "Stop"`
+**Parameters**: Full names (`Get-ChildItem -Recurse` not `gci -r`)
+**Exit**: Always `exit 0` or `exit 1` explicitly
+
+## Exit Codes & Errors
+
+```powershell
+$LASTEXITCODE   # From external programs
+$?              # Boolean from cmdlets
+try { cmd -ErrorAction Stop } catch { Write-Error "Failed: $_"; exit 1 }
+```
+
+## Output & Strings
+
+| Pattern | Notes |
+|---------|-------|
+| `$null = cmd` | Suppress (faster than `\| Out-Null`) |
+| `"Hello $name"` | Interpolated |
+| `'Hello $name'` | Literal |
+| `"$($obj.prop)"` | Subexpression for properties |
+
+## Environment Variables
+
+```powershell
+$env:VAR = "value"                                       # Session
+$env:VAR = $null                                         # Remove
+[Environment]::SetEnvironmentVariable("VAR","val","User") # Persistent
+```
+
+## JSON & Paths
+
+```powershell
+$data = Get-Content f.json | ConvertFrom-Json
+$json = $obj | ConvertTo-Json -Depth 10
+$full = Join-Path $env:USERPROFILE ".config"
+Test-Path $path -PathType Container/Leaf
+```
+
+## External Programs
+
+```powershell
+& "C:\Program Files\app.exe" arg1    # Call operator for paths with spaces
+Start-Process app.exe -Wait          # Block until exit
+Start-Process app.exe -Verb RunAs    # Elevated
+```
+
+## Re-entry Guard
+
+```powershell
+if ($env:_SCRIPT_RUNNING) { return }
+$env:_SCRIPT_RUNNING = "1"
+try { <# body #> } finally { $env:_SCRIPT_RUNNING = $null }
+```
+
+## Gotchas
+
+| Pattern | Notes |
+|---------|-------|
+| `$a -eq 2` | Filters arrays, returns matches (not bool) |
+| `$null -eq $a` | Correct order (not `$a -eq $null`) |
+| `$list += $x` | O(n) - use ArrayList for large |
+| `$script:x` | Child scopes copy parent vars |
+| `. $hook` | Space after dot required for sourcing |
+
+## Common Paths
+
+`$env:USERPROFILE` `$env:APPDATA` `$env:LOCALAPPDATA` `$env:TEMP` `$PSScriptRoot`
+
+## Conda
+
+```powershell
+$hook = Join-Path $env:CONDA_PREFIX "shell\condabin\conda-hook.ps1"
+if (Test-Path $hook) { . $hook; conda activate $env:CONDA_PREFIX }
+```
+
+## Template
+
+```powershell
+#Requires -Version 5.1
+param([string]$Param = "default")
+$ErrorActionPreference = "Stop"
+if ($env:_SCRIPT_RUNNING) { exit 0 }
+$env:_SCRIPT_RUNNING = "1"
+try { <# main #> } catch { Write-Error "Failed: $_"; exit 1 } finally { $env:_SCRIPT_RUNNING = $null }
+exit 0
+```

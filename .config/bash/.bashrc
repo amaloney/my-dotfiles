@@ -2,7 +2,7 @@
 # ~/.bashrc
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # readline configuration
-export INPUTRC=$HOME/.config/.inputrc
+export INPUTRC=$HOME/.inputrc
 
 # conda functions
 [[ -f ~/useful-conda-functions ]] &&

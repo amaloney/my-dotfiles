@@ -111,5 +111,15 @@ vim.opt.background = "dark"
 vim.cmd.colorscheme("gruvbox")
 vim.api.nvim_set_hl(0, "TerminalNormal", { bg = "#000000" })
 vim.api.nvim_set_hl(0, "TerminalNormalNC", { bg = "#1d2021" })
+
+-- Diff highlighting: subtle backgrounds, readable text
+vim.api.nvim_set_hl(0, "DiffAdd", { bg = "#2a3a2a", fg = "NONE" })
+vim.api.nvim_set_hl(0, "DiffDelete", { bg = "#3a2a2a", fg = "#665c54" })
+vim.api.nvim_set_hl(0, "DiffChange", { bg = "#2a2a3a", fg = "NONE" })
+vim.api.nvim_set_hl(0, "DiffText", { bg = "#4a4a5a", fg = "NONE", bold = true })
 vim.api.nvim_set_hl(0, "BlinkCmpSignatureHelpActiveParameter", { link = "CursorLine" })
+
+-- Register batch parser for .bat/.cmd files and markdown injections
+vim.treesitter.language.register("batch", { "dosbatch", "bat", "cmd" })
+
 vim.opt.foldenable = false
