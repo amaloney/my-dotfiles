@@ -14,7 +14,6 @@ import argparse
 import json
 import sys
 from pathlib import Path
-from typing import Optional
 
 try:
     import chromadb
@@ -33,7 +32,9 @@ def get_collection():
         print("Index not found. Run build_index.py first.")
         sys.exit(1)
 
-    client = chromadb.PersistentClient(path=str(db_dir), settings=Settings(anonymized_telemetry=False))
+    client = chromadb.PersistentClient(
+        path=str(db_dir), settings=Settings(anonymized_telemetry=False)
+    )
     return client.get_collection("code_entities")
 
 
@@ -48,7 +49,7 @@ def format_result(metadata: dict, document: str = None, show_code: bool = False)
         name = metadata["name"]
 
     output = [
-        f"\n{'='*60}",
+        f"\n{'=' * 60}",
         f"[{metadata['type'].upper()}] {name}",
         f"Location: {location}",
         f"Signature: {metadata['signature']}",
@@ -60,7 +61,7 @@ def format_result(metadata: dict, document: str = None, show_code: bool = False)
     if show_code and document:
         code_start = document.find("code: ")
         if code_start != -1:
-            code = document[code_start + 6:]
+            code = document[code_start + 6 :]
             if len(code) > 500:
                 code = code[:500] + "\n... (truncated)"
             output.append(f"\n{code}")
@@ -68,7 +69,12 @@ def format_result(metadata: dict, document: str = None, show_code: bool = False)
     return "\n".join(output)
 
 
-def search(query: str, entity_type: Optional[str] = None, n_results: int = 5, show_code: bool = False):
+def search(
+    query: str,
+    entity_type: str | None = None,
+    n_results: int = 5,
+    show_code: bool = False,
+):
     """Semantic search for code entities."""
     collection = get_collection()
     where_filter = {"type": entity_type} if entity_type else None
@@ -86,8 +92,10 @@ def search(query: str, entity_type: Optional[str] = None, n_results: int = 5, sh
 
     print(f"\nSearch: '{query}'\nFound {len(results['ids'][0])} results:\n")
 
-    for i, (meta, doc, dist) in enumerate(zip(results["metadatas"][0], results["documents"][0], results["distances"][0])):
-        print(f"[{i+1}] Relevance: {1 - dist:.2f}")
+    for i, (meta, doc, dist) in enumerate(
+        zip(results["metadatas"][0], results["documents"][0], results["distances"][0])
+    ):
+        print(f"[{i + 1}] Relevance: {1 - dist:.2f}")
         print(format_result(meta, doc, show_code))
 
 
@@ -114,7 +122,7 @@ def list_classes():
             print(f"  {cls['name']}{decorators} (line {cls['line']})")
 
 
-def list_methods(class_name: Optional[str] = None):
+def list_methods(class_name: str | None = None):
     """List methods, optionally filtered by class."""
     collection = get_collection()
 
@@ -126,7 +134,11 @@ def list_methods(class_name: Optional[str] = None):
     results = collection.get(where=where_filter, include=["metadatas"])
 
     if not results["ids"]:
-        msg = f"No methods found for class {class_name}" if class_name else "No methods found"
+        msg = (
+            f"No methods found for class {class_name}"
+            if class_name
+            else "No methods found"
+        )
         print(msg)
         return
 
@@ -223,7 +235,9 @@ def similar(name: str, n_results: int = 5):
         else:
             full_name = meta["name"]
         file_name = Path(meta["file"]).name
-        print(f"  {1 - dist:.2f}  {meta['type']:8}  {full_name:40}  [{file_name}:{meta['line']}]")
+        print(
+            f"  {1 - dist:.2f}  {meta['type']:8}  {full_name:40}  [{file_name}:{meta['line']}]"
+        )
         count += 1
         if count >= n_results:
             break
@@ -275,13 +289,20 @@ def main():
     args = parser.parse_args()
 
     match args.command:
-        case "search": search(args.query, args.type, args.n_results, args.code)
-        case "list-classes": list_classes()
-        case "list-methods": list_methods(args.class_name)
-        case "list-functions": list_functions()
-        case "show": show(args.name)
-        case "similar": similar(args.name, args.n_results)
-        case "stats": stats()
+        case "search":
+            search(args.query, args.type, args.n_results, args.code)
+        case "list-classes":
+            list_classes()
+        case "list-methods":
+            list_methods(args.class_name)
+        case "list-functions":
+            list_functions()
+        case "show":
+            show(args.name)
+        case "similar":
+            similar(args.name, args.n_results)
+        case "stats":
+            stats()
 
 
 if __name__ == "__main__":

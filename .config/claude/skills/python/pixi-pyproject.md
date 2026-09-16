@@ -22,7 +22,7 @@ platforms = ["osx-arm64", "osx-64", "linux-64", "win-64"]
 ## Dependencies
 
 ```toml
-[tool.pixi.dependencies]           # Conda-forge (prefer for compiled)
+[tool.pixi.dependencies]           # prefer https://repo.anaconda.com/pkgs/main then conda-forge
 python = ">=3.12"
 numpy = ">=1.26"
 

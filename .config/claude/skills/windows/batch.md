@@ -24,13 +24,13 @@ FOR /F "tokens=*" %%G IN ('dir /b') DO ( ECHO !count! & SET /A count+=1 )
 
 ## Variables & Exit Codes
 
-| Pattern | Notes |
-|---------|-------|
-| `SET "_var=value"` | Quotes prevent trailing spaces |
-| `IF DEFINED _var` | Check before use |
-| `EXIT /B 0/1` | Success/error |
+| Pattern                 | Notes                                |
+| ----------------------- | ------------------------------------ |
+| `SET "_var=value"`      | Quotes prevent trailing spaces       |
+| `IF DEFINED _var`       | Check before use                     |
+| `EXIT /B 0/1`           | Success/error                        |
 | `IF %ERRORLEVEL% EQU 0` | Exact match (ERRORLEVEL 1 means >=1) |
-| `>NUL 2>&1` | Suppress output (order matters!) |
+| `>NUL 2>&1`             | Suppress output (order matters!)     |
 
 ## Control Flow
 
@@ -69,18 +69,18 @@ SET _SCRIPT_RUNNING=
 
 ## CLI Commands
 
-| Task | Command |
-|------|---------|
-| List users | `net user` |
-| Profile paths | `reg query "HKLM\...\ProfileList"` |
-| Copy | `robocopy` (most robust) |
-| Delete dir | `rmdir /s /q` |
-| Find | `where`, `findstr` (regex) |
-| Registry | `reg query/add/delete` |
-| Processes | `tasklist /v`, `taskkill /im name.exe /f` |
-| Services | `sc query/start/stop` |
-| Network | `ipconfig /all`, `netstat -an`, `net use` |
-| Check admin | `net session >nul 2>&1` then check errorlevel |
+| Task          | Command                                       |
+| ------------- | --------------------------------------------- |
+| List users    | `net user`                                    |
+| Profile paths | `reg query "HKLM\...\ProfileList"`            |
+| Copy          | `robocopy` (most robust)                      |
+| Delete dir    | `rmdir /s /q`                                 |
+| Find          | `where`, `findstr` (regex)                    |
+| Registry      | `reg query/add/delete`                        |
+| Processes     | `tasklist /v`, `taskkill /im name.exe /f`     |
+| Services      | `sc query/start/stop`                         |
+| Network       | `ipconfig /all`, `netstat -an`, `net use`     |
+| Check admin   | `net session >nul 2>&1` then check errorlevel |
 
 ## Gotchas
 
@@ -88,6 +88,33 @@ SET _SCRIPT_RUNNING=
 - **GOTO breaks IF blocks**: Put before block, not inside
 - **START quoting**: First quoted arg is window title
 - **Debug first**: `ECHO VAR=%VAR%` before guessing
+
+## WMIC (Legacy)
+
+```batch
+wmic os get caption,version
+wmic process where "name='notepad.exe'" get processid
+wmic product where "name='App'" call uninstall /nointeractive
+wmic service where "name='Svc'" call startservice
+```
+
+## Robocopy Advanced
+
+```batch
+robocopy src dst /MIR /MT:16 /R:3 /W:5 /LOG:copy.log /NP
+REM /MIR=mirror /MT=threads /R=retries /W=wait /NP=no progress
+robocopy src dst /E /XD "node_modules" ".git" /XF "*.log"
+REM /E=recurse /XD=exclude dirs /XF=exclude files
+```
+
+## SCHTASKS
+
+```batch
+schtasks /create /tn "Task" /tr "C:\run.bat" /sc daily /st 03:00 /ru SYSTEM
+schtasks /query /tn "Task" /v /fo LIST
+schtasks /run /tn "Task"
+schtasks /delete /tn "Task" /f
+```
 
 ## Template
 

@@ -13,7 +13,6 @@ import json
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
 
 try:
     import chromadb
@@ -26,7 +25,12 @@ SCRIPT_DIR = Path(__file__).parent
 CONFIG_PATH = SCRIPT_DIR / "index_config.json"
 DEFAULT_CONFIG = {
     "source_patterns": ["**/*.py"],
-    "exclude_patterns": ["**/test_*.py", "**/*_test.py", "**/conftest.py", "**/__pycache__/**"],
+    "exclude_patterns": [
+        "**/test_*.py",
+        "**/*_test.py",
+        "**/conftest.py",
+        "**/__pycache__/**",
+    ],
     "collection_name": "code_entities",
 }
 
@@ -41,13 +45,14 @@ def load_config() -> dict:
 @dataclass
 class CodeEntity:
     """Represents a class, method, or function extracted from code."""
+
     name: str
     entity_type: str
     file_path: str
     line_number: int
     signature: str
-    docstring: Optional[str]
-    parent_class: Optional[str]
+    docstring: str | None
+    parent_class: str | None
     source_code: str
     decorators: list[str]
 
@@ -76,7 +81,7 @@ class CodeExtractor(ast.NodeVisitor):
         self.file_path = file_path
         self.source_lines = source_lines
         self.entities: list[CodeEntity] = []
-        self.current_class: Optional[str] = None
+        self.current_class: str | None = None
 
     def get_source(self, node: ast.AST) -> str:
         """Extract source code for a node."""
@@ -84,7 +89,7 @@ class CodeExtractor(ast.NodeVisitor):
             return ast.get_source_segment("\n".join(self.source_lines), node) or ""
         except Exception:
             if hasattr(node, "lineno") and hasattr(node, "end_lineno"):
-                return "\n".join(self.source_lines[node.lineno - 1:node.end_lineno])
+                return "\n".join(self.source_lines[node.lineno - 1 : node.end_lineno])
             return ""
 
     def get_decorators(self, node) -> list[str]:
@@ -144,17 +149,19 @@ class CodeExtractor(ast.NodeVisitor):
         if bases:
             signature += f"({', '.join(bases)})"
 
-        self.entities.append(CodeEntity(
-            name=node.name,
-            entity_type="class",
-            file_path=self.file_path,
-            line_number=node.lineno,
-            signature=signature,
-            docstring=ast.get_docstring(node),
-            parent_class=None,
-            source_code=self.get_source(node),
-            decorators=self.get_decorators(node),
-        ))
+        self.entities.append(
+            CodeEntity(
+                name=node.name,
+                entity_type="class",
+                file_path=self.file_path,
+                line_number=node.lineno,
+                signature=signature,
+                docstring=ast.get_docstring(node),
+                parent_class=None,
+                source_code=self.get_source(node),
+                decorators=self.get_decorators(node),
+            )
+        )
 
         old_class = self.current_class
         self.current_class = node.name
@@ -176,17 +183,19 @@ class CodeExtractor(ast.NodeVisitor):
         if is_async:
             sig = "async " + sig
 
-        self.entities.append(CodeEntity(
-            name=node.name,
-            entity_type=entity_type,
-            file_path=self.file_path,
-            line_number=node.lineno,
-            signature=sig,
-            docstring=ast.get_docstring(node),
-            parent_class=self.current_class,
-            source_code=self.get_source(node),
-            decorators=self.get_decorators(node),
-        ))
+        self.entities.append(
+            CodeEntity(
+                name=node.name,
+                entity_type=entity_type,
+                file_path=self.file_path,
+                line_number=node.lineno,
+                signature=sig,
+                docstring=ast.get_docstring(node),
+                parent_class=self.current_class,
+                source_code=self.get_source(node),
+                decorators=self.get_decorators(node),
+            )
+        )
 
 
 def extract_entities_from_file(file_path: Path) -> list[CodeEntity]:
@@ -243,7 +252,8 @@ def build_index(project_root: Path, db_dir: Path, config: dict):
 
     exclude_patterns = config.get("exclude_patterns", [])
     source_files = [
-        f for f in source_files
+        f
+        for f in source_files
         if f.is_file() and not matches_pattern(f, exclude_patterns, project_root)
     ]
 
@@ -261,19 +271,22 @@ def build_index(project_root: Path, db_dir: Path, config: dict):
 
     batch_size = 100
     for i in range(0, len(all_entities), batch_size):
-        batch = all_entities[i:i + batch_size]
+        batch = all_entities[i : i + batch_size]
         collection.add(
             ids=[e.get_id() for e in batch],
             documents=[e.to_searchable_text() for e in batch],
-            metadatas=[{
-                "name": e.name,
-                "type": e.entity_type,
-                "file": e.file_path,
-                "line": e.line_number,
-                "signature": e.signature,
-                "parent_class": e.parent_class or "",
-                "decorators": ",".join(e.decorators),
-            } for e in batch],
+            metadatas=[
+                {
+                    "name": e.name,
+                    "type": e.entity_type,
+                    "file": e.file_path,
+                    "line": e.line_number,
+                    "signature": e.signature,
+                    "parent_class": e.parent_class or "",
+                    "decorators": ",".join(e.decorators),
+                }
+                for e in batch
+            ],
         )
 
     stats = {
@@ -286,7 +299,7 @@ def build_index(project_root: Path, db_dir: Path, config: dict):
 
     (db_dir / "stats.json").write_text(json.dumps(stats, indent=2))
 
-    print(f"\nIndex built successfully!")
+    print("\nIndex built successfully!")
     print(f"  Classes: {stats['classes']}")
     print(f"  Methods: {stats['methods']}")
     print(f"  Functions: {stats['functions']}")

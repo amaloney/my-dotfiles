@@ -1,1 +1,5 @@
 *-lock.json
+*.dot
+*.png
+*.svg
+conda-packaging.md

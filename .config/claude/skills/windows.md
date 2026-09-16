@@ -8,25 +8,26 @@ invocation: auto
 
 ## Registry
 
-| Skill | Purpose | Triggers |
-|-------|---------|----------|
-| [[windows/powershell]] | Modern scripting | .ps1, JSON, complex logic |
-| [[windows/batch]] | Legacy/universal | .bat/.cmd, simple ops, no PS |
+| Skill                      | Purpose          | Triggers                     |
+| -------------------------- | ---------------- | ---------------------------- |
+| [[windows/powershell]]     | Modern scripting | .ps1, JSON, complex logic    |
+| [[windows/batch]]          | Legacy/universal | .bat/.cmd, simple ops, no PS |
+| [[windows/dotnet-testing]] | .NET tests       | MSTest, NUnit, xUnit, C#     |
 
 ## Decision
 
-| Need | Use | Why |
-|------|-----|-----|
+| Need                          | Use        | Why                     |
+| ----------------------------- | ---------- | ----------------------- |
 | JSON/XML, REST, complex logic | PowerShell | Native objects, cleaner |
-| Universal, simple, bootstrap | Batch | No execution policy |
+| Universal, simple, bootstrap  | Batch      | No execution policy     |
 
 ## Pipelines
 
-| Task | Chain |
-|------|-------|
-| Automation | powershell |
-| Legacy | batch |
-| Installer | batch → powershell |
+| Task       | Chain              |
+| ---------- | ------------------ |
+| Automation | powershell         |
+| Legacy     | batch              |
+| Installer  | batch → powershell |
 
 ## Bootstrap Pattern
 
@@ -37,18 +38,19 @@ invocation: auto
 
 ## Paths
 
-| Var | Batch | PowerShell |
-|-----|-------|------------|
-| Home | `%USERPROFILE%` | `$env:USERPROFILE` |
-| AppData | `%APPDATA%` | `$env:APPDATA` |
-| Temp | `%TEMP%` | `$env:TEMP` |
+| Var     | Batch           | PowerShell         |
+| ------- | --------------- | ------------------ |
+| Home    | `%USERPROFILE%` | `$env:USERPROFILE` |
+| AppData | `%APPDATA%`     | `$env:APPDATA`     |
+| Temp    | `%TEMP%`        | `$env:TEMP`        |
 
 ## Execution
 
 **Prescriptive** — load skills first, do NOT explore first, spawn sub-agents:
 
 1. Match task → pipeline (use Decision table)
-2. For each step: `Agent({ name: "windows-<step>", prompt: "Load [[windows/<skill>]] first. <task> + <prev artifact>" })`
+2. For each step:
+   `Agent({ name: "windows-<step>", prompt: "Load [[windows/<skill>]] first. <task> + <prev artifact>" })`
 3. Sub-agent loads skill → acts (no "exploring" preamble)
 4. Pass artifacts between agents
 5. Return after final agent

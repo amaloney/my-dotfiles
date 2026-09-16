@@ -6,7 +6,7 @@
 #
 # If TARGET_DIR is omitted, installs to current directory's .claude/code_index
 
-set -euo pipefail
+set -o errexit -o nounset -o pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TARGET_DIR="${1:-.}"

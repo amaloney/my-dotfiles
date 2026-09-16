@@ -8,30 +8,30 @@ invocation: auto
 
 ## Registry
 
-| Skill | Purpose | Triggers |
-|-------|---------|----------|
-| [[python/pixi-pyproject]] | Project setup | init, pyproject, pixi |
-| [[python/style]] | Style router | create, write, implement |
-| [[python/types]] | Type annotations | `->`, Optional, Callable |
-| [[python/naming]] | Naming conventions | variables, constants, `_` |
-| [[python/structure]] | File layout | imports, line length |
-| [[python/errors]] | Exception handling | try/except |
-| [[python/org]] | File organization | config.py, utils.py |
-| [[python/bugs]] | Bug check/fix | fix, debug, error |
-| [[python/testing]] | Test patterns | test, pytest |
-| [[python/violations]] | Lint/fix (fan-out) | fix violations, clean up |
-| [[python/test-gen]] | Gen tests (fan-out) | generate tests, add coverage |
+| Skill                     | Purpose             | Triggers                     |
+| ------------------------- | ------------------- | ---------------------------- |
+| [[python/pixi-pyproject]] | Project setup       | init, pyproject, pixi        |
+| [[python/style]]          | Style router        | create, write, implement     |
+| [[python/types]]          | Type annotations    | `->`, Optional, Callable     |
+| [[python/naming]]         | Naming conventions  | variables, constants, `_`    |
+| [[python/structure]]      | File layout         | imports, line length         |
+| [[python/errors]]         | Exception handling  | try/except                   |
+| [[python/org]]            | File organization   | config.py, utils.py          |
+| [[python/bugs]]           | Bug check/fix       | fix, debug, error            |
+| [[python/testing]]        | Test patterns       | test, pytest                 |
+| [[python/violations]]     | Lint/fix (fan-out)  | fix violations, clean up     |
+| [[python/test-gen]]       | Gen tests (fan-out) | generate tests, add coverage |
 
 ## Pipelines
 
-| Task | Chain |
-|------|-------|
-| New project | pixi-pyproject → style → violations → bugs → test-gen |
-| New script | style → violations → bugs → test-gen |
-| Bug fix | bugs → violations → test-gen |
-| Refactor | style → violations → bugs |
-| Fix violations | violations |
-| Generate tests | test-gen |
+| Task           | Chain                                                 |
+| -------------- | ----------------------------------------------------- |
+| New project    | pixi-pyproject → style → violations → bugs → test-gen |
+| New script     | style → violations → bugs → test-gen                  |
+| Bug fix        | bugs → violations → test-gen                          |
+| Refactor       | style → violations → bugs                             |
+| Fix violations | violations                                            |
+| Generate tests | test-gen                                              |
 
 ## Execution
 

@@ -16,6 +16,7 @@ ruff check <path>                        # Human readable
 ```
 
 Rules configured in:
+
 ```toml
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM", "ANN"]  # pyproject.toml
@@ -35,13 +36,13 @@ Sequential fixes by rule code prevent overwrite conflicts.
 
 ## Common Rule Codes
 
-| Code | Issue |
-|------|-------|
-| E | pycodestyle errors |
-| F | pyflakes (unused, undefined) |
-| B | bugbear (common bugs) |
-| ANN | missing type annotations |
-| SIM | simplify |
-| UP | pyupgrade |
+| Code | Issue                        |
+| ---- | ---------------------------- |
+| E    | pycodestyle errors           |
+| F    | pyflakes (unused, undefined) |
+| B    | bugbear (common bugs)        |
+| ANN  | missing type annotations     |
+| SIM  | simplify                     |
+| UP   | pyupgrade                    |
 
 [[python/style]] [[python/bugs]]

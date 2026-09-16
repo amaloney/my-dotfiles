@@ -8,11 +8,26 @@ invocation: auto
 
 ## Targeted Testing
 
-**Never run full suite** — test only changes:
+**NEVER `tests/` or `tests/unit/`** — full suite burns tokens + time. Scope to changed modules:
 
-`pytest tests/test_<mod>.py` | `pytest -k "pattern"` | `pytest --lf`
+```bash
+# Changed src/foo/bar.py → run only its tests
+pytest tests/foo/test_bar.py -x
 
-Mirror structure: `src/foo/bar.py` → `tests/foo/test_bar.py`
+# Multiple changes → multiple specific paths
+pytest tests/foo/test_bar.py tests/baz/test_qux.py -x
+
+# Unknown test location → find first
+fd "test_bar" tests/
+```
+
+| ❌ Banned            | ✅ Instead                            |
+| -------------------- | ------------------------------------- |
+| `pytest tests/`      | `pytest tests/mod/test_X.py`          |
+| `pytest tests/unit/` | `pytest tests/unit/test_X.py`         |
+| `pixi run test`      | `pixi run pytest tests/.../test_X.py` |
+
+Mirror: `src/foo/bar.py` → `tests/foo/test_bar.py` or `tests/unit/test_bar.py`
 
 ## Hypothesis (prefer)
 

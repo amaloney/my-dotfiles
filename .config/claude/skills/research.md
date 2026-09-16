@@ -28,40 +28,40 @@ project/
 
 ```yaml
 ---
-type: topic  # or constraint
+type: topic # or constraint
 id: <unique-id>
 title: Human-Readable Title
 hierarchy: { parent: null, children: [] }
-relationships: { related: [], depends_on: [{id: x, reason: y}], informs: [] }
-status: active  # active|resolved|removed|superseded
+relationships: { related: [], depends_on: [{ id: x, reason: y }], informs: [] }
+status: active # active|resolved|removed|superseded
 added: YYYY-MM-DD
-papers: [{file: papers/x.pdf, doi: "10.x/x", citation: "Author (Year)"}]
-sources: [{url: x, retrieved: YYYY-MM-DD, archived: <wayback>, snapshot: snapshots/x.md, relevance: why}]
+papers: [{ file: papers/x.pdf, doi: "10.x/x", citation: "Author (Year)" }]
+sources: [{ url: x, retrieved: YYYY-MM-DD, archived: <wayback>, snapshot: snapshots/x.md, relevance: why }]
 ---
 ```
 
 ## Requirements vs Constraints
 
-| Aspect | Requirement | Constraint |
-|--------|-------------|------------|
-| Nature | Binary (yes/no) | Probabilistic |
-| Function | Partitions space → S | Defines P(success) over S |
-| In report | No | Yes |
+| Aspect    | Requirement          | Constraint                |
+| --------- | -------------------- | ------------------------- |
+| Nature    | Binary (yes/no)      | Probabilistic             |
+| Function  | Partitions space → S | Defines P(success) over S |
+| In report | No                   | Yes                       |
 
 ## Search Log Format (`_meta/YYYY-MM-DD.md`)
 
 ```markdown
-| Source | Topic | Useful | Notes |
-|--------|-------|--------|-------|
-| https://doi.org/... | topic | Yes | papers/author-year.pdf |
-| https://example.com | topic | No | Outdated |
-| https://doi.org/... | topic | — | PAYWALLED |
+| Source              | Topic | Useful | Notes                  |
+| ------------------- | ----- | ------ | ---------------------- |
+| https://doi.org/... | topic | Yes    | papers/author-year.pdf |
+| https://example.com | topic | No     | Outdated               |
+| https://doi.org/... | topic | —      | PAYWALLED              |
 ```
 
 ## Paper Workflow
 
 1. Search → 2. Add to frontmatter (citation, DOI, abstract) → 3. Download: `curl -sL -o papers/x.pdf url`
-4. Verify: `file papers/*.pdf` → 5. Log paywalled → 6. Update search log
+2. Verify: `file papers/*.pdf` → 5. Log paywalled → 6. Update search log
 
 **Don't commit PDFs** (copyright).
 
@@ -71,16 +71,15 @@ sources: [{url: x, retrieved: YYYY-MM-DD, archived: <wayback>, snapshot: snapsho
 
 ## Decision Matrix
 
-| Option | C1 | C2 | P(success) | Evidence |
-|--------|----|----|------------|----------|
-| A | High | Low | Low | Strong |
+| Option | C1   | C2  | P(success) | Evidence |
+| ------ | ---- | --- | ---------- | -------- |
+| A      | High | Low | Low        | Strong   |
 
 High/Med/Low = P > 0.7 / 0.3-0.7 / < 0.3
 
 ## Git Workflow
 
-Prefixes: `research:`, `docs:`, `fix:`, `chore:`
-Constraint changes: commit before AND after propagation.
+Prefixes: `research:`, `docs:`, `fix:`, `chore:` Constraint changes: commit before AND after propagation.
 
 ## Rules
 

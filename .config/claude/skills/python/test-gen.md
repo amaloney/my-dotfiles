@@ -8,11 +8,11 @@ invocation: manual
 
 ## Types
 
-| Type | Dir | Focus |
-|------|-----|-------|
-| unit | `tests/unit/` | Single func, mocked deps, hypothesis |
-| integration | `tests/integration/` | Component interactions, real deps |
-| regression | `tests/regression/` | Bug reproductions |
+| Type        | Dir                  | Focus                                |
+| ----------- | -------------------- | ------------------------------------ |
+| unit        | `tests/unit/`        | Single func, mocked deps, hypothesis |
+| integration | `tests/integration/` | Component interactions, real deps    |
+| regression  | `tests/regression/`  | Bug reproductions                    |
 
 ## Protocol
 
