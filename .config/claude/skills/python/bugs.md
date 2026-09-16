@@ -120,4 +120,4 @@ ruff check --select F401,F821 src/                               # Unused/undefi
 
 **Debug**: `breakpoint()` | `from rich import inspect; inspect(obj)`
 
-[[python/style]] [[python/testing]] [[python/types]] [[python/errors]]
+[[python/style]] [[python/testing]] [[python/property-testing]] [[python/types]] [[python/errors]]

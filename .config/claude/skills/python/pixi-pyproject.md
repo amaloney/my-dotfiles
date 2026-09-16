@@ -63,3 +63,5 @@ build-backend = "hatchling.build"
 ## Commands
 
 `pixi init` | `pixi add pkg` | `pixi add --pypi pkg` | `pixi add --feature dev pkg` | `pixi run task` | `pixi shell`
+
+[[python/modern-tooling]] [[python/style]]
