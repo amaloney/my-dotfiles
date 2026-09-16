@@ -22,6 +22,13 @@ Rules configured in:
 select = ["E", "F", "I", "UP", "B", "SIM", "ANN"]  # pyproject.toml
 ```
 
+## Execution Mode
+
+| Request                                  | Action                                           |
+| ---------------------------------------- | ------------------------------------------------ |
+| "orchestrate"/"fan-out"/"parallel"       | Spawn agents per rule — no `ruff --fix` shortcut |
+| "fix violations" (no approach specified) | <5 auto-fixable → `ruff --fix`; else agents      |
+
 ## Protocol
 
 1. **Detect**: `ruff check <path> --output-format json` → group by rule code
@@ -29,7 +36,7 @@ select = ["E", "F", "I", "UP", "B", "SIM", "ANN"]  # pyproject.toml
    ```
    Agent({ prompt: "Load [[python/style]]. Fix ONLY <rule_code> violations. Re-read before edit. <findings>" })
    ```
-3. **Auto-fix safe rules**: `ruff check --fix --unsafe-fixes <path>` (optional, after manual fixes)
+3. **Auto-fix safe rules**: `ruff check --fix --unsafe-fixes <path>` (only if user didn't request agents)
 4. **Verify**: `ruff check <path>` — should return clean
 
 Sequential fixes by rule code prevent overwrite conflicts.

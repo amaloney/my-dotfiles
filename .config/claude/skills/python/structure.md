@@ -6,8 +6,19 @@ invocation: auto
 
 # Structure
 
-Lines <120. Imports at top (`TYPE_CHECKING` blocks excepted). Module constants → class attrs → methods. Single return at
-end.
+Lines <120. Single return at end.
+
+## File Order (strict)
+
+```python
+# 1. Imports
+# 2. TYPE_CHECKING block (if needed)
+# 3. Module constants (ALL_CAPS) — NEVER inline
+# 4. Module-level functions
+# 5. Classes (attrs → methods)
+```
+
+**Constants:** Top of module after imports, or in `config.py`. NEVER mid-file.
 
 ## Comments
 

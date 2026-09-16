@@ -6,7 +6,15 @@ invocation: auto
 
 # Organization
 
-**config.py**: constants, settings, type aliases, enums. **utils.py**: shared functions. Magic numbers → `config.py`.
+## Constants
+
+| Scope           | Location                      |
+| --------------- | ----------------------------- |
+| Project-wide    | `config.py`                   |
+| Module-specific | Top of module (after imports) |
+| Inline/mid-file | **NEVER**                     |
+
+**config.py**: constants, settings, type aliases, enums. **utils.py**: shared functions.
 
 ## Colors (package_build_observer)
 

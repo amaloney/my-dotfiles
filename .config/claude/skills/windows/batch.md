@@ -62,7 +62,13 @@ SET _SCRIPT_RUNNING=
 
 ## PowerShell from Batch
 
+**Always full path** — installers/uninstallers run with limited PATH:
+
 ```batch
+REM BAD - fails in installer context
+powershell -NoProfile -File "script.ps1"
+
+REM GOOD - works everywhere
 "%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" ^
     -NoProfile -ExecutionPolicy Bypass -File "script.ps1"
 ```

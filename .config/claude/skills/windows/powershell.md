@@ -35,6 +35,23 @@ $env:VAR = $null                                         # Remove
 [Environment]::SetEnvironmentVariable("VAR","val","User") # Persistent
 ```
 
+## File Deletion
+
+**Prefer PowerShell over batch** — `RMDIR /Q /S` fails silently on permission/attribute issues:
+
+```powershell
+# Robust deletion with error tracking
+$Survivors = @()
+Get-ChildItem -Path $Target -Recurse -Force -ErrorAction SilentlyContinue | ForEach-Object {
+    try {
+        Remove-Item -Path $_.FullName -Force -Recurse -ErrorAction Stop
+    } catch {
+        $Survivors += $_.FullName
+    }
+}
+if ($Survivors) { Write-Warning "Failed to delete: $($Survivors -join ', ')" }
+```
+
 ## JSON & Paths
 
 ```powershell

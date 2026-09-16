@@ -34,11 +34,11 @@ invocation: manual
 
 ## Skill Loading by Test Type
 
-| Test Type   | Load Skills                                 |
-| ----------- | ------------------------------------------- |
-| unit        | testing + conftest                          |
-| integration | testing + conftest + mocking                |
-| regression  | testing + conftest                          |
-| property    | property-testing + testing                  |
+| Test Type   | Load Skills                  |
+| ----------- | ---------------------------- |
+| unit        | testing + conftest           |
+| integration | testing + conftest + mocking |
+| regression  | testing + conftest           |
+| property    | property-testing + testing   |
 
 [[python/testing]] [[python/conftest]] [[python/mocking]] [[python/property-testing]] [[python/style]]

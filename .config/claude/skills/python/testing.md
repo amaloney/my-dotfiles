@@ -78,16 +78,16 @@ async def test_async_func(): ...
 
 ## Commands
 
-| Flag          | Purpose                       |
-| ------------- | ----------------------------- |
-| `-x`          | Stop on first failure         |
-| `--lf`        | Rerun last failed             |
-| `-k "expr"`   | Match by keyword              |
-| `-m "marker"` | Match by marker               |
-| `-v`          | Verbose output                |
-| `--tb=short`  | Short traceback               |
-| `-n auto`     | Parallel (pytest-xdist)       |
-| `--cov=src`   | Coverage (pytest-cov)         |
+| Flag          | Purpose                 |
+| ------------- | ----------------------- |
+| `-x`          | Stop on first failure   |
+| `--lf`        | Rerun last failed       |
+| `-k "expr"`   | Match by keyword        |
+| `-m "marker"` | Match by marker         |
+| `-v`          | Verbose output          |
+| `--tb=short`  | Short traceback         |
+| `-n auto`     | Parallel (pytest-xdist) |
+| `--cov=src`   | Coverage (pytest-cov)   |
 
 ## pyproject.toml Config
 
@@ -104,13 +104,13 @@ filterwarnings = ["ignore::DeprecationWarning"]
 
 ## Anti-Patterns
 
-| Bad                     | Good                          | Why                        |
-| ----------------------- | ----------------------------- | -------------------------- |
-| `self.assertEqual()`    | `assert x == y`               | pytest rewrites for output |
-| Setup in `__init__`     | `@pytest.fixture`             | Lifecycle management       |
-| Global state            | Fixture with `yield`          | Proper cleanup             |
-| Huge test functions     | Small focused tests           | Easier debugging           |
-| `tests/` (full suite)   | `tests/path/test_X.py`        | Token/time efficiency      |
+| Bad                   | Good                   | Why                        |
+| --------------------- | ---------------------- | -------------------------- |
+| `self.assertEqual()`  | `assert x == y`        | pytest rewrites for output |
+| Setup in `__init__`   | `@pytest.fixture`      | Lifecycle management       |
+| Global state          | Fixture with `yield`   | Proper cleanup             |
+| Huge test functions   | Small focused tests    | Easier debugging           |
+| `tests/` (full suite) | `tests/path/test_X.py` | Token/time efficiency      |
 
 ## Debug
 

@@ -50,11 +50,11 @@ rg -n "\._[a-z][a-z_]+\(" --type py src/               # Fallback
 
 ## Skill Routing
 
-| Domain  | Orchestrator    | Routes To                                                                 |
-| ------- | --------------- | ------------------------------------------------------------------------- |
+| Domain  | Orchestrator    | Routes To                                                                                                       |
+| ------- | --------------- | --------------------------------------------------------------------------------------------------------------- |
 | Python  | `python.md`     | style, bugs, testing, conftest, mocking, property-testing, modern-tooling, pixi-pyproject, violations, test-gen |
-| Windows | `windows.md`    | powershell, batch                                                         |
-| Bash    | `bash-shell.md` | (leaf)                                                                    |
+| Windows | `windows.md`    | powershell, batch                                                                                               |
+| Bash    | `bash-shell.md` | (leaf)                                                                                                          |
 
 ## Knowledge Stores
 
@@ -68,6 +68,20 @@ python3 query_code.py func "X" -p pkg   # Find functions
 
 ## Skill Authoring
 
-Dense · Self-contained · Single-purpose · Linkable (`[[skill-name]]`)
+Each skill: simple, single-purpose, linkable. Complexity from composition via `[[links]]`, never from the part itself.
 
-Tables > prose · Examples > explanation · Patterns > exhaustive lists
+Tables > prose · 1 example > many · Commands > descriptions
+
+## Python Workflow
+
+Python task → load [[python]] first.
+
+**Pre-gen**: `python3 .claude/code_index/query.py func "<pattern>"` — extend existing, don't duplicate.
+
+**Post-gen**: [[python/violations]] → [[python/bugs]] → [[python/test-gen]] (gated).
+
+| Prefer          | Over                  |
+| --------------- | --------------------- |
+| Extend existing | Create new            |
+| Flat/explicit   | Nested/clever         |
+| 3 similar lines | Premature abstraction |
