@@ -1,5 +1,7 @@
 # Global Claude Code Instructions
 
+> **Architecture overview**: See [README.md](README.md) for visual diagrams of skill routing, flywheel learning, and knowledge graph.
+
 ## Communication
 
 **Banned**: Preamble, pleasantries, filler, affirmations, interjections, narrating intent. Act — don't announce.

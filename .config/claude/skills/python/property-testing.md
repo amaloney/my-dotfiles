@@ -10,15 +10,21 @@ invocation: auto
 
 Recognize algebraic shapes:
 
-| Shape              | Examples                                    |
-| ------------------ | ------------------------------------------- |
-| Serialization pair | encode/decode, to_json/from_json, dump/load |
-| Parser             | URL, config, protocol, datetime             |
-| Normalization      | normalize, sanitize, clean, canonicalize    |
-| Validator          | is_valid, validate, check_*                 |
-| Data structure     | add/remove/get, push/pop, enqueue/dequeue   |
-| Mathematical       | sort, order, hash, compare                  |
-| Idempotent         | f(f(x)) == f(x)                             |
+| Property | Formula | Where it applies |
+|----------|---------|------------------|
+| Roundtrip | `decode(encode(x)) == x` | Serialization, conversion pairs |
+| Inverse | `f(g(x)) == x` | encrypt/decrypt, compress/decompress |
+| Oracle | `new(x) == reference(x)` | Optimization, refactor, reimplement |
+| Idempotence | `f(f(x)) == f(x)` | Normalization, formatting, sorting |
+| Invariant | Holds before and after | Any transformation, state machine |
+| Easy to verify | `is_sorted(sort(x))` | Complex algo with cheap checker |
+| Commutativity | `f(a, b) == f(b, a)` | Binary and set operations |
+| Identity | `f(x, e) == x` | Operations with neutral element |
+
+**Strength ordering** (weakest → strongest):
+`no crash → type preservation → invariant → idempotence → roundtrip/oracle`
+
+Assert the strongest property the code supports. "No crash" alone rarely justifies the dependency.
 
 ## Core Patterns
 
@@ -116,6 +122,15 @@ Falsifying example: test_roundtrip(s='\x00')
 # Investigate: is null byte valid input? Should encode handle it?
 ```
 
+## Two Ways a Property Asserts Nothing
+
+| Trap | Example | Fix |
+|------|---------|-----|
+| **Tautology** | `assert add(a, b) == a + b` | Restates implementation — pick property that constrains without recomputing |
+| **Vacuity** | Heavy `assume()` filtering | Filters out nearly every input — push constraints into strategy instead |
+
+Exception: `f(x) == f(x)` is valid determinism property when `f` is not obviously pure (serializers, hashing, clock readers).
+
 ## Anti-Patterns
 
 | Bad                          | Good                              |
@@ -124,5 +139,7 @@ Falsifying example: test_roundtrip(s='\x00')
 | Test only happy path         | Include edge cases in strategy    |
 | Ignore shrunk example        | Investigate root cause            |
 | `@given(st.integers(0, 10))` | Use full range unless constrained |
+| `assume(complex_predicate)`  | Build constraint into strategy    |
+| Restate implementation       | Find algebraic property           |
 
 [[python/testing]] [[python/conftest]] [[python/bugs]]

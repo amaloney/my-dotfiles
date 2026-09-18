@@ -182,11 +182,20 @@ if ! $SYSTEM; then
     status "Claude Code - CLAUDE.md"
     symlink "$DOTFILES/.config/claude/CLAUDE.md" "$HOME/.claude/CLAUDE.md"
 
+    status "Claude Code - README.md"
+    symlink "$DOTFILES/.config/claude/README.md" "$HOME/.claude/README.md"
+
     status "Claude Code - skills"
     symlink "$DOTFILES/.config/claude/skills" "$HOME/.claude/skills"
 
     status "Claude Code - templates"
     symlink "$DOTFILES/.config/claude/templates" "$HOME/.claude/templates"
+
+    status "Claude Code - memory"
+    symlink "$DOTFILES/.config/claude/memory" "$HOME/.claude/memory"
+
+    status "Claude Code - scripts"
+    symlink "$DOTFILES/.config/claude/scripts" "$HOME/.claude/scripts"
 fi
 
 # Bash config (user only, not system-wide)

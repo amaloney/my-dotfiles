@@ -105,6 +105,53 @@ strict = true
 | `bandit`         | Security lints             | `ruff check --select S` |
 | `zizmor`         | GitHub Actions audit       | `zizmor .github/`       |
 
+## PEP 723: Inline Script Metadata
+
+For single-file scripts with dependencies — no pyproject.toml needed:
+
+```python
+#!/usr/bin/env -S uv run --script
+# /// script
+# requires-python = ">=3.12"
+# dependencies = [
+#     "requests",
+#     "rich",
+# ]
+# ///
+
+import requests
+from rich import print
+
+print(requests.get("https://httpbin.org/ip").json())
+```
+
+| Task | Command |
+|------|---------|
+| Create script | `uv init --script myscript.py` |
+| Add dep to script | `uv add --script myscript.py requests` |
+| Run script | `uv run myscript.py` |
+
+**Use PEP 723 for:** Single-file scripts, quick automation, self-contained utilities
+**Use pyproject.toml for:** Multi-file projects, reusable packages
+
+## Dependency Groups (PEP 735)
+
+Prefer `[dependency-groups]` over `[project.optional-dependencies]` for dev tools:
+
+```toml
+[dependency-groups]
+dev = [{include-group = "lint"}, {include-group = "test"}]
+lint = ["ruff", "ty"]
+test = ["pytest", "pytest-cov", "hypothesis"]
+docs = ["sphinx", "myst-parser"]
+```
+
+```bash
+uv add --group dev pytest       # Add to group
+uv sync --group dev             # Install group
+uv sync --all-groups            # Install all
+```
+
 ## pyproject.toml Full Example
 
 ```toml
@@ -114,11 +161,10 @@ version = "0.1.0"
 requires-python = ">=3.12"
 dependencies = ["requests>=2.31"]
 
-[project.optional-dependencies]
-dev = ["pytest>=8.0", "ruff>=0.4", "ty"]
-
-[tool.uv]
-dev-dependencies = ["pytest>=8.0", "ruff>=0.4"]
+[dependency-groups]
+dev = [{include-group = "lint"}, {include-group = "test"}]
+lint = ["ruff", "ty"]
+test = ["pytest", "pytest-cov"]
 
 [tool.ruff]
 target-version = "py312"
@@ -126,8 +172,17 @@ target-version = "py312"
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM"]
 
-[tool.ty]
+[tool.ty.environment]
 python-version = "3.12"
+```
+
+## Decision Tree
+
+```
+What are you building?
+├── Single-file script with deps? → PEP 723 inline metadata
+├── Multi-file project (not distributed)? → uv init + minimal pyproject.toml
+└── Reusable package/library? → uv init --package + full pyproject.toml
 ```
 
 [[python/pixi-pyproject]] [[python/violations]] [[python/style]]

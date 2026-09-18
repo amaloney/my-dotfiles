@@ -2,4 +2,5 @@
 *.dot
 *.png
 *.svg
-conda-packaging.md
+conda-anaconda-tools.md
+conda-internal.md

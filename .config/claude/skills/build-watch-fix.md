@@ -50,4 +50,4 @@ while not all_succeeded:
 - Each agent: diagnose → fix → test
 - Coordinator aggregates results
 
-[[python-pipeline]] [[package-build-observer]] [[conda-packaging]]
+[[python-pipeline]] [[conda-packaging]]

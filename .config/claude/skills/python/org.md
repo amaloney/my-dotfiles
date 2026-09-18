@@ -16,9 +16,8 @@ invocation: auto
 
 **config.py**: constants, settings, type aliases, enums. **utils.py**: shared functions.
 
-## Colors (package_build_observer)
+## Colors
 
-Colors in `config.py` → `Gruvbox` class. See `textual-ui.md`. No hardcoded hex in Python — use `Gruvbox.X`. TCSS hex
-must match constants. Status mappings (`DEP_STATUS_COLORS`, `LEGEND_ENTRIES`) validated at import.
+If using a color theme (e.g., Gruvbox), define colors in `config.py` as a class. No hardcoded hex in Python — use named constants.
 
 [[python/structure]] [[python/naming]]

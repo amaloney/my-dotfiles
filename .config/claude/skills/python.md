@@ -6,17 +6,31 @@ invocation: auto
 
 # Python Router
 
-## Auto-Trigger
+## Session Start (Recon)
 
-Load when: Python task (create/edit/review/debug) · `.py` files · keywords: python, style, violations, test, fix
+```bash
+# Check profile exists and is fresh (<7 days)
+test -f .claude/code_index/profile.json && \
+  find .claude/code_index/profile.json -mtime -7 | grep -q . && \
+  echo "profile: current" || echo "profile: needs update"
+```
+
+| State | Action |
+|-------|--------|
+| Missing | Run [[python/recon]] |
+| Stale (>7 days) | Offer to refresh |
+| Current | Read and use |
+
+**After recon:** All skills read `.claude/code_index/profile.json` for project context.
 
 ## Pre-Generation
 
 ```bash
-python3 .claude/code_index/query.py func "<pattern>" -p <pkg>
+# Query profile for context
+cat .claude/code_index/profile.json | jq '.patterns.config_py_path'
 ```
 
-Similar exists → extend. Check `config.py` for constants.
+Similar exists → extend. Check `profile.patterns.config_py_path` for constants.
 
 ## Post-Generation
 
@@ -30,6 +44,7 @@ Similar exists → extend. Check `config.py` for constants.
 
 | Skill                       | Purpose             | Triggers                                                                  |
 | --------------------------- | ------------------- | ------------------------------------------------------------------------- |
+| [[python/recon]]            | Profile project     | session start, profile, scan                                              |
 | [[python/pixi-pyproject]]   | Pixi project setup  | init, pyproject, pixi                                                     |
 | [[python/modern-tooling]]   | uv/ruff/ty setup    | uv, ruff, ty, modern, pip replace                                         |
 | [[python/style]]            | Style router        | create, write, implement, style violations, structure violations          |
@@ -43,6 +58,7 @@ Similar exists → extend. Check `config.py` for constants.
 | [[python/conftest]]         | Shared fixtures     | conftest, fixture, scope                                                  |
 | [[python/mocking]]          | Mock patterns       | mock, patch, mocker                                                       |
 | [[python/property-testing]] | Hypothesis          | property, hypothesis, fuzz                                                |
+| [[python/async-testing]]    | Async tests         | async, asyncio, pytest-asyncio, await                                     |
 | [[python/security]]         | Security patterns   | security, vuln, injection, crypto                                         |
 | [[python/bdd]]              | Behave BDD          | behave, gherkin, bdd, feature                                             |
 | [[python/violations]]       | Lint/fix (fan-out)  | fix violations, ruff violations, clean up, orchestrate, fan-out, parallel |
@@ -53,6 +69,7 @@ Similar exists → extend. Check `config.py` for constants.
 
 ```
 python.md (this)
+├── recon              (leaf) — profile.json generation [RUN FIRST]
 ├── pixi-pyproject     (leaf) — pixi setup
 ├── modern-tooling     (leaf) — uv/ruff/ty
 ├── style              (router)
@@ -66,6 +83,7 @@ python.md (this)
 ├── conftest           (leaf) — shared fixtures
 ├── mocking            (leaf) — mock patterns
 ├── property-testing   (leaf) — hypothesis
+├── async-testing      (leaf) — pytest-asyncio
 ├── security           (leaf) — vulns, insecure defaults
 ├── bdd                (leaf) — behave/gherkin
 ├── violations         (fan-out)
@@ -117,10 +135,12 @@ If violations or bugs persist after 2 fix cycles, return to user with findings.
 
 ## Skill Selection for Testing
 
-| Code Shape                     | Skills to Load                                  |
-| ------------------------------ | ----------------------------------------------- |
-| Simple unit tests              | testing                                         |
-| Tests with fixtures            | testing + conftest                              |
-| Tests with external deps       | testing + mocking                               |
-| Roundtrip/invariant properties | property-testing                                |
-| Full test suite                | testing + conftest + mocking + property-testing |
+| Code Shape                     | Skills to Load                                            |
+| ------------------------------ | --------------------------------------------------------- |
+| Simple unit tests              | testing                                                   |
+| Tests with fixtures            | testing + conftest                                        |
+| Tests with external deps       | testing + mocking                                         |
+| Async code                     | testing + async-testing                                   |
+| Roundtrip/invariant properties | property-testing                                          |
+| Full test suite                | testing + conftest + mocking + property-testing           |
+| Full async test suite          | testing + conftest + mocking + async-testing              |

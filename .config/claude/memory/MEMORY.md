@@ -1,10 +1,5 @@
 # Memory Index
 
-## Project
-
-- [IESO 78886 Login Flow](project_ieso-78886-login-flow.md) — Current blockers: (anaconda3) prompt bug, pre-uninstall
-  failures
-
 ## Feedback (Workflow/Principles)
 
 - [No First-Person](feedback_no-first-person.md) — NEVER use I/me/my/mine/Let me — zero tolerance, repeatedly violated
@@ -23,15 +18,3 @@
 - [No Clever Sugar](feedback_no-clever-sugar.md) — Explicit code over obscuring syntactic sugar
 - [Python Pipeline](feedback_python-pipeline.md) — Generate → violations → bugs → test-gen flow
 - [Complexity from Composition](feedback_complexity-from-composition.md) — Simple parts, complex wholes
-- [PowerShell vs Batch Deletion](feedback_powershell-vs-batch-deletion.md) — Use PowerShell for file deletion; batch
-  RMDIR fails silently
-- [Full Path to PowerShell](feedback_full-path-to-powershell.md) — Installers have limited PATH; use %SystemRoot%\...
-- [Anaconda Whoami Command](feedback_anaconda-whoami-command.md) — Use `--at anaconda.com`; no `--json` flag exists
-- [Constructor Extra Files Timing](feedback_constructor-extra-files-timing.md) — extra_files can be overwritten; copy in
-  post-install.bat
-
-## Technical Reference
-
-Now consolidated in skills:
-
-- `conda-anaconda-tools.md` — auth, client, audit, linter, menuinst, constructor, env-log
