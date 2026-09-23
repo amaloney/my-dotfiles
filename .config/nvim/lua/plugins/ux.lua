@@ -18,12 +18,22 @@ return {
 
    {
       "folke/which-key.nvim",
+      event = "VeryLazy",
       dependencies = { "nvim-mini/mini.icons", "nvim-tree/nvim-web-devicons" },
       init = function()
          vim.o.timeout = true
          vim.o.timeoutlen = 300
       end,
       opts = {},
+      keys = {
+         {
+            "<leader>?",
+            function()
+               require("which-key").show()
+            end,
+            desc = "Show Keymaps (which-key)",
+         },
+      },
    },
 
    {
