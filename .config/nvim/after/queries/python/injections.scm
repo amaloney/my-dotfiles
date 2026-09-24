@@ -8,9 +8,9 @@
     (string (string_content) @injection.content (#set! injection.language "sql"))))
 
 ; Variable name suffix patterns for embedded languages
-; SQL: var_sql = "SELECT ..."
+; SQL: var_sql = "SELECT ..." or var_query = "SELECT ..."
 (assignment
-  left: (identifier) @_left (#match? @_left "_(sql|SQL)$")
+  left: (identifier) @_left (#match? @_left "_(sql|SQL|query|QUERY)$")
   right: (string (string_content) @injection.content (#set! injection.language "sql")))
 
 ; JavaScript: var_js = "const x = ..."
