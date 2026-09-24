@@ -62,8 +62,8 @@ rg -n "verify\s*=\s*False|CERT_NONE" --type py
 
 ## Secrets — VULNERABLE vs SECURE
 
-**Report when:** Default value feeds signing, encryption, session, or token machinery.
-**Skip when:** Defaults generated per-boot at random, cache keys, correlation ids.
+**Report when:** Default value feeds signing, encryption, session, or token machinery. **Skip when:** Defaults generated
+per-boot at random, cache keys, correlation ids.
 
 The decisive question: does the app **run** with it? `env.get(X, Y)` runs; `env[X]` crashes.
 
@@ -83,8 +83,8 @@ if not SECRET_KEY:
 
 ## Crypto — VULNERABLE vs SECURE
 
-**Report when:** Broken primitive for password hashing, token generation, encryption.
-**Skip when:** Checksums, ETags, cache keys, dedup hashes, test vectors.
+**Report when:** Broken primitive for password hashing, token generation, encryption. **Skip when:** Checksums, ETags,
+cache keys, dedup hashes, test vectors.
 
 The algorithm alone is never the finding. Trace to the use site before flagging.
 

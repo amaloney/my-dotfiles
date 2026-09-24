@@ -10,19 +10,18 @@ invocation: auto
 
 Recognize algebraic shapes:
 
-| Property | Formula | Where it applies |
-|----------|---------|------------------|
-| Roundtrip | `decode(encode(x)) == x` | Serialization, conversion pairs |
-| Inverse | `f(g(x)) == x` | encrypt/decrypt, compress/decompress |
-| Oracle | `new(x) == reference(x)` | Optimization, refactor, reimplement |
-| Idempotence | `f(f(x)) == f(x)` | Normalization, formatting, sorting |
-| Invariant | Holds before and after | Any transformation, state machine |
-| Easy to verify | `is_sorted(sort(x))` | Complex algo with cheap checker |
-| Commutativity | `f(a, b) == f(b, a)` | Binary and set operations |
-| Identity | `f(x, e) == x` | Operations with neutral element |
+| Property       | Formula                  | Where it applies                     |
+| -------------- | ------------------------ | ------------------------------------ |
+| Roundtrip      | `decode(encode(x)) == x` | Serialization, conversion pairs      |
+| Inverse        | `f(g(x)) == x`           | encrypt/decrypt, compress/decompress |
+| Oracle         | `new(x) == reference(x)` | Optimization, refactor, reimplement  |
+| Idempotence    | `f(f(x)) == f(x)`        | Normalization, formatting, sorting   |
+| Invariant      | Holds before and after   | Any transformation, state machine    |
+| Easy to verify | `is_sorted(sort(x))`     | Complex algo with cheap checker      |
+| Commutativity  | `f(a, b) == f(b, a)`     | Binary and set operations            |
+| Identity       | `f(x, e) == x`           | Operations with neutral element      |
 
-**Strength ordering** (weakest → strongest):
-`no crash → type preservation → invariant → idempotence → roundtrip/oracle`
+**Strength ordering** (weakest → strongest): `no crash → type preservation → invariant → idempotence → roundtrip/oracle`
 
 Assert the strongest property the code supports. "No crash" alone rarely justifies the dependency.
 
@@ -124,12 +123,13 @@ Falsifying example: test_roundtrip(s='\x00')
 
 ## Two Ways a Property Asserts Nothing
 
-| Trap | Example | Fix |
-|------|---------|-----|
+| Trap          | Example                     | Fix                                                                         |
+| ------------- | --------------------------- | --------------------------------------------------------------------------- |
 | **Tautology** | `assert add(a, b) == a + b` | Restates implementation — pick property that constrains without recomputing |
-| **Vacuity** | Heavy `assume()` filtering | Filters out nearly every input — push constraints into strategy instead |
+| **Vacuity**   | Heavy `assume()` filtering  | Filters out nearly every input — push constraints into strategy instead     |
 
-Exception: `f(x) == f(x)` is valid determinism property when `f` is not obviously pure (serializers, hashing, clock readers).
+Exception: `f(x) == f(x)` is valid determinism property when `f` is not obviously pure (serializers, hashing, clock
+readers).
 
 ## Anti-Patterns
 

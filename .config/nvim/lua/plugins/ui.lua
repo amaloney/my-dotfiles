@@ -84,4 +84,25 @@ return {
          vim.g.better_whitespace_ctermcolor = "darkred"
       end,
    },
+
+   {
+      "akinsho/bufferline.nvim",
+      version = "*",
+      dependencies = "nvim-tree/nvim-web-devicons",
+      opts = {
+         options = {
+            mode = "buffers",
+            diagnostics = "nvim_lsp",
+            show_buffer_close_icons = false,
+            separator_style = "thin",
+            name_formatter = function(buf)
+               if buf.name:match("term://") then
+                  local cmd = buf.name:match("/([%w_-]+)$")
+                  return cmd and ("  " .. cmd) or "terminal"
+               end
+               return buf.name
+            end,
+         },
+      },
+   },
 }

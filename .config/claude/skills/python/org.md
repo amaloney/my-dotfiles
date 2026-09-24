@@ -18,6 +18,7 @@ invocation: auto
 
 ## Colors
 
-If using a color theme (e.g., Gruvbox), define colors in `config.py` as a class. No hardcoded hex in Python — use named constants.
+If using a color theme (e.g., Gruvbox), define colors in `config.py` as a class. No hardcoded hex in Python — use named
+constants.
 
 [[python/structure]] [[python/naming]]

@@ -1,18 +1,25 @@
+---
+name: conda-packaging
+description: Conda package building - recipes, dependencies, pinnings, troubleshooting
+invocation: auto
+---
+
 # Conda Package Building
 
-Dense reference for building conda packages with conda-build. Focus: recipe authoring, dependencies, pinnings, troubleshooting.
+Dense reference for building conda packages with conda-build. Focus: recipe authoring, dependencies, pinnings,
+troubleshooting.
 
 ## Recipe Structure
 
 ### Required Sections
 
-| Section        | Purpose                              | Notes                                              |
-| -------------- | ------------------------------------ | -------------------------------------------------- |
-| `package`      | name + version                       | Multi-output: name must differ from output names   |
-| `build`        | build number, scripts                | Always required, even for multi-output             |
-| `requirements` | build/host/run deps                  | Multi-output: per-output requirements              |
-| `test`         | imports/commands/files               | Multi-output: per-output test sections             |
-| `about`        | home, license, summary, URLs         | SPDX license, license_family required              |
+| Section        | Purpose                      | Notes                                            |
+| -------------- | ---------------------------- | ------------------------------------------------ |
+| `package`      | name + version               | Multi-output: name must differ from output names |
+| `build`        | build number, scripts        | Always required, even for multi-output           |
+| `requirements` | build/host/run deps          | Multi-output: per-output requirements            |
+| `test`         | imports/commands/files       | Multi-output: per-output test sections           |
+| `about`        | home, license, summary, URLs | SPDX license, license_family required            |
 
 ### Optional Sections
 
@@ -23,12 +30,13 @@ Dense reference for building conda packages with conda-build. Focus: recipe auth
 
 ```yaml
 build:
-  number: 0  # required, increment for rebuilds of same version
-  script: pip install . --no-deps --no-build-isolation -vv  # if no build.sh/bld.bat
+  number: 0 # required, increment for rebuilds of same version
+  script: pip install . --no-deps --no-build-isolation -vv # if no build.sh/bld.bat
   # noarch: python  # only pure-python, no compiled extensions, no platform selectors
 ```
 
 **pip install flags**:
+
 - `--no-deps`: conda manages deps, not pip
 - `--no-build-isolation`: PEP 518 deps already in host
 
@@ -36,21 +44,23 @@ build:
 
 ```yaml
 build:
-  noarch: python  # pure Python, any Python version
+  noarch: python # pure Python, any Python version
   # OR
-  noarch: generic  # static assets, source archives
+  noarch: generic # static assets, source archives
 ```
 
 **noarch: python requirements**:
+
 - No compiled extensions (C/C++/Rust)
 - No platform selectors in recipe
 - Works across all Python versions
 
 ### Multi-Output Recipes
 
+<!-- prettier-ignore-start -->
 ```yaml
 package:
-  name: mypackage-split  # must differ from output names
+  name: mypackage-split # must differ from output names
   version: "1.0"
 
 build:
@@ -58,7 +68,7 @@ build:
 
 outputs:
   - name: libmypackage
-    script: install_lib.sh  # unique script names
+    script: install_lib.sh # unique script names
     requirements:
       run:
         - some-dep
@@ -76,34 +86,38 @@ outputs:
       imports:
         - mypackage
 ```
+<!-- prettier-ignore-end -->
 
 ## Requirements Section
 
 ### Three Dependency Types
 
-| Type    | When Used                      | Examples                                   |
-| ------- | ------------------------------ | ------------------------------------------ |
-| `build` | Build tools, cross-compilation | compilers, cmake, make, patch, git         |
-| `host`  | Link-time deps                 | python, numpy, libraries                   |
-| `run`   | Runtime deps                   | python, imported packages                  |
+| Type    | When Used                      | Examples                           |
+| ------- | ------------------------------ | ---------------------------------- |
+| `build` | Build tools, cross-compilation | compilers, cmake, make, patch, git |
+| `host`  | Link-time deps                 | python, numpy, libraries           |
+| `run`   | Runtime deps                   | python, imported packages          |
 
 ### Compiler Syntax
 
+<!-- prettier-ignore-start -->
 ```yaml
 requirements:
   build:
     - {{ compiler('c') }}
     - {{ compiler('cxx') }}
-    - {{ compiler('fortran') }}  # if needed
-    - {{ compiler('cuda') }}     # GPU packages
-    - {{ stdlib('c') }}          # C standard library
+    - {{ compiler('fortran') }} # if needed
+    - {{ compiler('cuda') }} # GPU packages
+    - {{ stdlib('c') }} # C standard library
 ```
+<!-- prettier-ignore-end -->
 
 ### Host Section Pinnings
 
 - Exact versions preferred, no comparison operators
 - Exception: packages in `conda_build_config.yaml` (implicit pinning)
-- Python build tools required for pip install: `setuptools`, `wheel`, `pip`, or modern (`hatchling`, `flit-core`, `meson-python`, etc.)
+- Python build tools required for pip install: `setuptools`, `wheel`, `pip`, or modern (`hatchling`, `flit-core`,
+  `meson-python`, etc.)
 
 ## Pinnings
 
@@ -118,7 +132,7 @@ requirements:
 # Implicit pin (from conda_build_config.yaml)
 requirements:
   host:
-    - numpy {{ numpy }}  # or just `- numpy` if key exists in cbc
+    - numpy {{ numpy }} # or just `- numpy` if key exists in cbc
 ```
 
 ### run_exports
@@ -138,6 +152,7 @@ build:
 ```
 
 **Weak vs Strong**:
+
 - `weak`: applies when in `host:`, adds to `run:`
 - `strong`: applies from `build:` too (runtimes like libgcc)
 
@@ -147,19 +162,19 @@ build:
 build:
   run_exports:
     weak_constrains:
-      - optional-plugin >=2.0  # adds to run_constrained
+      - optional-plugin >=2.0 # adds to run_constrained
     strong_constrains:
       - system-feature >=1.0
 ```
 
 ### Pin Guidelines
 
-| Scenario                 | Recommendation                                            |
-| ------------------------ | --------------------------------------------------------- |
-| C/C++ libs               | Pin to major or `x.x` matching run_exports                |
-| NumPy (C API)            | `numpy {{ numpy }}` in host, `pin_compatible` in run      |
-| Pure Python deps         | Follow upstream requirements                              |
-| Applications (CLI tools) | Stricter pins OK, but avoid ecosystem conflicts           |
+| Scenario                 | Recommendation                                       |
+| ------------------------ | ---------------------------------------------------- |
+| C/C++ libs               | Pin to major or `x.x` matching run_exports           |
+| NumPy (C API)            | `numpy {{ numpy }}` in host, `pin_compatible` in run |
+| Pure Python deps         | Follow upstream requirements                         |
+| Applications (CLI tools) | Stricter pins OK, but avoid ecosystem conflicts      |
 
 ### run_constrained
 
@@ -167,8 +182,8 @@ Express conflicts or optional deps without forcing install:
 
 ```yaml
 run_constrained:
-  - conflicting-pkg <0  # never install together
-  - optional-feature >=2.0  # if installed, must be >=2.0
+  - conflicting-pkg <0 # never install together
+  - optional-feature >=2.0 # if installed, must be >=2.0
 ```
 
 ### Pinning Expressions
@@ -176,15 +191,15 @@ run_constrained:
 ```yaml
 pin_run_as_build:
   boost:
-    max_pin: x.x  # >=1.65.1,<1.66 if built with 1.65.1
-    min_pin: x.x.x  # lower bound at exact version
+    max_pin: x.x # >=1.65.1,<1.66 if built with 1.65.1
+    min_pin: x.x.x # lower bound at exact version
 ```
 
-| Expression | Result for 1.65.1    |
-| ---------- | -------------------- |
-| `x`        | >=1,<2               |
-| `x.x`      | >=1.65,<1.66         |
-| `x.x.x`    | >=1.65.1,<1.65.2     |
+| Expression | Result for 1.65.1 |
+| ---------- | ----------------- |
+| `x`        | >=1,<2            |
+| `x.x`      | >=1.65,<1.66      |
+| `x.x.x`    | >=1.65.1,<1.65.2  |
 
 ## conda_build_config.yaml (cbc.yaml)
 
@@ -211,8 +226,8 @@ python:
 
 # Platform selectors
 perl:
-  - 5.26  # [win]
-  - 5.34  # [not win]
+  - 5.26 # [win]
+  - 5.34 # [not win]
 
 # Paired variants (no matrix explosion)
 zip_keys:
@@ -229,31 +244,31 @@ pin_run_as_build:
 
 # Core dependency tree (Linux only)
 cdt_name:
-  - amzn2  # [linux and aarch64]
+  - amzn2 # [linux and aarch64]
 ```
 
 ### Environment Variables
 
 ```yaml
-MACOSX_SDK_VERSION:           # [osx]
-  - "10.14"                   # [osx]
-CONDA_BUILD_SYSROOT:          # [osx]
-  - /opt/MacOSX10.14.sdk      # [osx]
+MACOSX_SDK_VERSION: # [osx]
+  - "10.14" # [osx]
+CONDA_BUILD_SYSROOT: # [osx]
+  - /opt/MacOSX10.14.sdk # [osx]
 ```
 
 ## Platform Selectors
 
-| Selector   | linux-64 | linux-aarch64 | osx-arm64 | win-64 | win-arm64 |
-| ---------- | -------- | ------------- | --------- | ------ | --------- |
-| `linux`    | ✓        | ✓             |           |        |           |
-| `linux64`  | ✓        |               |           |        |           |
-| `osx`      |          |               | ✓         |        |           |
-| `unix`     | ✓        | ✓             | ✓         |        |           |
-| `win`      |          |               |           | ✓      | ✓         |
-| `win64`    |          |               |           | ✓      |           |
-| `x86_64`   | ✓        |               |           | ✓      |           |
-| `aarch64`  |          | ✓             |           |        |           |
-| `arm64`    |          |               | ✓         |        | ✓         |
+| Selector  | linux-64 | linux-aarch64 | osx-arm64 | win-64 | win-arm64 |
+| --------- | -------- | ------------- | --------- | ------ | --------- |
+| `linux`   | ✓        | ✓             |           |        |           |
+| `linux64` | ✓        |               |           |        |           |
+| `osx`     |          |               | ✓         |        |           |
+| `unix`    | ✓        | ✓             | ✓         |        |           |
+| `win`     |          |               |           | ✓      | ✓         |
+| `win64`   |          |               |           | ✓      |           |
+| `x86_64`  | ✓        |               |           | ✓      |           |
+| `aarch64` |          | ✓             |           |        |           |
+| `arm64`   |          |               | ✓         |        | ✓         |
 
 ## Testing
 
@@ -264,12 +279,13 @@ test:
   imports:
     - mypackage
   commands:
-    - pip check  # requires pip in test/requires
+    - pip check # requires pip in test/requires
   requires:
     - pip
 ```
 
 **Rules**:
+
 - Don't add `commands:` if `run_test.sh`/`run_test.bat` exist (conda-build skips them)
 - Multi-output: unique test script names per output
 - Add `files:` if test scripts in recipe dir
@@ -320,11 +336,12 @@ source:
 
 requirements:
   build:
-    - patch       # [unix]
-    - m2-patch    # [win]
+    - patch # [unix]
+    - m2-patch # [win]
 ```
 
 **Best practices**:
+
 - Keep original author/commit info
 - Link to upstream PR/issue
 - Note when patch can be dropped
@@ -333,19 +350,22 @@ requirements:
 
 ### CUDA
 
+<!-- prettier-ignore-start -->
 ```yaml
 requirements:
   build:
     - {{ compiler('c') }}
     - {{ compiler('cuda') }}
   host:
-    - cuda-version  # pins CUDA version
+    - cuda-version # pins CUDA version
     # Add specific CUDA libs as needed:
     - libcublas-dev
     - cudnn
 ```
+<!-- prettier-ignore-end -->
 
 Build script enables CUDA:
+
 ```bash
 # Varies by build system
 cmake -DUSE_CUDA=ON ...
@@ -359,8 +379,8 @@ export USE_CUDA=1
 
 ```yaml
 # conda_build_config.yaml
-MACOSX_SDK_VERSION:    # [osx and arm64]
-  - "12.3"             # [osx and arm64]
+MACOSX_SDK_VERSION: # [osx and arm64]
+  - "12.3" # [osx and arm64]
 ```
 
 ```bash
@@ -372,23 +392,25 @@ export USE_MPS=1
 
 ### Default Runtimes
 
-| Platform         | Non-MKL Build | MKL Build       |
-| ---------------- | ------------- | --------------- |
-| Linux            | `libgomp`     | `intel-openmp`  |
-| macOS            | `llvm-openmp` | `intel-openmp`  |
-| Windows x86/x64  | `vcomp14`     | `intel-openmp`  |
+| Platform        | Non-MKL Build | MKL Build      |
+| --------------- | ------------- | -------------- |
+| Linux           | `libgomp`     | `intel-openmp` |
+| macOS           | `llvm-openmp` | `intel-openmp` |
+| Windows x86/x64 | `vcomp14`     | `intel-openmp` |
 
 ### Recipe Pattern
 
+<!-- prettier-ignore-start -->
 ```yaml
 requirements:
   build:
     - {{ compiler('c') }}
   host:
-    - libgomp       # [linux]
-    - llvm-openmp   # [osx]
-    - vcomp14       # [win and x86]
+    - libgomp # [linux]
+    - llvm-openmp # [osx]
+    - vcomp14 # [win and x86]
 ```
+<!-- prettier-ignore-end -->
 
 **Critical**: Never mix OpenMP runtimes. `_openmp_mutex` metapackage enforces one family per environment.
 
@@ -423,6 +445,7 @@ Binary links to library not in declared deps but present transitively.
 ### Overdepending
 
 Recipe declares dep not actually linked. False positive if:
+
 - Library loaded at runtime (dlopen)
 - Static linking used
 
@@ -431,6 +454,7 @@ Recipe declares dep not actually linked. False positive if:
 ### Missing DSO / Whitelist Error
 
 Binary needs library not in deps or environment. Either:
+
 1. Add missing dep to `run:`
 2. If system lib (libc, libpthread): add to `build/missing_dso_whitelist`
 
@@ -454,16 +478,16 @@ Overlinking error pointing to `$SRC_DIR/build/...`:
 
 Common lint rules to satisfy:
 
-| Rule                              | Fix                                           |
-| --------------------------------- | --------------------------------------------- |
-| `missing_build_number`            | Add `build/number`                            |
-| `compilers_must_be_in_build`      | Move `{{ compiler() }}` to `build:` section   |
-| `build_tools_must_be_in_build`    | Move cmake/make/git to `build:` section       |
-| `host_section_needs_exact_pinnings` | Use exact versions, not ranges             |
-| `missing_hash`                    | Add `sha256:` to source                       |
-| `invalid_spdx_expression`         | Use valid SPDX license identifier             |
-| `missing_pip_check`               | Add `pip check` to test commands              |
-| `pip_install_args`                | Use `--no-deps --no-build-isolation`          |
+| Rule                                | Fix                                         |
+| ----------------------------------- | ------------------------------------------- |
+| `missing_build_number`              | Add `build/number`                          |
+| `compilers_must_be_in_build`        | Move `{{ compiler() }}` to `build:` section |
+| `build_tools_must_be_in_build`      | Move cmake/make/git to `build:` section     |
+| `host_section_needs_exact_pinnings` | Use exact versions, not ranges              |
+| `missing_hash`                      | Add `sha256:` to source                     |
+| `invalid_spdx_expression`           | Use valid SPDX license identifier           |
+| `missing_pip_check`                 | Add `pip check` to test commands            |
+| `pip_install_args`                  | Use `--no-deps --no-build-isolation`        |
 | `deprecated_python_install_command` | Replace `setup.py install` with pip         |
 
 ## Tools
@@ -504,5 +528,3 @@ conda inspect linkages <package>
 # Check imported packages (Python)
 conda inspect objects <package>
 ```
-
----

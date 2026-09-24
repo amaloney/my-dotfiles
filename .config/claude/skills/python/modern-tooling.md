@@ -125,14 +125,14 @@ from rich import print
 print(requests.get("https://httpbin.org/ip").json())
 ```
 
-| Task | Command |
-|------|---------|
-| Create script | `uv init --script myscript.py` |
+| Task              | Command                                |
+| ----------------- | -------------------------------------- |
+| Create script     | `uv init --script myscript.py`         |
 | Add dep to script | `uv add --script myscript.py requests` |
-| Run script | `uv run myscript.py` |
+| Run script        | `uv run myscript.py`                   |
 
-**Use PEP 723 for:** Single-file scripts, quick automation, self-contained utilities
-**Use pyproject.toml for:** Multi-file projects, reusable packages
+**Use PEP 723 for:** Single-file scripts, quick automation, self-contained utilities **Use pyproject.toml for:**
+Multi-file projects, reusable packages
 
 ## Dependency Groups (PEP 735)
 

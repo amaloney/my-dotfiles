@@ -76,10 +76,10 @@ async def test_async_service():
 async def test_multiple_awaits(mocker):
     mock_fetch = mocker.patch("myapp.api.fetch", new_callable=AsyncMock)
     mock_fetch.side_effect = [{"id": 1}, {"id": 2}]
-    
+
     r1 = await fetch_user(1)
     r2 = await fetch_user(2)
-    
+
     assert mock_fetch.await_count == 2
 ```
 
@@ -102,11 +102,11 @@ async def test_cancellation():
 
 ## Anti-Patterns
 
-| Bad | Good |
-|-----|------|
-| `asyncio.run()` in test | `@pytest.mark.asyncio` decorator |
-| `time.sleep()` | `await asyncio.sleep()` |
-| Sync fixture for async resource | Async fixture with `yield` |
-| Missing `await` on mock | `mock.assert_awaited_once()` |
+| Bad                             | Good                             |
+| ------------------------------- | -------------------------------- |
+| `asyncio.run()` in test         | `@pytest.mark.asyncio` decorator |
+| `time.sleep()`                  | `await asyncio.sleep()`          |
+| Sync fixture for async resource | Async fixture with `yield`       |
+| Missing `await` on mock         | `mock.assert_awaited_once()`     |
 
 [[python/testing]] [[python/mocking]] [[python/conftest]]

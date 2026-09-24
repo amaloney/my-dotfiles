@@ -15,11 +15,11 @@ test -f .claude/code_index/profile.json && \
   echo "profile: current" || echo "profile: needs update"
 ```
 
-| State | Action |
-|-------|--------|
-| Missing | Run [[python/recon]] |
-| Stale (>7 days) | Offer to refresh |
-| Current | Read and use |
+| State           | Action               |
+| --------------- | -------------------- |
+| Missing         | Run [[python/recon]] |
+| Stale (>7 days) | Offer to refresh     |
+| Current         | Read and use         |
 
 **After recon:** All skills read `.claude/code_index/profile.json` for project context.
 
@@ -135,12 +135,12 @@ If violations or bugs persist after 2 fix cycles, return to user with findings.
 
 ## Skill Selection for Testing
 
-| Code Shape                     | Skills to Load                                            |
-| ------------------------------ | --------------------------------------------------------- |
-| Simple unit tests              | testing                                                   |
-| Tests with fixtures            | testing + conftest                                        |
-| Tests with external deps       | testing + mocking                                         |
-| Async code                     | testing + async-testing                                   |
-| Roundtrip/invariant properties | property-testing                                          |
-| Full test suite                | testing + conftest + mocking + property-testing           |
-| Full async test suite          | testing + conftest + mocking + async-testing              |
+| Code Shape                     | Skills to Load                                  |
+| ------------------------------ | ----------------------------------------------- |
+| Simple unit tests              | testing                                         |
+| Tests with fixtures            | testing + conftest                              |
+| Tests with external deps       | testing + mocking                               |
+| Async code                     | testing + async-testing                         |
+| Roundtrip/invariant properties | property-testing                                |
+| Full test suite                | testing + conftest + mocking + property-testing |
+| Full async test suite          | testing + conftest + mocking + async-testing    |

@@ -27,13 +27,13 @@ test -d src && echo "src-layout"
 fd -e py -d 1 . | head -1 && echo "flat-layout"
 ```
 
-| Markers | Type |
-|---------|------|
-| `cli.py`, `__main__.py`, Click/Typer dep | cli |
-| Only `__init__.py`, no entry points | library |
-| Flask/Django/FastAPI dep | webapp |
-| pandas/numpy heavy, notebooks | datascience |
-| Multiple `pyproject.toml` | monorepo |
+| Markers                                  | Type        |
+| ---------------------------------------- | ----------- |
+| `cli.py`, `__main__.py`, Click/Typer dep | cli         |
+| Only `__init__.py`, no entry points      | library     |
+| Flask/Django/FastAPI dep                 | webapp      |
+| pandas/numpy heavy, notebooks            | datascience |
+| Multiple `pyproject.toml`                | monorepo    |
 
 ### 2. Map Structure
 
@@ -42,7 +42,7 @@ fd -e py -d 1 . | head -1 && echo "flat-layout"
 fd -t d -d 2 "src|lib" .
 fd "__init__.py" -x dirname {} | sort -u | head -10
 
-# Test directories  
+# Test directories
 fd -t d "tests|test" -d 2 .
 
 # Config files
@@ -98,8 +98,8 @@ Output to `.claude/code_index/profile.json`:
   },
   "patterns": {
     "config_py_path": "<path or null>",
-    "constants_locations": [{"file": "<path>", "line": "<n>", "name": "<NAME>"}],
-    "scattered_constants": [{"file": "<path>", "line": "<n>", "name": "<NAME>"}]
+    "constants_locations": [{ "file": "<path>", "line": "<n>", "name": "<NAME>" }],
+    "scattered_constants": [{ "file": "<path>", "line": "<n>", "name": "<NAME>" }]
   },
   "testing": {
     "framework": "<pytest|unittest|none>",
