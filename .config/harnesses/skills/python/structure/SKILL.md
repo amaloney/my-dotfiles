@@ -39,6 +39,11 @@ reader to jump away to learn it is just `re.sub(...).lower()`.
 **When to extract:** Logic is reused 3+ times, OR name documents non-obvious intent, OR expression is complex enough to
 obscure the calling code. Docstrings do not rescue sugar — a 13-line docstring on a 1-line function is the smell.
 
+**Same gate applies to dataclass docstrings.** An `Attributes:` section that restates field names with type
+rephrasings is sugar — the field declarations already say it. Delete it; keep one line stating what the record IS.
+Property one-liners earn their place only when semantics are non-obvious (threshold, clamp, computed unit) — and the
+doc must name the non-obvious part, not rephrase the name.
+
 ## Comments
 
 Only when WHY is non-obvious. No tombstones, no decorative blocks.

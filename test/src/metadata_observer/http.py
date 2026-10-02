@@ -9,20 +9,14 @@ RATE_LIMIT_BUFFER = 5
 
 @dataclass
 class RateLimitInfo:
-    """Rate-limit state for a resource.
-
-    Attributes:
-        limit: Requests allowed per window.
-        remaining: Requests left in the current window.
-        reset_timestamp: Unix timestamp when the window resets.
-        used: Requests consumed in the current window.
-    """
+    """Rate-limit state for a resource: limit, remaining, reset_timestamp, used."""
 
     limit: int
     remaining: int
     reset_timestamp: int
     used: int = 0
 
+    # Property semantics are non-obvious (buffer threshold, clamped at zero) — keep terse docs.
     @property
     def is_exhausted(self) -> bool:
         """True when remaining requests are at or below the safety buffer."""
@@ -30,7 +24,7 @@ class RateLimitInfo:
 
     @property
     def seconds_until_reset(self) -> int:
-        """Seconds until the rate-limit window resets; never negative."""
+        """Seconds until window reset; clamped to zero."""
         return max(0, self.reset_timestamp - int(time.time()))
 
 
