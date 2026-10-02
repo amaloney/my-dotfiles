@@ -53,8 +53,7 @@ def test_invalid_json_returns_none() -> None:
 
 
 def test_default_channels_used() -> None:
-    from metadata_observer.conda import fetch_conda_metadata
-    from metadata_observer.config import DEFAULT_CHANNELS
+    from metadata_observer.conda import DEFAULT_CHANNELS, fetch_conda_metadata
 
     proc = MagicMock(returncode=0, stdout=json.dumps(_conda_search_payload()))
     with patch("metadata_observer.conda.subprocess.run", return_value=proc) as mock_run:
