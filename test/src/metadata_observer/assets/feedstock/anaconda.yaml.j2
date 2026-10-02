@@ -1,6 +1,10 @@
 {#- Jinja2 template — rendered values:
-    pkg_name: PyPI/conda package name
-    github_repo: optional "owner/repo"; renders the github upstream block when set
+    pkg_name: PyPI/conda package name (always rendered as pypi upstream)
+    github_repo: optional "owner/repo"
+    gitlab_repo: optional "owner/repository"
+    git_url: optional git clone URL; git_strip_prefix/git_tag_filter optional modifiers
+    webpage_url + webpage_regex: optional fallback scraper pair
+    Priority: github > gitlab > git > webpage; at most one secondary source renders.
     Reference: https://github.com/anaconda/package-build-platform/blob/main/adr/2026-05-29-channel-and-requirements-mapping-spec.md
 -#}
 
@@ -16,24 +20,22 @@ upstream_sources:
   - github:
       identifier: {{ github_repo }}
     packages: [{{ pkg_name }}]
+{% elif gitlab_repo | default(none) %}
+  - gitlab:
+      identifier: {{ gitlab_repo }}
+    packages: [{{ pkg_name }}]
+{% elif git_url | default(none) %}
+  - git:
+      identifier: {{ git_url }}
+      strip_prefix: {{ git_strip_prefix | default('release-') }}
+      tag_filter: {{ git_tag_filter | default('release-*') }}
+    packages: [{{ pkg_name }}]
+{% elif webpage_url | default(none) %}
+  - webpage:
+      url: {{ webpage_url }}
+      regex: {{ webpage_regex }}
+    packages: [{{ pkg_name }}]
 {% endif %}
-  # --- GitLab ---
-  # - gitlab:
-  #     identifier: {owner}/{repository}
-  #   packages: [{{ pkg_name }}]
-
-  # --- Generic Git ---
-  # - git:
-  #     identifier: https://gitlab.com/project/repo.git
-  #     strip_prefix: release-
-  #     tag_filter: release-*
-  #   packages: [{{ pkg_name }}]
-
-  # --- Webpage (regex extraction) ---
-  # - webpage:
-  #     url: https://example.com/releases/
-  #     regex: "version-([0-9.]+)\\.tar\\.gz"
-  #   packages: [{{ pkg_name }}]
 
 # https://github.com/anaconda/package-build-platform/blob/main/clients/cli/ABS_YAML.md
 package_build:
