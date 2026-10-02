@@ -384,8 +384,11 @@ def extract_from_file(file_path: Path, repo_path: Path) -> tuple[List[CodeEntity
         source_lines = source.splitlines()
         tree = ast.parse(source)
 
-        # Calculate module name
-        rel_path = file_path.relative_to(repo_path / "src")
+        # Calculate module name — src-layout strips the src/ prefix; other layouts use repo-relative path
+        try:
+            rel_path = file_path.relative_to(repo_path / "src")
+        except ValueError:
+            rel_path = file_path.relative_to(repo_path)
         module_name = str(rel_path.with_suffix("")).replace("/", ".").replace("\\", ".")
 
         extractor = CodeExtractor(str(file_path), source_lines, module_name)
@@ -520,7 +523,10 @@ def build_index(source_dir: Path, db_dir: Path, repo_path: Path):
     # Extract from all files
     all_entities: List[CodeEntity] = []
     all_relations: List[CodeRelation] = []
-    py_files = list(source_dir.rglob("*.py"))
+    py_files = [
+        f for f in source_dir.rglob("*.py")
+        if not any(part.startswith((".", "_")) for part in f.parts)
+    ]
 
     for py_file in py_files:
         entities, relations = extract_from_file(py_file, repo_path)
@@ -616,13 +622,13 @@ if __name__ == "__main__":
     parser.add_argument("source_dir", nargs="?", help="Source directory to index")
     args = parser.parse_args()
 
-    script_dir = Path(__file__).parent
-    project_root = script_dir.parent.parent
+    script_dir = Path(__file__).parent.resolve()
+    project_root = script_dir.parent.parent.resolve()
     db_dir = script_dir
 
     # Find source directory: CLI arg > src/ > project root
     if args.source_dir:
-        source_dir = Path(args.source_dir)
+        source_dir = Path(args.source_dir).resolve()
     elif (project_root / "src").exists():
         # Find first package in src/
         src_dirs = [d for d in (project_root / "src").iterdir() if d.is_dir() and not d.name.startswith("_")]

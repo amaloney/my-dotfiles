@@ -28,6 +28,21 @@ ruff = ">=0.12,<0.16"
 [tool.pixi.pypi-dependencies]
 metadata-observer = { path = ".", editable = true }
 
+# dev: code-index generation + semantic search. Preferred env for development
+# work; not default — plain `pixi run` uses the lightweight default env.
+[tool.pixi.feature.dev.pypi-dependencies]
+chromadb = ">=0.5,<2"
+
+[tool.pixi.feature.dev.tasks]
+# Scripts must run from the installed copy — they resolve db/project paths relative to their own location
+index-install = "../.config/harnesses/skills/code-index/scripts/install.sh ."
+index-build = "python .harness/code_index/build_index_temporal.py ."
+index-query = "python .harness/code_index/query_temporal.py search"
+
+[tool.pixi.environments]
+default = { solve-group = "default" }
+dev = { features = ["dev"], solve-group = "default" }
+
 [tool.pixi.tasks]
 test = "python -m pytest tests/ -v"
 lint = "ruff check src/ tests/"
