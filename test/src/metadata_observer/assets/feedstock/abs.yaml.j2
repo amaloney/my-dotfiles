@@ -1,0 +1,30 @@
+{#- ABS build config template — schema: abs.schema.yaml (validate render context against it)
+    Rendered values:
+      meta.package.name: package name (from feedstock metadata aggregation)
+-#}
+channels:
+  - defaults
+
+upload_channels:
+  - services
+
+name: {{ meta.package.name }}
+version: 1
+
+build_parameters:
+  - "--skip-existing" # Skip packages that already exist in the configured channels.
+  - "--suppress-variables" # Suppress configured environment-variable values in conda-build output.
+  #- "--error-overdepending" # Fail when a package records unnecessary runtime dependencies.
+  - "--error-overlinking" # Fail when binaries link against libraries not declared appropriately.
+  #- "--no-error-overlinking" # Disable error-overlinking behavior.
+  #- "--no-include-recipe" # Do not include the recipe in the built package.
+
+build_env_vars: {}
+
+staging_channel_upload_target: null
+max_run_time: 14400
+
+# Read only by the graph-submitter service.
+with_sbom: true
+render_workers: 2
+graph_submit_probability: 1.0

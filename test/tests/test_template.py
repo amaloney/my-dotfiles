@@ -9,6 +9,8 @@ from jinja2 import Environment, StrictUndefined
 ASSETS = Path(__file__).parent.parent / "src" / "metadata_observer" / "assets" / "feedstock"
 TEMPLATE = ASSETS / "anaconda.yaml.j2"
 SCHEMA = ASSETS / "anaconda.schema.yaml"
+ABS_TEMPLATE = ASSETS / "abs.yaml.j2"
+ABS_SCHEMA = ASSETS / "abs.schema.yaml"
 
 
 @pytest.fixture()
@@ -60,3 +62,36 @@ def test_render_webpage_branch(template) -> None:
 def test_render_requires_pkg_name(template) -> None:
     with pytest.raises(Exception):
         template.render()
+
+
+@pytest.fixture()
+def abs_template():
+    env = Environment(undefined=StrictUndefined)
+    return env.from_string(ABS_TEMPLATE.read_text())
+
+
+class _Meta:
+    """Attribute-access wrapper for template render context (Jinja resolves meta.package.name via getattr)."""
+
+    def __init__(self, **kwargs):
+        for key, value in kwargs.items():
+            setattr(self, key, _Meta(**value) if isinstance(value, dict) else value)
+
+
+def test_abs_schema_file_is_valid_yaml() -> None:
+    schema = yaml.safe_load(ABS_SCHEMA.read_text())
+    assert schema["type"] == "object"
+    assert schema["required"] == ["meta"]
+
+
+def test_abs_render_is_valid_yaml(abs_template) -> None:
+    doc = yaml.safe_load(abs_template.render(meta=_Meta(package={"name": "requests"})))
+    assert doc["name"] == "requests"
+    assert doc["version"] == 1
+    assert "defaults" in doc["channels"]
+    assert doc["with_sbom"] is True
+
+
+def test_abs_render_missing_name_raises(abs_template) -> None:
+    with pytest.raises(Exception):
+        abs_template.render(meta=_Meta(package={}))

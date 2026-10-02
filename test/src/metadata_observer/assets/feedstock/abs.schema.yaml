@@ -1,0 +1,22 @@
+# Render context schema for abs.yaml.j2
+$schema: https://json-schema.org/draft/2020-12/schema
+title: abs.yaml.j2 render context
+type: object
+required: [meta]
+properties:
+  meta:
+    type: object
+    required: [package]
+    properties:
+      package:
+        type: object
+        required: [name]
+        properties:
+          name:
+            type: string
+            minLength: 1
+        additionalProperties: true
+    additionalProperties: true
+additionalProperties: true
+# Only meta.package.name is consumed today; additional keys are tolerated
+# (the aggregator's PackageMetadata grows without breaking the template).
