@@ -13,6 +13,7 @@ package:
   name: {% raw %}{{ name }}{% endraw %}
   version: {% raw %}{{ version }}{% endraw %}
 
+# --- source block: harvested from PyPI sdists, GitHub release assets, or webpage artifacts ---
 source:
   url: https://pypi.io/packages/source/{% raw %}{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}{% endraw %}.tar.gz
   sha256: $sha256
@@ -21,6 +22,7 @@ build:$noarch
   number: 0
   script: {% raw %}{{ PYTHON }}{% endraw %} -m pip install . -vv --no-deps --no-build-isolation$skip
 
+# --- requirements/test blocks: harvested from conda-forge feedstocks ---
 requirements:
   host:
     - python
@@ -38,6 +40,7 @@ test:
   commands:
     - pip check
 
+# --- about block: harvested from PyPI/conda/GitHub metadata aggregation ---
 about:
   home: $home_url
   license: $license_id
