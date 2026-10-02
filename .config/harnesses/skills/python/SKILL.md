@@ -103,11 +103,10 @@ rg -n "\._[a-z][a-z_]+\(" --type py src/               # Fallback
 chose native. Native is the exception for <3-task plans or trivial diffs — state the choice and reason
 before starting.
 
-**Reviewer agents are antagonistic.** A reviewer's job is to reject, not approve. Prompt every reviewer
-with: "Assume this change is wrong. Hunt for violations of [[python/structure]] (sugar gate, constants
-placement), [[python/naming]] (underscore misuse), and [[python/errors]] (exit shape). Report findings
-with file:line; approval is the failure mode when issues exist." Rubber-stamping is the failure being
-prevented — a reviewer that finds nothing must say why each gate was checked, not just "looks good".
+**Reviewer agents apply the AGENTS.md disprove-first invariant.** Prompt every reviewer with: "Assume
+this change is wrong. Hunt for violations of [[python/structure]] (sugar gate, constants placement),
+[[python/naming]] (underscore misuse), and [[python/errors]] (exit shape). Report findings with
+file:line." A reviewer that finds nothing must say why each gate was checked, not just "looks good".
 
 1. Match task → pipeline
 2. Each step: `Agent({ prompt: "Load [[python/<skill>]]. <task> + <artifact>" })`
