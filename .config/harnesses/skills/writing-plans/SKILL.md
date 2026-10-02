@@ -113,3 +113,9 @@ one with a one-sentence reason from the plan (interface coupling, task count, co
 chosen a method, and the plan has ≥3 tasks: default to subagent-per-task, state that choice and the
 one-sentence reason, and proceed — do not silently run native. Plans with <3 tasks may run native;
 state that choice too.
+
+## Orchestrator Context Budget
+
+Orchestrator holds the plan skeleton + current task only; subagents hydrate from the plan file on disc.
+Reviewers write verdicts to `.harness/reviews/<task>.md` — orchestrator reads verdicts, not diffs.
+Gates are mechanical (lint/test exit codes): orchestrator sees pass/fail, not output, unless red.

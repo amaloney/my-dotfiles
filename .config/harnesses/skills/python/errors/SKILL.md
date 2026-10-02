@@ -32,4 +32,11 @@ if data and cache_dir:
 return data
 ```
 
+## Scoped Exceptions
+
+Catch the narrowest exception the library exposes — `requests.RequestException`, `json.JSONDecodeError`,
+`subprocess.CalledProcessError` — over broad `except Exception`. Broad catches mask programming errors
+(typos, attribute errors) as fetch failures. Broad `except Exception` is reserved for aggregator
+boundaries where one source must never sink the whole result.
+
 [[debugging/references/python]]

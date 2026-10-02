@@ -35,6 +35,9 @@ ruff check --select I --fix .   # fix imports only (replaces isort)
 
 ### pyproject.toml Config
 
+Dependencies: ranged pins always (`>=2.32,<3`), never `"*"`. The lockfile is the reproducibility layer;
+`"*"` says nothing about intent and hides stale constraints.
+
 Canonical ruff select list (single statement): `select = ["E", "F", "I", "UP", "B", "SIM", "ANN", "ASYNC", "S"]`.
 
 ```toml
@@ -57,6 +60,9 @@ known-first-party = ["<package_name>"]
 
 [tool.ruff.lint.flake8-quotes]
 docstring-quotes = "double"
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["S101", "S310"]  # assert + urlopen in tests

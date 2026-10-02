@@ -18,6 +18,7 @@ Canonical for Claude Code, Kilo, OpenCode. Invariants + routing only; procedures
 - Scripts handed to the user: complete files, never fragments or diffs
 - Verification artifacts (reviews, tests, plan checks): attempt to disprove — assume the work is wrong and hunt;
   approval is the failure mode when issues exist. Scoped to verification; not research or generation.
+- Code is written for human readers — names carry meaning, comments explain why, structure communicates intent
 
 Output style, banned phrases, abbreviation rules: `token-efficiency` skill.
 
