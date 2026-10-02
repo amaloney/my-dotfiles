@@ -8,3 +8,6 @@ __pycache__
 
 conda-anaconda-tools.md
 conda-internal.md
+
+# Harness-generated
+.harness/

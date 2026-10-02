@@ -103,7 +103,7 @@ flowchart LR
         T[Task]
     end
 
-    subgraph KG["Knowledge Graph<br/>.claude/code_index/"]
+    subgraph KG["Knowledge Graph<br/>.harness/code_index/"]
         subgraph SQL["SQLite: code_graph.db"]
             KG1[Entities<br/>825 classes/methods/functions]
             KG2[Relations<br/>6529 calls/inherits/imports]
@@ -114,7 +114,7 @@ flowchart LR
         end
     end
 
-    subgraph Skills["Skills<br/>.config/claude/skills/"]
+    subgraph Skills["Skills<br/>.config/harnesses/skills/"]
         SK1[python.md<br/>orchestrator]
         SK2[Leaf skills<br/>testing/security/bugs]
         SK3[profile.json<br/>project context]

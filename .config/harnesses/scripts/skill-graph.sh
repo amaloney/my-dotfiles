@@ -18,10 +18,10 @@ echo '  rankdir=LR;'
 echo '  node [shape=box, style=rounded, fontname="Helvetica"];'
 echo '  edge [color="#666666"];'
 
-# Process each skill file
-find "$SKILLS_DIR" -name "*.md" -type f | while read -r file; do
+# Process each skill file (dir/SKILL.md convention)
+find "$SKILLS_DIR" -name "SKILL.md" -type f | while read -r file; do
     rel="${file#$SKILLS_DIR/}"
-    name="${rel%.md}"
+    name="$(dirname "$rel")"
     node_id="${name//\//_}"
     label="${name##*/}"
     dir="$(dirname "$rel")"

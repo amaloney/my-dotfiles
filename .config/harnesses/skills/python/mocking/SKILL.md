@@ -118,19 +118,7 @@ def test_spy(mocker):
     spy.assert_called_once_with(data)
 ```
 
-## Async Mocking
-
-```python
-@pytest.mark.asyncio
-async def test_async(mocker):
-    mock_fetch = mocker.patch("myapp.api.fetch")
-    mock_fetch.return_value = asyncio.coroutine(lambda: {"data": 1})()
-    # or
-    mock_fetch.return_value = {"data": 1}  # if awaited directly
-
-    result = await myapp.api.fetch()
-    assert result == {"data": 1}
-```
+Async mocks: [[python/async-testing]].
 
 ## Anti-Patterns
 
@@ -141,4 +129,4 @@ async def test_async(mocker):
 | No assertions on mock        | Verify mock was called correctly |
 | Mock internal implementation | Mock external dependencies       |
 
-[[python/testing]] [[python/conftest]] [[python/bugs]]
+[[python/testing]] [[python/conftest]] [[debugging]]

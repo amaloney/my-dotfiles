@@ -2,10 +2,10 @@
 """Query skill vector index with distance scores.
 
 Usage:
-    python ~/.claude/scripts/query_skills.py "write a batch script"
-    python ~/.claude/scripts/query_skills.py "conda installer" -k 3
-    python ~/.claude/scripts/query_skills.py --stats
-    python ~/.claude/scripts/query_skills.py --list
+    python query_skills.py "write a batch script"
+    python query_skills.py "conda installer" -k 3
+    python query_skills.py --stats
+    python query_skills.py --list
 
 Output shows cosine similarity scores (0-1, higher = closer match).
 """
@@ -20,11 +20,11 @@ from sentence_transformers import SentenceTransformer
 
 def get_collection():
     """Get the skills collection."""
-    vectors_dir = Path.home() / ".claude" / "vectors"
+    vectors_dir = Path.home() / ".config" / "harnesses" / "vectors"
 
     if not vectors_dir.exists():
         print("Vector index not found. Run:", file=sys.stderr)
-        print("  python ~/.claude/scripts/build_skill_vectors.py", file=sys.stderr)
+        print("  python ~/.config/harnesses/scripts/build_skill_vectors.py", file=sys.stderr)
         sys.exit(1)
 
     client = chromadb.PersistentClient(path=str(vectors_dir))

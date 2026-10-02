@@ -142,4 +142,4 @@ readers).
 | `assume(complex_predicate)`  | Build constraint into strategy    |
 | Restate implementation       | Find algebraic property           |
 
-[[python/testing]] [[python/conftest]] [[python/bugs]]
+[[python/testing]] [[python/conftest]] [[debugging]]

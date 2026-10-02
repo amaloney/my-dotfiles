@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Build vector index from Claude skills.
+"""Build vector index from harness skills.
 
 Indexes:
-- Skill files from ~/.claude/skills/
+- Skill files from ~/.config/harnesses/skills/ (dir/SKILL.md convention)
 - Extracts name, description, trigger keywords, and content
 
 Usage:
-    python ~/.claude/scripts/build_skill_vectors.py [--rebuild]
+    python build_skill_vectors.py [--rebuild]
 """
 
 import argparse
@@ -83,10 +83,7 @@ def index_skills(skills_dir: Path, collection, model) -> int:
     """Index all skill files."""
     count = 0
 
-    for skill_path in skills_dir.glob("*.md"):
-        if skill_path.name in ("SKILL-INDEX.md", "README.md"):
-            continue
-
+    for skill_path in skills_dir.glob("**/SKILL.md"):
         skill = parse_skill(skill_path)
         if not skill:
             continue
@@ -139,8 +136,8 @@ def main():
     args = parser.parse_args()
 
     # Paths
-    skills_dir = Path.home() / ".claude" / "skills"
-    vectors_dir = Path.home() / ".claude" / "vectors"
+    skills_dir = Path.home() / ".config" / "harnesses" / "skills"
+    vectors_dir = Path.home() / ".config" / "harnesses" / "vectors"
 
     if not skills_dir.exists():
         print(f"Skills directory not found: {skills_dir}", file=sys.stderr)

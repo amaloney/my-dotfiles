@@ -22,6 +22,6 @@ Load specific leaf for focused task. Load all for full review.
 "style violations" → check both:
 
 1. `ruff check <path>` → [[python/violations]]
-2. `python3 .claude/analysis/ast_checker.py --check structure <path>`
+2. `python3 ~/.config/harnesses/skills/ast-check/scripts/ast_checker.py --check structure <path>`
 
 "orchestrate" → agents per ruff rule + one for structure ([[python/structure]] + [[python/org]])

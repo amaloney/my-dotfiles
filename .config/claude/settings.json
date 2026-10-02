@@ -1,0 +1,79 @@
+{
+  "awsAuthRefresh": "aws sso login --profile Sandbox-621741996708",
+  "env": {
+    "CLAUDE_CODE_ENABLE_TELEMETRY": "0",
+    "CLAUDE_CODE_USE_BEDROCK": "1",
+    "AWS_PROFILE": "Sandbox-621741996708",
+    "AWS_REGION": "us-east-1",
+    "ANTHROPIC_MODEL": "us.anthropic.claude-opus-4-5-20251101-v1:0"
+  },
+  "permissions": {
+    "allow": ["Edit(/tmp/**)", "Edit(/private/tmp/**)", "Bash(ls ~/.claude/skills/*)", "Bash(find ~/.claude/skills/*)"],
+    "deny": [
+      "Read(./.coverage/**/*)",
+      "Read(./.hypothesis/**/*)",
+      "Read(./.ipynb_checkpoints/**/*)",
+      "Read(./.pixi/**/*)",
+      "Read(./.pytest_cache/**/*)",
+      "Read(./.ruff_cache/**/*)",
+      "Read(./htmlcov/**/*)",
+      "Read(./notebooks/**/*)",
+      "Read(./build)",
+      "Read(./cache)",
+      "Read(./data)",
+      "Read(./infra)",
+      "Read(./notes/**/*)",
+      "Read(./.secrets/**/*)",
+      "Read(./.git/**/*)",
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./.mydev)",
+      "Bash(env:*)",
+      "Read(./credentials.txt)",
+      "Read(./*.pem)",
+      "Bash(pass:*)"
+    ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.config/harnesses/skills/code-index/scripts/harness-refresh.sh",
+            "timeout": 60
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.config/harnesses/skills/code-index/scripts/harness-refresh.sh",
+            "timeout": 60
+          }
+        ]
+      }
+    ],
+    "MessageDisplay": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.message.content // empty' | ~/.claude/scripts/check-pronouns.sh",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  },
+  "enabledPlugins": {
+    "lua-lsp@claude-plugins-official": true
+  },
+  "additionalDirectories": ["/tmp", "/private/tmp"],
+  "recap": false,
+  "awaySummaryEnabled": false
+}

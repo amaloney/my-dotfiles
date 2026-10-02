@@ -15,12 +15,7 @@ ruff check <path> --output-format json  # Structured output
 ruff check <path>                        # Human readable
 ```
 
-Rules configured in:
-
-```toml
-[tool.ruff.lint]
-select = ["E", "F", "I", "UP", "B", "SIM", "ANN"]  # pyproject.toml
-```
+Rules configured in `pyproject.toml` `[tool.ruff.lint]` — ruff select list: [[python/modern-tooling]].
 
 ## Execution Mode
 
@@ -52,4 +47,4 @@ Sequential fixes by rule code prevent overwrite conflicts.
 | SIM  | simplify                     |
 | UP   | pyupgrade                    |
 
-[[python/style]] [[python/bugs]]
+[[python/style]] [[debugging]]

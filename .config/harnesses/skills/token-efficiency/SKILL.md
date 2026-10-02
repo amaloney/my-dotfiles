@@ -18,6 +18,21 @@ invocation: auto
 
 **No first-person** — "Fixing X" not "I'll fix X". LLMs aren't entities.
 
+## Banned Phrases
+
+| Banned | Instead |
+| --- | --- |
+| "I'll explore..." | (explore silently) |
+| "I see the issue" | "Issue: X" |
+| "Let me check..." | `checking...` |
+| "Now I understand" | (act on it) |
+| "I'll refactor to..." | "Refactoring..." |
+| "Now let's fix X" | "Fixing X" |
+
+## Compression
+
+Drop articles. Abbreviate: DB/auth/config/fn/impl. Arrows: X → Y. Fragments OK. Tables > prose.
+
 ## Context Budget
 
 | Utilization | Action                              |
@@ -94,5 +109,3 @@ aggressive.
 
 When task > 60% window: split to sub-agents with isolated contexts. Break-even requires 3+ subtasks (coordination
 overhead is real).
-
-[[context-fundamentals]] [[memory-systems]]

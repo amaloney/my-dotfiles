@@ -2,15 +2,15 @@
 
 ## Session Start
 
-1. Check `.claude/code_index/profile.json` exists and fresh (<7 days)
+1. Check `.harness/code_index/profile.json` exists and fresh (<7 days)
 2. If missing/stale → run [[python/recon]] to generate profile
 3. Load [[python]] orchestrator
 4. Read `README.md` and `TODO.md` (if exists) for context
 
 ```bash
 # Check profile status
-test -f .claude/code_index/profile.json && \
-  find .claude/code_index/profile.json -mtime -7 | grep -q . && \
+test -f .harness/code_index/profile.json && \
+  find .harness/code_index/profile.json -mtime -7 | grep -q . && \
   echo "CURRENT" || echo "NEEDS UPDATE"
 ```
 
@@ -26,18 +26,18 @@ All skills read this instead of scanning. Contains:
 
 ```bash
 # Quick queries
-cat .claude/code_index/profile.json | jq '.project.type'
-cat .claude/code_index/profile.json | jq '.patterns.config_py_path'
+cat .harness/code_index/profile.json | jq '.project.type'
+cat .harness/code_index/profile.json | jq '.patterns.config_py_path'
 ```
 
 ## Python Workflow
 
 | Task           | Load                                                          |
 | -------------- | ------------------------------------------------------------- |
-| New code       | [[python/style]] → [[python/violations]] → [[python/bugs]]    |
+| New code       | [[python/style]] → [[python/violations]] → [[debugging]]    |
 | Tests          | [[python/testing]] + [[python/conftest]] + [[python/mocking]] |
 | Property tests | [[python/property-testing]]                                   |
-| Bug fix        | [[python/bugs]] → verify with test                            |
+| Bug fix        | [[debugging]] → verify with test                            |
 | Security       | [[python/security]]                                           |
 | Refresh profile| [[python/recon]]                                              |
 

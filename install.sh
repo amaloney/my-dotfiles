@@ -124,6 +124,61 @@ symlink() {
     fi
 }
 
+# Copy a file (not symlink) if the destination differs. Reports divergence so the
+# user can reconcile repo copy vs local edits.
+copy_file() {
+    local source="$1"
+    local dest="$2"
+
+    if [[ -f "$dest" ]] && diff -q "$source" "$dest" &>/dev/null; then
+        skip "$dest up to date"
+        return
+    fi
+
+    if $DRY_RUN; then
+        if [[ -f "$dest" ]]; then
+            echo "   Would copy: $source -> $dest (diverged)"
+        else
+            echo "   Would copy: $source -> $dest"
+        fi
+        return
+    fi
+
+    mkdir -p "$(dirname "$dest")"
+    cp "$source" "$dest"
+    if [[ -L "$dest" ]]; then
+        : # cp followed symlink; already handled above
+    fi
+    done_msg "$dest (copied — local edits will diverge; reconcile manually)"
+}
+
+# Remove symlinks pointing into $DOTFILES whose source no longer exists in the repo.
+# Only touches: (a) broken symlinks, (b) whose resolved target path is under $DOTFILES.
+# Never removes real files or links pointing outside the dotfiles repo.
+prune_stale_links() {
+    local dir
+    for dir in "$@"; do
+        [[ -d "$dir" ]] || continue
+        # Top-level entries only
+        for entry in "$dir"/*; do
+            [[ -L "$entry" ]] || continue
+            local target
+            target="$(readlink "$entry")"
+            # Must point into the dotfiles repo
+            [[ "$target" == "$DOTFILES/"* ]] || continue
+            # Prune only if the source is gone
+            if [[ ! -e "$target" ]]; then
+                if $DRY_RUN; then
+                    echo "   Would prune: $entry -> $target (source deleted)"
+                else
+                    rm -f "$entry"
+                    done_msg "pruned $entry (source deleted)"
+                fi
+            fi
+        done
+    done
+}
+
 echo ""
 echo -e "\033[35mDotfiles Installer for macOS/Linux\033[0m"
 echo -e "\033[35m===================================\033[0m"
@@ -179,23 +234,43 @@ fi
 
 # Claude Code config (user only, not system-wide)
 if ! $SYSTEM; then
-    status "Claude Code - CLAUDE.md"
-    symlink "$DOTFILES/.config/claude/CLAUDE.md" "$HOME/.claude/CLAUDE.md"
+    status "Harness AGENTS.md - Claude Code"
+    symlink "$DOTFILES/.config/harnesses/AGENTS.md" "$HOME/.claude/CLAUDE.md"
+
+    status "Harness AGENTS.md - Kilo"
+    symlink "$DOTFILES/.config/harnesses/AGENTS.md" "$HOME/.config/kilo/AGENTS.md"
+
+    status "Harness AGENTS.md - OpenCode"
+    symlink "$DOTFILES/.config/harnesses/AGENTS.md" "$HOME/.config/opencode/AGENTS.md"
 
     status "Claude Code - README.md"
     symlink "$DOTFILES/.config/claude/README.md" "$HOME/.claude/README.md"
 
-    status "Claude Code - skills"
-    symlink "$DOTFILES/.config/claude/skills" "$HOME/.claude/skills"
+    status "Claude Code - settings.json"
+    # Replace symlink with real copy (user divergences live locally)
+    if [[ -L "$HOME/.claude/settings.json" ]]; then
+        $DRY_RUN || rm "$HOME/.claude/settings.json"
+    fi
+    copy_file "$DOTFILES/.config/claude/settings.json" "$HOME/.claude/settings.json"
 
-    status "Claude Code - templates"
-    symlink "$DOTFILES/.config/claude/templates" "$HOME/.claude/templates"
+    status "Kilo - kilo.jsonc"
+    if [[ -L "$HOME/.config/kilo/kilo.jsonc" ]]; then
+        $DRY_RUN || rm "$HOME/.config/kilo/kilo.jsonc"
+    fi
+    copy_file "$DOTFILES/.config/kilo/kilo.jsonc" "$HOME/.config/kilo/kilo.jsonc"
 
-    status "Claude Code - memory"
-    symlink "$DOTFILES/.config/claude/memory" "$HOME/.claude/memory"
+    status "Claude Code - skills (shared)"
+    symlink "$DOTFILES/.config/harnesses/skills" "$HOME/.claude/skills"
 
-    status "Claude Code - scripts"
-    symlink "$DOTFILES/.config/claude/scripts" "$HOME/.claude/scripts"
+    status "Claude Code - templates (shared)"
+    symlink "$DOTFILES/.config/harnesses/templates" "$HOME/.claude/templates"
+
+    status "Claude Code - scripts (shared)"
+    symlink "$DOTFILES/.config/harnesses/scripts" "$HOME/.claude/scripts"
+
+    # Prune stale dotfiles-managed links (source deleted from repo)
+    status "Pruning stale links"
+    prune_stale_links "$HOME/.claude" "$HOME/.config/kilo" "$HOME/.config/opencode"
 fi
 
 # Bash config (user only, not system-wide)

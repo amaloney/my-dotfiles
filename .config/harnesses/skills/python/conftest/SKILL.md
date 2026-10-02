@@ -29,16 +29,12 @@ Fixtures in parent conftest available to children. No imports needed.
 
 ```python
 @pytest.fixture(scope="session")
-def db_connection():
-    conn = Database.connect()
-    yield conn
-    conn.close()
+def shared_config():
+    return load_config()  # once per run
 
-@pytest.fixture(scope="function")
-def db_transaction(db_connection):
-    tx = db_connection.begin()
-    yield tx
-    tx.rollback()
+@pytest.fixture(scope="function")  # default: fresh per test
+def state():
+    return {}
 ```
 
 ## Factory Fixtures

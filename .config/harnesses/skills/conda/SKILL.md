@@ -76,28 +76,15 @@ dependencies:
 3. Document pip deps in `pip:` section
 4. **Never** re-run `conda install` after pip
 
-## Decision Tree
-
-```
-Package needed?
-├─ Performance/scientific (numpy, torch)? → ALWAYS conda
-├─ Has compiled code/native deps?
-│  ├─ In defaults? → conda install
-│  ├─ In conda-forge? → conda install -c conda-forge
-│  └─ Neither? → pip install (in conda env)
-└─ Pure Python?
-   ├─ In conda? → conda install
-   └─ PyPI only? → pip install (in conda env)
-```
-
 ## Policy
 
-1. **Conda first** — defaults → conda-forge → pip
-2. **Environments only** — never global
-3. **Lock it** — conda-lock for prod
-4. **Full paths always** — explicit > implicit
-5. **No venv** — conda envs only
-6. **Commit** — environment.yml + lockfiles to git
+**Conda first** — follow the [Package Priority](#package-priority) table. Additionally:
+
+1. **Environments only** — never global
+2. **Lock it** — conda-lock for prod
+3. **Full paths always** — explicit > implicit
+4. **No venv** — conda envs only
+5. **Commit** — environment.yml + lockfiles to git
 
 ## Virtual Packages
 
@@ -112,7 +99,7 @@ Auto-detected system constraints for solver (GPU drivers, glibc version, CPU arc
 | Problem           | Fix                                                                      |
 | ----------------- | ------------------------------------------------------------------------ |
 | Command not found | Use full path: `$(which cmd)`                                            |
-| Slow solver       | `conda config --set solver libmamba`                                     |
+| Slow solver       | libmamba solver is default (conda 23.10+); try `mamba`                   |
 | Dep conflicts     | Fresh env, install one-by-one                                            |
 | Broken after pip  | Recreate: `conda env remove -n X && conda env create -f environment.yml` |
 
@@ -121,3 +108,10 @@ Auto-detected system constraints for solver (GPU drivers, glibc version, CPU arc
 - **pixi**: Auto-lockfiles, faster. `pixi add pkg`
 - **mamba**: Drop-in faster conda. `mamba install pkg`
 - **libmamba solver**: Default in conda 23.10+
+
+## Conda in PowerShell
+
+```powershell
+$hook = Join-Path $env:CONDA_PREFIX "shell\condabin\conda-hook.ps1"
+if (Test-Path $hook) { . $hook; conda activate $env:CONDA_PREFIX }
+```

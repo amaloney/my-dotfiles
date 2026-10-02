@@ -8,12 +8,12 @@ always_yes: true
 auto_activate_base: false
 auto_update_conda: false
 channels:
-  - defaults
   - https://repo.anaconda.cloud/repo/main-x
+  - defaults
 default_channels:
   - https://repo.anaconda.cloud/repo/main
   - https://repo.anaconda.cloud/repo/r
-  - https://repo.anaconda.cloud/repo/msys2
+  # - https://repo.anaconda.cloud/repo/msys2
 channel_settings:
   - channel: https://repo.anaconda.cloud/*
     auth: anaconda-auth

@@ -5,7 +5,7 @@ Code indexing with bi-temporal tracking, semantic search, and Bayesian skill lea
 ## Quick Start
 
 ```bash
-cd .claude/code_index
+cd .harness/code_index
 
 # Build the index
 python3 build_index_temporal.py
@@ -118,9 +118,8 @@ New error: "numpy_abi_conflict" (never seen)
 
 ```bash
 # From project root
-mkdir -p .claude/code_index
-cp ~/.config/claude/templates/code_index/* .claude/code_index/
-cd .claude/code_index
+~/.config/harnesses/skills/code-index/scripts/install.sh .
+cd .harness/code_index
 python3 build_index_temporal.py
 ```
 

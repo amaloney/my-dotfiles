@@ -1,6 +1,6 @@
 ---
 name: windows
-description: Windows orchestrator - routes to PowerShell or Batch agents
+description: Windows orchestrator - routes to PowerShell, Batch, or .NET testing agents
 invocation: auto
 ---
 
@@ -8,33 +8,15 @@ invocation: auto
 
 ## Registry
 
-| Skill                      | Purpose          | Triggers                     |
-| -------------------------- | ---------------- | ---------------------------- |
-| [[windows/powershell]]     | Modern scripting | .ps1, JSON, complex logic    |
-| [[windows/batch]]          | Legacy/universal | .bat/.cmd, simple ops, no PS |
-| [[windows/dotnet-testing]] | .NET tests       | MSTest, NUnit, xUnit, C#     |
-
-## Decision
-
-| Need                          | Use        | Why                     |
-| ----------------------------- | ---------- | ----------------------- |
-| JSON/XML, REST, complex logic | PowerShell | Native objects, cleaner |
-| Universal, simple, bootstrap  | Batch      | No execution policy     |
-
-## Pipelines
-
-| Task       | Chain              |
-| ---------- | ------------------ |
-| Automation | powershell         |
-| Legacy     | batch              |
-| Installer  | batch → powershell |
+| Skill                      | Purpose          | Triggers                                |
+| -------------------------- | ---------------- | --------------------------------------- |
+| [[windows/powershell]]     | Modern scripting | .ps1, JSON/XML, REST, complex logic     |
+| [[windows/batch]]          | Legacy/universal | .bat/.cmd, simple ops, bootstrap, no PS |
+| [[windows/dotnet-testing]] | .NET tests       | MSTest, NUnit, xUnit, C#                |
 
 ## Bootstrap Pattern
 
-```batch
-"%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" ^
-    -NoProfile -ExecutionPolicy Bypass -File "%~dp0main.ps1" %*
-```
+Batch → PowerShell bootstrap (full path, `%*` forwarding): [[windows/batch]].
 
 ## Paths
 
@@ -48,7 +30,7 @@ invocation: auto
 
 **Prescriptive** — load skills first, do NOT explore first, spawn sub-agents:
 
-1. Match task → pipeline (use Decision table)
+1. Match task → skill (use Registry table)
 2. For each step:
    `Agent({ name: "windows-<step>", prompt: "Load [[windows/<skill>]] first. <task> + <prev artifact>" })`
 3. Sub-agent loads skill → acts (no "exploring" preamble)

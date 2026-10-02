@@ -68,9 +68,9 @@ SET _SCRIPT_RUNNING=
 REM BAD - fails in installer context
 powershell -NoProfile -File "script.ps1"
 
-REM GOOD - works everywhere
+REM GOOD - works everywhere, %* forwards args
 "%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" ^
-    -NoProfile -ExecutionPolicy Bypass -File "script.ps1"
+    -NoProfile -ExecutionPolicy Bypass -File "script.ps1" %*
 ```
 
 ## CLI Commands

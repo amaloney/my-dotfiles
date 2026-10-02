@@ -91,13 +91,6 @@ try { <# body #> } finally { $env:_SCRIPT_RUNNING = $null }
 
 `$env:USERPROFILE` `$env:APPDATA` `$env:LOCALAPPDATA` `$env:TEMP` `$PSScriptRoot`
 
-## Conda
-
-```powershell
-$hook = Join-Path $env:CONDA_PREFIX "shell\condabin\conda-hook.ps1"
-if (Test-Path $hook) { . $hook; conda activate $env:CONDA_PREFIX }
-```
-
 ## Modules
 
 ```powershell

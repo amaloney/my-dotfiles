@@ -1,0 +1,133 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Python project recon profile",
+  "description": "Skeleton emitted by profile.sh. profile.sh populates version, generated, and project.{name,type,python_version,src_layout}; an agent reviews and fills all remaining fields. Write to .harness/code_index/profile.json.",
+  "type": "object",
+  "required": ["version", "generated", "project", "structure", "patterns", "testing", "linting"],
+  "properties": {
+    "version": {
+      "type": "string",
+      "description": "Profile schema version, e.g. \"1.0\"."
+    },
+    "generated": {
+      "type": "string",
+      "description": "ISO-8601 UTC timestamp of generation."
+    },
+    "project": {
+      "type": "object",
+      "description": "Project identity and layout.",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "From pyproject.toml [project] name, else directory name."
+        },
+        "type": {
+          "type": "string",
+          "enum": ["cli", "library", "webapp", "datascience", "monorepo"],
+          "description": "Detected project type."
+        },
+        "python_version": {
+          "type": ["string", "null"],
+          "description": "requires-python from pyproject.toml."
+        },
+        "src_layout": {
+          "type": ["string", "null"],
+          "enum": ["flat", "src", "packages", null],
+          "description": "Source layout: flat, src, or packages."
+        }
+      }
+    },
+    "structure": {
+      "type": "object",
+      "description": "Repo layout map (agent-filled).",
+      "properties": {
+        "src_dirs": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Source directories (src/, lib/, package roots)."
+        },
+        "test_dirs": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Test directories (tests/, test/)."
+        },
+        "config_files": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Paths to config.py / settings.py modules."
+        },
+        "entry_points": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Entry point paths (cli.py, __main__.py)."
+        }
+      }
+    },
+    "patterns": {
+      "type": "object",
+      "description": "Constants and config patterns (agent-filled).",
+      "properties": {
+        "config_py_path": {
+          "type": ["string", "null"],
+          "description": "Canonical config module path, or null if none."
+        },
+        "constants_locations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "file": { "type": "string" },
+              "line": { "type": "integer" },
+              "name": { "type": "string" }
+            }
+          },
+          "description": "ALL_CAPS constants defined at module level."
+        },
+        "scattered_constants": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "file": { "type": "string" },
+              "line": { "type": "integer" },
+              "name": { "type": "string" }
+            }
+          },
+          "description": "Constants defined outside the canonical config module."
+        }
+      }
+    },
+    "testing": {
+      "type": "object",
+      "description": "Test tooling (agent-filled).",
+      "properties": {
+        "framework": {
+          "type": ["string", "null"],
+          "enum": ["pytest", "unittest", "none", null],
+          "description": "Detected test framework."
+        },
+        "fixtures_in": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Paths containing fixtures (conftest.py dirs)."
+        }
+      }
+    },
+    "linting": {
+      "type": "object",
+      "description": "Lint and type tooling (agent-filled).",
+      "properties": {
+        "tool": {
+          "type": ["string", "null"],
+          "enum": ["ruff", "flake8", "none", null],
+          "description": "Detected linter."
+        },
+        "type_checker": {
+          "type": ["string", "null"],
+          "enum": ["ty", "mypy", "pyright", "none", null],
+          "description": "Detected type checker."
+        }
+      }
+    }
+  }
+}

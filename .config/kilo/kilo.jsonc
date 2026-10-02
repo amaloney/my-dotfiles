@@ -1,0 +1,46 @@
+{
+  "$schema": "https://app.kilo.ai/config.json",
+  "instructions": ["~/.config/kilo/handoff-contract.md"],
+  // Use Kilo Gateway (after signing in at app.kilo.ai)
+  "provider": {
+    "kilo": {
+      "options": {
+        "apiKey": "{env:KILO_API_KEY}"
+      }
+    }
+  },
+  "permission": {
+    "bash": {
+      ".config/harnesses/skills/code-index/scripts/harness-refresh.sh *": "allow",
+      "bash *": "allow",
+      "chmod *": "allow",
+      "cp *": "allow",
+      "echo *": "allow",
+      "git mv *": "allow",
+      "ln *": "allow",
+      "mkdir *": "allow",
+      "mv *": "allow",
+      "node *": "allow",
+      "python3 *": "allow",
+      "rm *": "ask",
+      "rmdir *": "ask",
+      "git status *": "allow",
+      "grep *": "allow",
+      "head *": "allow",
+      "git rm *": "allow",
+      ".config/harnesses/scripts/check-pronouns.sh *": "allow",
+      "sed *": "allow"
+    },
+    "external_directory": {
+      "/tmp/*": "allow",
+      "/Users/rmaloney/Development/proserv/services/customers/in-progress/hsbc/r-h2o-feedstock/recipe/*": "allow",
+      "/Users/rmaloney/Development/proserv/services/customers/in-progress/hsbc/*": "allow",
+      "/Users/rmaloney/Development/open-source/amaloney/my-dotfiles/.config/claude/templates/code_index/*": "allow",
+      "/Users/rmaloney/Development/open-source/amaloney/my-dotfiles/.config/claude/skills/python/*": "allow",
+      "/private/var/folders/nt/mhnvhmcj5s7c8191xkn1dmq80000gp/T/kilo/deslop/*": "allow",
+      "/Users/rmaloney/.config/kilo/skills/code-index/*": "allow",
+      "/Users/rmaloney/.claude/*": "allow",
+      "/Users/rmaloney/.config/opencode/plugins/*": "allow"
+    }
+  }
+}

@@ -103,4 +103,4 @@ def hash_password(password):
     return bcrypt.hashpw(password.encode(), bcrypt.gensalt())
 ```
 
-[[python/bugs]] [[python/testing]] [[python/violations]]
+[[debugging]] [[python/testing]] [[python/violations]]

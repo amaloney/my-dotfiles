@@ -1,29 +1,17 @@
 ---
 name: build-watch-fix
-description: Autonomous loop - watch builds, detect failures, auto-fix, write tests
+description: Build/CI failure loop - error-signature fixes on top of the debugging methodology
 invocation: manual
 ---
 
-# Build-Watch-Fix Loop
+# Build-Watch-Fix
 
-Autonomous cycle: build → detect failure → fix → test → rebuild.
-
-## Loop Structure
-
-```
-while not all_succeeded:
-  1. Run build
-  2. Parse logs for failure pattern
-  3. Match pattern → fix strategy
-  4. Apply fix (extend existing code)
-  5. Run [[python/violations]] → [[python/bugs]]
-  6. Write test for fix
-  7. Rebuild
-
-  Gate: 3 fix attempts per failure → report to user
-```
+Trigger: build/CI/watch output failing. The build output **is** the feedback loop — [[debugging]] Phase 1 is free.
+Follow [[debugging]] Phases 2-6; this skill adds only build-specific content.
 
 ## Failure → Fix Mapping
+
+Match error signature before hypothesising:
 
 | Pattern                  | Fix Strategy                           |
 | ------------------------ | -------------------------------------- |
@@ -34,20 +22,16 @@ while not all_succeeded:
 | `overlinking`            | Add lib to run_exports or requirements |
 | Build timeout            | Increase resource limits               |
 
-## Fix Protocol
+No table match → full [[debugging]] methodology (hypothesise first, don't guess-fix).
 
-1. **Query code_index** — find existing fix pattern
-2. **Extend existing** — don't create new function if similar exists
-3. **Validate** — [[python/violations]] + [[python/bugs]]
-4. **Test** — write test covering the fix scenario
-5. **Rebuild** — verify fix works
+## Bounds
 
-## Agent Orchestration
+- 3 fix attempts per failure → stop, report to user
+- Error signature unchanged after a fix → wrong hypothesis; re-enter [[debugging]] Phase 3, don't retry the same fix
 
-"orchestrate" → spawn per failure type:
+## Orchestration
 
-- Agent per unique error pattern
-- Each agent: diagnose → fix → test
-- Coordinator aggregates results
+"orchestrate" → one agent per unique error signature; coordinator aggregates. Each agent owns its signature's full
+debug cycle.
 
-[[python-pipeline]] [[conda-packaging]]
+[[python]] [[conda-packaging]]
