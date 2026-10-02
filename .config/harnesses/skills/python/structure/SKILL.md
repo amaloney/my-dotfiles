@@ -19,7 +19,7 @@ computation). Multiple returns for simple conditionals add cognitive load; conso
 # 5. Classes (attrs → methods)
 ```
 
-**Constants:** Top of module after imports, or in `config.py`. NEVER mid-file.
+**Constants:** [[python/org]].
 
 ## Functions
 
@@ -37,5 +37,11 @@ obscure the calling code.
 ## Comments
 
 Only when WHY is non-obvious. No tombstones, no decorative blocks.
+
+## Docstrings
+
+Docstrings are first-class — written with the signature, not after. Public functions get Google-style docstrings
+([pyguide](https://google.github.io/styleguide/pyguide.html#docstrings)) with `Args:` and `Returns:` (`Raises:` when
+applicable). One-liner only for trivial helpers whose signature says everything.
 
 [[python/org]] [[python/types]]

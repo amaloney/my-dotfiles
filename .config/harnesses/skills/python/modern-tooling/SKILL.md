@@ -8,41 +8,21 @@ invocation: auto
 
 ## Tool Mapping
 
-| Legacy                          | Modern    | Purpose                |
-| ------------------------------- | --------- | ---------------------- |
-| pip, virtualenv, pip-tools      | `uv`      | Package/env management |
-| pipx                            | `uv tool` | CLI tool installation  |
-| flake8, black, isort, pyupgrade | `ruff`    | Lint + format          |
-| mypy, pyright                   | `ty`      | Type checking          |
-| pre-commit                      | `prek`    | Git hooks              |
+pip/virtualenv/pip-tools → `uv`; pipx → `uv tool`; flake8/black/isort/pyupgrade → `ruff`; mypy/pyright → `ty`; pre-commit → `prek`.
 
 ## uv Commands
 
-| Task                | Command                         |
-| ------------------- | ------------------------------- |
-| Create project      | `uv init myproject`             |
-| Add dependency      | `uv add requests`               |
-| Add dev dependency  | `uv add --dev pytest`           |
-| Remove dependency   | `uv remove requests`            |
-| Sync environment    | `uv sync`                       |
-| Run script          | `uv run python script.py`       |
-| Run with temp dep   | `uv run --with httpx script.py` |
-| Export requirements | `uv export > requirements.txt`  |
-| Install CLI tool    | `uv tool install ruff`          |
-| Run CLI tool once   | `uvx ruff check .`              |
-
-### Equivalents
-
-| pip/pipx            | uv                        |
-| ------------------- | ------------------------- |
-| `pip install pkg`   | `uv add pkg`              |
-| `pip install -e .`  | `uv sync` (auto editable) |
-| `pip uninstall pkg` | `uv remove pkg`           |
-| `pip freeze`        | `uv export`               |
-| `pipx install pkg`  | `uv tool install pkg`     |
-| `pipx run pkg`      | `uvx pkg`                 |
-| `python script.py`  | `uv run python script.py` |
-| `python -m pytest`  | `uv run pytest`           |
+| Task                | Command                         | Replaces                          |
+| ------------------- | ------------------------------- | --------------------------------- |
+| Create project      | `uv init myproject`             | —                                 |
+| Add dependency      | `uv add requests`               | `pip install requests`            |
+| Add dev dependency  | `uv add --dev pytest`           | —                                 |
+| Remove dependency   | `uv remove requests`            | `pip uninstall requests`          |
+| Sync environment    | `uv sync`                       | `pip install -e .` (auto editable) |
+| Run script          | `uv run python script.py`       | `python script.py`                |
+| Export requirements | `uv export > requirements.txt`  | `pip freeze`                      |
+| Install CLI tool    | `uv tool install ruff`          | `pipx install ruff`               |
+| Run CLI tool once   | `uvx ruff check .`              | `pipx run ruff`                   |
 
 ## ruff Commands
 
@@ -55,34 +35,37 @@ ruff check --select I --fix .   # fix imports only (replaces isort)
 
 ### pyproject.toml Config
 
+Canonical ruff select list (single statement): `select = ["E", "F", "I", "UP", "B", "SIM", "ANN", "ASYNC", "S"]`.
+
 ```toml
 [tool.ruff]
 target-version = "py312"
 line-length = 88
 
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"
+
 [tool.ruff.lint]
-select = [
-    "E", "F",     # pycodestyle, pyflakes
-    "I",          # isort
-    "UP",         # pyupgrade
-    "B",          # bugbear
-    "SIM",        # simplify
-    "ANN",        # annotations
-    "ASYNC",      # async
-    "S",          # bandit (security)
-]
-ignore = ["ANN101", "ANN102"]  # self/cls annotation
+# select list: see canonical statement above
+fixable = ["E", "F", "I"]
+unfixable = []
+
+[tool.ruff.lint.isort]
+known-first-party = ["<package_name>"]
+
+[tool.ruff.lint.flake8-quotes]
+docstring-quotes = "double"
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["S101"]  # allow assert in tests
+"tests/**" = ["S101", "S310"]  # assert + urlopen in tests
 ```
 
 ## ty Commands
 
 ```bash
-ty check .                      # type check
-ty check --watch .              # watch mode
-ty check src/module.py          # single file
+ty check .                      # type check (add --watch for watch mode)
 ```
 
 ### pyproject.toml Config
@@ -118,21 +101,12 @@ For single-file scripts with dependencies — no pyproject.toml needed:
 #     "rich",
 # ]
 # ///
-
-import requests
-from rich import print
-
-print(requests.get("https://httpbin.org/ip").json())
 ```
 
-| Task              | Command                                |
-| ----------------- | -------------------------------------- |
-| Create script     | `uv init --script myscript.py`         |
-| Add dep to script | `uv add --script myscript.py requests` |
-| Run script        | `uv run myscript.py`                   |
+Commands: `uv init --script s.py`, `uv add --script s.py requests`, `uv run s.py`.
 
-**Use PEP 723 for:** Single-file scripts, quick automation, self-contained utilities **Use pyproject.toml for:**
-Multi-file projects, reusable packages
+**Use PEP 723 for:** single-file scripts, quick automation, self-contained utilities.
+**Use pyproject.toml for:** multi-file projects, reusable packages.
 
 ## Dependency Groups (PEP 735)
 
@@ -147,34 +121,12 @@ docs = ["sphinx", "myst-parser"]
 ```
 
 ```bash
-uv add --group dev pytest       # Add to group
-uv sync --group dev             # Install group
-uv sync --all-groups            # Install all
+uv add --group dev pytest       # add to group; `uv sync --all-groups` installs all
 ```
 
 ## pyproject.toml Full Example
 
-```toml
-[project]
-name = "myproject"
-version = "0.1.0"
-requires-python = ">=3.12"
-dependencies = ["requests>=2.31"]
-
-[dependency-groups]
-dev = [{include-group = "lint"}, {include-group = "test"}]
-lint = ["ruff", "ty"]
-test = ["pytest", "pytest-cov"]
-
-[tool.ruff]
-target-version = "py312"
-
-[tool.ruff.lint]
-select = ["E", "F", "I", "UP", "B", "SIM"]
-
-[tool.ty.environment]
-python-version = "3.12"
-```
+See [references/pyproject.md](references/pyproject.md).
 
 ## Decision Tree
 

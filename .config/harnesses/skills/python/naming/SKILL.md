@@ -58,4 +58,14 @@ def refresh(self): ...
 **Refactoring underscore-heavy code:** Remove `_` prefix from instance variables and methods. Keep only where shadowing
 builtins or true framework internals.
 
-[[python/types]] [[python/bugs#shadow-builtin]]
+**Module-level functions are not private.** Same rule as methods: default to NO underscore. Only two legitimate uses:
+a `@property` backing field, or an explicit internal API contract the module publishes.
+
+| Pattern | Underscore? | Reason |
+| --- | --- | --- |
+| `def parse_rate_limit():` | NO | Module helper; importable, not private |
+| `def build_request():` | NO | Same |
+| `self._value` backing `@property value` | YES | Property backing field |
+| `def _register_impl():` in a plugin package | MAYBE | Explicit internal API contract |
+
+[[python/types]] [[debugging/references/python]]

@@ -8,13 +8,14 @@ invocation: auto
 
 ## Constants
 
-| Scope           | Location                      |
-| --------------- | ----------------------------- |
-| Project-wide    | `config.py`                   |
-| Module-specific | Top of module (after imports) |
-| Inline/mid-file | **NEVER**                     |
+| Scope | Location |
+| --- | --- |
+| Shared by 2+ modules, or project-wide setting | `config.py` |
+| Used by exactly one module | Top of that module (after imports) |
+| Inline/mid-file | **NEVER** |
 
-**config.py**: constants, settings, type aliases, enums. **utils.py**: shared functions.
+**config.py** holds only constants/settings/type aliases/enums with cross-module reach. A constant imported by one
+module lives in that module — config.py is not a default dumping ground. **utils.py**: shared functions.
 
 ## Colors
 
