@@ -1,0 +1,52 @@
+{#- Jinja2 template — rendered values:
+    pkg_name: PyPI/conda package name
+    github_repo: optional "owner/repo"; renders the github upstream block when set
+    Reference: https://github.com/anaconda/package-build-platform/blob/main/adr/2026-05-29-channel-and-requirements-mapping-spec.md
+-#}
+
+anaconda_config_version: 1 # Required
+
+upstream_sources:
+  - pypi:
+      identifier: {{ pkg_name }}
+    packages: [{{ pkg_name }}]
+    # enabled: true          # optional, defaults to true
+    # checker: nvchecker     # optional, defaults to nvchecker
+{% if github_repo | default(none) %}
+  - github:
+      identifier: {{ github_repo }}
+    packages: [{{ pkg_name }}]
+{% endif %}
+  # --- GitLab ---
+  # - gitlab:
+  #     identifier: {owner}/{repository}
+  #   packages: [{{ pkg_name }}]
+
+  # --- Generic Git ---
+  # - git:
+  #     identifier: https://gitlab.com/project/repo.git
+  #     strip_prefix: release-
+  #     tag_filter: release-*
+  #   packages: [{{ pkg_name }}]
+
+  # --- Webpage (regex extraction) ---
+  # - webpage:
+  #     url: https://example.com/releases/
+  #     regex: "version-([0-9.]+)\\.tar\\.gz"
+  #   packages: [{{ pkg_name }}]
+
+# https://github.com/anaconda/package-build-platform/blob/main/clients/cli/ABS_YAML.md
+package_build:
+  schema_version: 1
+  build_config:
+    - matchers:
+        task: [build, test] # Options: build, test, build_wheel, test_wheel, convert_wheel
+        variants: # Optional: match specific variants (e.g., python: ["3.11", "3.12"])
+      dest_channels: [main]
+      requirements:
+        cpu_count: 1
+        memory: 512mb
+        failure_mode: block_on_failure # or allow_failure
+        needs_admin: false
+        skip_code_signing: false
+        timeout: 2h
