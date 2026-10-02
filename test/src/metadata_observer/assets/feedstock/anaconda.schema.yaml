@@ -1,0 +1,43 @@
+# Render context schema for anaconda.yaml.j2
+$schema: https://json-schema.org/draft/2020-12/schema
+title: anaconda.yaml.j2 render context
+type: object
+required: [pkg_name]
+properties:
+  pkg_name:
+    type: string
+    minLength: 1
+  github_repo:
+    type: string
+    pattern: '^[^/]+/[^/]+$'
+    description: '"owner/repo"'
+  gitlab_repo:
+    type: string
+    pattern: '^[^/]+/[^/]+$'
+    description: '"owner/repository"'
+  git_url:
+    type: string
+    format: uri
+  git_strip_prefix:
+    type: string
+  git_tag_filter:
+    type: string
+  webpage_url:
+    type: string
+    format: uri
+  webpage_regex:
+    type: string
+additionalProperties: false
+allOf:
+  - if:
+      required: [webpage_url]
+    then:
+      required: [webpage_regex]
+    else: {}
+  - if:
+      required: [webpage_regex]
+    then:
+      required: [webpage_url]
+    else: {}
+# Template renders at most one secondary source (elif chain): github > gitlab > git > webpage.
+# Extra source keys are accepted but shadowed; callers should supply only one.
