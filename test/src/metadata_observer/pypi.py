@@ -14,18 +14,6 @@ TIMEOUT_PYPI_REQUEST = 30
 METADATA_PYPI_FILE = "pypi.json"
 
 
-def normalize_name(package_name: str) -> str:
-    """Normalize a package name per PEP 503.
-
-    Args:
-        package_name: Raw package name, e.g. "Foo_Bar".
-
-    Returns:
-        Normalized name, e.g. "foo-bar".
-    """
-    return re.sub(r"[-_.]+", "-", package_name).lower()
-
-
 def fetch_pypi_metadata(package_name: str, cache_dir: Path | None = None) -> dict | None:
     """Fetch PyPI metadata for a package, optionally caching to disk.
 
@@ -36,7 +24,7 @@ def fetch_pypi_metadata(package_name: str, cache_dir: Path | None = None) -> dic
     Returns:
         PyPI JSON metadata dict, or None on any fetch/parse failure.
     """
-    name = normalize_name(package_name)
+    name = re.sub(r"[-_.]+", "-", package_name).lower()  # PEP 503 normalization
     data = None
     try:
         response = requests.get(URL_PYPI_API.format(package=name), timeout=TIMEOUT_PYPI_REQUEST)
