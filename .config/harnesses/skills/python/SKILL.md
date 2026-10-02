@@ -10,24 +10,21 @@ invocation: auto
 
 ```bash
 # Check profile exists and is fresh (<7 days)
-test -f .claude/code_index/profile.json && \
-  find .claude/code_index/profile.json -mtime -7 | grep -q . && \
+test -f .harness/code_index/profile.json && \
+  find .harness/code_index/profile.json -mtime -7 | grep -q . && \
   echo "profile: current" || echo "profile: needs update"
 ```
 
-| State           | Action               |
-| --------------- | -------------------- |
-| Missing         | Run [[python/recon]] |
-| Stale (>7 days) | Offer to refresh     |
-| Current         | Read and use         |
-
-**After recon:** All skills read `.claude/code_index/profile.json` for project context.
+Missing or stale → run [[python/recon]]. Profile consumed by all python skills.
 
 ## Pre-Generation
 
 ```bash
 # Query profile for context
-cat .claude/code_index/profile.json | jq '.patterns.config_py_path'
+cat .harness/code_index/profile.json | jq '.patterns.config_py_path'
+
+# Search indexed code for existing implementations
+python3 .harness/code_index/query.py func "<pattern>"     # If code index exists
 ```
 
 Similar exists → extend. Check `profile.patterns.config_py_path` for constants.
@@ -35,77 +32,76 @@ Similar exists → extend. Check `profile.patterns.config_py_path` for constants
 ## Post-Generation
 
 1. [[python/violations]] — ruff + structure
-2. [[python/bugs]] — AST bugs/security
+2. [[debugging]] — AST bugs/security
 3. [[python/test-gen]] — if 1+2 pass
 
 2 fix cycles max → report to user.
 
 ## Registry
 
-| Skill                       | Purpose             | Triggers                                                                  |
-| --------------------------- | ------------------- | ------------------------------------------------------------------------- |
-| [[python/recon]]            | Profile project     | session start, profile, scan                                              |
-| [[python/pixi-pyproject]]   | Pixi project setup  | init, pyproject, pixi                                                     |
-| [[python/modern-tooling]]   | uv/ruff/ty setup    | uv, ruff, ty, modern, pip replace                                         |
-| [[python/style]]            | Style router        | create, write, implement, style violations, structure violations          |
-| [[python/types]]            | Type annotations    | `->`, Optional, Callable                                                  |
-| [[python/naming]]           | Naming conventions  | variables, constants, `_`                                                 |
-| [[python/structure]]        | File layout         | imports, line length                                                      |
-| [[python/errors]]           | Exception handling  | try/except                                                                |
-| [[python/org]]              | File organization   | config.py, utils.py                                                       |
-| [[python/bugs]]             | Bug check/fix       | fix, debug, error                                                         |
-| [[python/testing]]          | Pytest core         | test, pytest, assert                                                      |
-| [[python/conftest]]         | Shared fixtures     | conftest, fixture, scope                                                  |
-| [[python/mocking]]          | Mock patterns       | mock, patch, mocker                                                       |
-| [[python/property-testing]] | Hypothesis          | property, hypothesis, fuzz                                                |
-| [[python/async-testing]]    | Async tests         | async, asyncio, pytest-asyncio, await                                     |
-| [[python/security]]         | Security patterns   | security, vuln, injection, crypto                                         |
-| [[python/bdd]]              | Behave BDD          | behave, gherkin, bdd, feature                                             |
-| [[python/violations]]       | Lint/fix (fan-out)  | fix violations, ruff violations, clean up, orchestrate, fan-out, parallel |
-| [[python/test-gen]]         | Gen tests (fan-out) | generate tests, add coverage                                              |
-| [[build-watch-fix]]         | Auto-fix loop       | build failure, auto-fix, watch                                            |
-
-## Routing Tree
-
-```
-python.md (this)
-├── recon              (leaf) — profile.json generation [RUN FIRST]
-├── pixi-pyproject     (leaf) — pixi setup
-├── modern-tooling     (leaf) — uv/ruff/ty
-├── style              (router)
-│   ├── types          (leaf)
-│   ├── naming         (leaf)
-│   ├── structure      (leaf)
-│   ├── errors         (leaf)
-│   └── org            (leaf)
-├── bugs               (leaf) — diagnosis + patterns
-├── testing            (leaf) — pytest core
-├── conftest           (leaf) — shared fixtures
-├── mocking            (leaf) — mock patterns
-├── property-testing   (leaf) — hypothesis
-├── async-testing      (leaf) — pytest-asyncio
-├── security           (leaf) — vulns, insecure defaults
-├── bdd                (leaf) — behave/gherkin
-├── violations         (fan-out)
-└── test-gen           (fan-out)
-```
+| Skill                       | Type    | Purpose             | Triggers                                                                  |
+| --------------------------- | ------- | ------------------- | ------------------------------------------------------------------------- |
+| [[python/recon]]            | leaf    | Profile project     | session start, profile, scan                                              |
+| [[python/pixi-pyproject]]   | leaf    | Pixi project setup  | init, pyproject, pixi                                                     |
+| [[python/modern-tooling]]   | leaf    | uv/ruff/ty setup    | uv, ruff, ty, modern, pip replace                                         |
+| [[python/style]]            | router  | Style router        | create, write, implement, style violations, structure violations          |
+| [[python/types]]            | leaf    | Type annotations    | `->`, Optional, Callable                                                  |
+| [[python/naming]]           | leaf    | Naming conventions  | variables, constants, `_`                                                 |
+| [[python/structure]]        | leaf    | File layout         | imports, line length                                                      |
+| [[python/errors]]           | leaf    | Exception handling  | try/except                                                                |
+| [[python/org]]              | leaf    | File organization   | config.py, utils.py                                                       |
+| [[debugging]]             | leaf    | Bug check/fix       | fix, debug, error                                                         |
+| [[python/testing]]          | leaf    | Pytest core         | test, pytest, assert                                                      |
+| [[python/conftest]]         | leaf    | Shared fixtures     | conftest, fixture, scope                                                  |
+| [[python/mocking]]          | leaf    | Mock patterns       | mock, patch, mocker                                                       |
+| [[python/property-testing]] | leaf    | Hypothesis          | property, hypothesis, fuzz                                                |
+| [[python/async-testing]]    | leaf    | Async tests         | async, asyncio, pytest-asyncio, await                                     |
+| [[python/security]]         | leaf    | Security patterns   | security, vuln, injection, crypto                                         |
+| [[python/bdd]]              | leaf    | Behave BDD          | behave, gherkin, bdd, feature                                             |
+| [[python/violations]]       | fan-out | Lint/fix (fan-out)  | fix violations, ruff violations, clean up, orchestrate, fan-out, parallel |
+| [[python/test-gen]]         | fan-out | Gen tests (fan-out) | generate tests, add coverage                                              |
+| [[build-watch-fix]]         | leaf    | Auto-fix loop       | build failure, auto-fix, watch                                            |
 
 ## Pipelines
 
 | Task           | Chain                                                                  |
 | -------------- | ---------------------------------------------------------------------- |
-| New project    | pixi-pyproject → modern-tooling → style → violations → bugs → test-gen |
-| New script     | style → violations → bugs → test-gen                                   |
-| Bug fix        | bugs → violations → test-gen                                           |
-| Refactor       | style → violations → bugs                                              |
+| New project    | pixi-pyproject → modern-tooling → style → violations → debugging → test-gen |
+| New script     | style → violations → debugging → test-gen                                   |
+| Bug fix        | debugging → test-driven-development → violations → test-gen                                           |
+| Refactor       | style → violations → debugging                                         |
 | Fix violations | violations                                                             |
 | Generate tests | test-gen                                                               |
 | Add tests      | testing + conftest + mocking (as needed)                               |
 | Property tests | property-testing                                                       |
 
+Test-type skill selection: [[python/test-gen]].
+
+## Bug Finding
+
+```bash
+python3 ~/.config/harnesses/skills/ast-check/scripts/ast_checker.py src/
+rg -n "\._[a-z][a-z_]+\(" --type py src/               # Fallback
+```
+
+## Principles
+
+| Prefer                         | Over                                                            |
+| ------------------------------ | --------------------------------------------------------------- |
+| Extend existing                | Create new                                                      |
+| Flat/explicit                  | Nested/clever                                                   |
+| 3 similar lines                | Premature abstraction                                           |
+| Active environment (missing package → stop, report name) | Installing packages                 |
+| `NotImplementedError` for WIP  | `TODO` comments                                                 |
+
 ## Execution
 
-**Prescriptive** — load skill first, spawn sub-agents, no exploring:
+**Prescriptive** — load skill first, spawn sub-agents, no exploring.
+
+**Orchestration triggers**: "orchestrate", "fan-out", OR "implement/execute this plan" where the plan has
+≥3 tasks. Plan execution defaults to subagent-per-task with reviewer gates unless the user explicitly
+chose native. Native is the exception for <3-task plans or trivial diffs — state the choice and reason
+before starting.
 
 1. Match task → pipeline
 2. Each step: `Agent({ prompt: "Load [[python/<skill>]]. <task> + <artifact>" })`
@@ -114,33 +110,3 @@ python.md (this)
    - bugs: agent confirms no issues found
 4. Pass artifacts between agents
 5. Return after final
-
-## Gate Logic
-
-```
-style creates artifact
-  ↓
-violations (fan-out) → fixes until ruff clean
-  ↓
-bugs → fixes until no issues
-  ↓ (only if clean)
-test-gen (fan-out) → creates tests
-  ├── testing (pytest core)
-  ├── conftest (shared fixtures)
-  ├── mocking (if external deps)
-  └── property-testing (if algebraic shape)
-```
-
-If violations or bugs persist after 2 fix cycles, return to user with findings.
-
-## Skill Selection for Testing
-
-| Code Shape                     | Skills to Load                                  |
-| ------------------------------ | ----------------------------------------------- |
-| Simple unit tests              | testing                                         |
-| Tests with fixtures            | testing + conftest                              |
-| Tests with external deps       | testing + mocking                               |
-| Async code                     | testing + async-testing                         |
-| Roundtrip/invariant properties | property-testing                                |
-| Full test suite                | testing + conftest + mocking + property-testing |
-| Full async test suite          | testing + conftest + mocking + async-testing    |
