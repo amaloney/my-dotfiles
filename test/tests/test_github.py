@@ -19,17 +19,18 @@ def test_fetch_returns_dict_on_success() -> None:
     from metadata_observer.github import fetch_github_metadata
 
     with patch("metadata_observer.github.urlopen", return_value=_mock_urlopen(b'{"full_name": "psf/requests"}')):
-        result = fetch_github_metadata("psf/requests")
+        data, _ = fetch_github_metadata("psf/requests")
 
-    assert result == {"full_name": "psf/requests"}
+    assert data == {"full_name": "psf/requests"}
 
 
 def test_rate_limit_headers_parsed() -> None:
-    from metadata_observer.github import RateLimitInfo, fetch_github_metadata
+    from metadata_observer.github import fetch_github_metadata
+    from metadata_observer.http import RateLimitInfo
 
     headers = {"X-RateLimit-Limit": "60", "X-RateLimit-Remaining": "59", "X-RateLimit-Reset": "1700000000"}
     with patch("metadata_observer.github.urlopen", return_value=_mock_urlopen(b"{}", headers)):
-        _, info = fetch_github_metadata("a/b", _return_rate_limit=True)
+        _, info = fetch_github_metadata("a/b")
 
     assert isinstance(info, RateLimitInfo)
     assert info.limit == 60
@@ -40,9 +41,11 @@ def test_rate_limit_exhausted_raises() -> None:
     from metadata_observer.github import GitHubRateLimitError, fetch_github_metadata
 
     headers = {"X-RateLimit-Limit": "60", "X-RateLimit-Remaining": "0", "X-RateLimit-Reset": "1700000000"}
-    with patch("metadata_observer.github.urlopen", return_value=_mock_urlopen(b"{}", headers)):
-        with pytest.raises(GitHubRateLimitError):
-            fetch_github_metadata("a/b")
+    with (
+        patch("metadata_observer.github.urlopen", return_value=_mock_urlopen(b"{}", headers)),
+        pytest.raises(GitHubRateLimitError),
+    ):
+        fetch_github_metadata("a/b")
 
 
 def test_no_token_no_auth_header(monkeypatch: pytest.MonkeyPatch) -> None:
