@@ -234,43 +234,80 @@ fi
 
 # Claude Code config (user only, not system-wide)
 if ! $SYSTEM; then
+    status "Harnesses - canonical shared dir"
+    symlink "$DOTFILES/.config/harnesses" "$HOME/.config/harnesses"
+
     status "Harness AGENTS.md - Claude Code"
     symlink "$DOTFILES/.config/harnesses/AGENTS.md" "$HOME/.claude/CLAUDE.md"
 
     status "Harness AGENTS.md - Kilo"
     symlink "$DOTFILES/.config/harnesses/AGENTS.md" "$HOME/.config/kilo/AGENTS.md"
 
-    status "Harness AGENTS.md - OpenCode"
-    symlink "$DOTFILES/.config/harnesses/AGENTS.md" "$HOME/.config/opencode/AGENTS.md"
+    # Legacy cleanup: Kilo no longer falls back to opencode config.
+    # Remove our old symlink so Kilo stops warning about ~/.config/opencode.
+    if [[ -L "$HOME/.config/opencode/AGENTS.md" ]] && [[ "$(readlink "$HOME/.config/opencode/AGENTS.md")" == "$DOTFILES/"* ]]; then
+        if $DRY_RUN; then
+            echo "   Would remove: legacy ~/.config/opencode/AGENTS.md link"
+        else
+            rm -f "$HOME/.config/opencode/AGENTS.md"
+            rmdir "$HOME/.config/opencode" 2>/dev/null || true
+            done_msg "removed legacy opencode config link"
+        fi
+    fi
 
     status "Claude Code - README.md"
-    symlink "$DOTFILES/.config/claude/README.md" "$HOME/.claude/README.md"
+    symlink "$DOTFILES/.config/harnesses/claude/README.md" "$HOME/.claude/README.md"
+
+    status "Claude Code - keybindings.json"
+    symlink "$DOTFILES/.config/harnesses/claude/keybindings.json" "$HOME/.claude/keybindings.json"
 
     status "Claude Code - settings.json"
     # Replace symlink with real copy (user divergences live locally)
     if [[ -L "$HOME/.claude/settings.json" ]]; then
         $DRY_RUN || rm "$HOME/.claude/settings.json"
     fi
-    copy_file "$DOTFILES/.config/claude/settings.json" "$HOME/.claude/settings.json"
+    copy_file "$DOTFILES/.config/harnesses/claude/settings.json" "$HOME/.claude/settings.json"
 
     status "Kilo - kilo.jsonc"
     if [[ -L "$HOME/.config/kilo/kilo.jsonc" ]]; then
         $DRY_RUN || rm "$HOME/.config/kilo/kilo.jsonc"
     fi
-    copy_file "$DOTFILES/.config/kilo/kilo.jsonc" "$HOME/.config/kilo/kilo.jsonc"
+    copy_file "$DOTFILES/.config/harnesses/kilo/kilo.jsonc" "$HOME/.config/kilo/kilo.jsonc"
+
+    status "Kilo - tui.json"
+    if [[ -L "$HOME/.config/kilo/tui.json" ]]; then
+        $DRY_RUN || rm "$HOME/.config/kilo/tui.json"
+    fi
+    copy_file "$DOTFILES/.config/harnesses/kilo/tui.json" "$HOME/.config/kilo/tui.json"
 
     status "Claude Code - skills (shared)"
     symlink "$DOTFILES/.config/harnesses/skills" "$HOME/.claude/skills"
 
-    status "Claude Code - templates (shared)"
-    symlink "$DOTFILES/.config/harnesses/templates" "$HOME/.claude/templates"
-
     status "Claude Code - scripts (shared)"
     symlink "$DOTFILES/.config/harnesses/scripts" "$HOME/.claude/scripts"
 
+    status "Agents (shared) - Kilo"
+    symlink "$DOTFILES/.config/harnesses/agents" "$HOME/.config/kilo/agents"
+
+    status "Agents (shared) - Claude Code"
+    symlink "$DOTFILES/.config/harnesses/agents" "$HOME/.claude/agents"
+
+    status "Kilo - plugins (shared)"
+    symlink "$DOTFILES/.config/harnesses/plugins" "$HOME/.config/kilo/plugins"
+
+    # OpenCode prefs live in .config/harnesses/opencode/ but are intentionally
+    # NOT linked to ~/.config/opencode: Kilo warns on that dir (no fallback).
+
+    # Kilo loads skills from ~/.config/kilo/skills/; link each shared skill in.
+    status "Kilo - skills (shared)"
+    for skill_dir in "$DOTFILES/.config/harnesses/skills"/*/; do
+        skill_dir="${skill_dir%/}"
+        symlink "$skill_dir" "$HOME/.config/kilo/skills/$(basename "$skill_dir")"
+    done
+
     # Prune stale dotfiles-managed links (source deleted from repo)
     status "Pruning stale links"
-    prune_stale_links "$HOME/.claude" "$HOME/.config/kilo" "$HOME/.config/opencode"
+    prune_stale_links "$HOME/.claude" "$HOME/.config/kilo" "$HOME/.config/kilo/skills"
 fi
 
 # Bash config (user only, not system-wide)

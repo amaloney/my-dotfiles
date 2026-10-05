@@ -1,0 +1,61 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  // OpenCode prefs — single source of truth alongside harnesses/{kilo,claude}.
+  // NOT linked to ~/.config/opencode by install.sh: Kilo detects that dir and
+  // warns because it no longer falls back to opencode config. Link manually
+  // only on machines running OpenCode without Kilo.
+  "instructions": ["~/.config/harnesses/AGENTS.md"],
+  "permission": {
+    "bash": {
+      ".config/harnesses/skills/code-index/scripts/harness-refresh.sh *": "allow",
+      ".config/harnesses/skills/debugging/scripts/find-polluter.sh *": "allow",
+      ".config/harnesses/scripts/check-pronouns.sh *": "allow",
+      "bash *": "allow",
+      "chmod *": "allow",
+      "cp *": "allow",
+      "echo *": "allow",
+      "git mv *": "allow",
+      "ln *": "allow",
+      "mkdir *": "allow",
+      "mv *": "allow",
+      "node *": "allow",
+      "python3 *": "allow",
+      "rm *": "ask",
+      "rmdir *": "ask",
+      "git status *": "allow",
+      "grep *": "allow",
+      "head *": "allow",
+      "git rm *": "allow",
+      "sed *": "allow",
+      "xargs *": "allow",
+      "sort *": "allow",
+      "read *": "allow",
+      ": *": "allow",
+      "pixi *": "allow",
+      "tail *": "allow",
+      "git add *": "allow",
+      "git commit *": "allow",
+      "printf *": "allow",
+      "find *": "allow",
+      "git log *": "allow",
+      "python .harness/code_index/query_temporal.py *": "allow",
+      "git reset *": "allow",
+      "ls *": "allow",
+      "git -C *": "allow",
+      "sleep *": "allow",
+      "git show *": "allow",
+      "stat *": "allow",
+      "cat *": "allow",
+      "date *": "allow",
+      "git ls-files *": "allow",
+      "git diff *": "allow",
+      "readlink *": "allow",
+      "command *": "allow",
+      "diff *": "allow"
+    },
+    "external_directory": {
+      "/tmp/*": "allow",
+      "/Users/rmaloney/.config/harnesses/*": "allow"
+    }
+  }
+}

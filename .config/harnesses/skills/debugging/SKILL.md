@@ -31,6 +31,10 @@ python3 ~/.config/harnesses/skills/ast-check/scripts/ast_checker.py --check bugs
 python3 .harness/code_index/query_temporal.py impact <suspect_function>   # if index exists
 ```
 
+Also scan suspect files against the audit patterns — Python tables in
+[references/python.md](references/python.md); security patterns (vulns, insecure defaults) in
+[[python/security]]; edge/IO patterns in the [[bug]] skill.
+
 ## Phase 1 — Build Feedback Loop
 
 **The skill.** Fast, deterministic, pass/fail signal = bug found. No loop = no progress.

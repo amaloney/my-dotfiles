@@ -2,6 +2,8 @@
 
 Canonical for Claude Code, Kilo, OpenCode. Invariants + routing only; procedures live in skills.
 
+Multi-agent pipeline rules (handoff contract): @~/.config/harnesses/handoff-contract.md
+
 ## Communication
 
 **Banned**: Preamble, pleasantries, filler, affirmations, interjections, narrating intent. Act — don't announce.
@@ -60,17 +62,20 @@ grow this file.
 
 ## Locations
 
-- Canonical: `.config/harnesses/` (dotfiles repo) — skills, scripts, templates
-- Symlinked to: `~/.claude/{skills,scripts,templates}`, `~/.config/harnesses/`
-- Per-repo generated state: `<repo>/.harness/` (code index, analysis scripts; gitignore the generated contents)
+- Canonical: `.config/harnesses/` (dotfiles repo) — shared `AGENTS.md`, `handoff-contract.md`, `agents/`, `skills/`, `scripts/`, `plugins/`; harness-specific prefs in `.config/harnesses/{kilo,claude,opencode}/`; architecture: `.config/harnesses/README.md`
+- Symlinked to: `~/.config/harnesses/`, `~/.claude/{skills,scripts,agents,README.md,keybindings.json}`, per-skill into `~/.config/kilo/skills/`, `~/.config/kilo/{agents,plugins}`
+- Copied, not linked (local divergence reconciles manually): `harnesses/kilo/{kilo.jsonc,tui.json}` → `~/.config/kilo/`, `harnesses/claude/settings.json` → `~/.claude/`
+- OpenCode prefs (`harnesses/opencode/`) are not linked out — Kilo warns on `~/.config/opencode` (no fallback)
+- Per-repo generated state: `<repo>/.harness/` (code index, analysis scripts; gitignored, regenerable — never commit)
 
 ## Harness Specifics
 
-| Harness     | Global instruction file        | Repo instruction file | Config                     |
-| ----------- | ------------------------------ | --------------------- | -------------------------- |
-| Claude Code | `~/.claude/CLAUDE.md`          | `AGENTS.md` (native)  | `.claude/settings.json`    |
-| Kilo        | `~/.config/kilo/AGENTS.md`     | `AGENTS.md`           | `kilo.json` / `kilo.jsonc` |
-| OpenCode    | `~/.config/opencode/AGENTS.md` | `AGENTS.md`           | `opencode.json`            |
+| Harness     | Global instruction file            | Repo instruction file | Config             |
+| ----------- | ---------------------------------- | --------------------- | ------------------ |
+| Claude Code | `~/.claude/CLAUDE.md`              | `AGENTS.md` (native)  | `.claude/settings.json` |
+| Kilo        | `~/.config/kilo/AGENTS.md`         | `AGENTS.md`           | `kilo.json` / `kilo.jsonc` |
+| OpenCode    | `opencode.jsonc` instructions field | `AGENTS.md`          | `harnesses/opencode/opencode.jsonc` (not linked) |
 
-Each global instruction file is a symlink to this file (`.config/harnesses/AGENTS.md` in the dotfiles repo). Repo-level:
-all three harnesses read `AGENTS.md`, which points to `.harness/AGENTS.md` when present.
+Claude Code and Kilo global instruction files are symlinks to this file (`.config/harnesses/AGENTS.md` in the dotfiles
+repo); OpenCode references it via the `instructions` field. Repo-level: all three harnesses read `AGENTS.md`, which
+points to `.harness/AGENTS.md` when present.
