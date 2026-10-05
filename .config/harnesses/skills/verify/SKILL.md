@@ -6,6 +6,8 @@ invocation: auto
 
 # Verification Before Completion
 
+Handoff: `next: done`.
+
 **Evidence before claims, always.**
 
 ## The Gate

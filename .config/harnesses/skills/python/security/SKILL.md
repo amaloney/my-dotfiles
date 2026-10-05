@@ -6,6 +6,8 @@ invocation: auto
 
 # Python Security
 
+Handoff: `next: done`.
+
 ## Insecure Defaults
 
 | Category          | Pattern                              | Fix                               |

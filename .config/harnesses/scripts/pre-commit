@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+# Pre-commit gate for the dotfiles repo: when harness skill files change,
+# enforce skill-graph structure, report blast radius, and surface semantic
+# drift + missing-edge suggestions. Advisory sections never fail the commit.
+# Installed by install.sh as .git/hooks/pre-commit (symlink).
+set -o nounset
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+HARNESS="$REPO_ROOT/.config/harnesses"
+GRAPH="$HARNESS/scripts/skill-graph.sh"
+SUGGEST="$HARNESS/scripts/suggest_edges.py"
+REFRESH_VECTORS="$HARNESS/scripts/skill-vectors-refresh.sh"
+
+changed="$(git diff --cached --name-only -- \
+    .config/harnesses/skills \
+    .config/harnesses/AGENTS.md \
+    .config/harnesses/handoff-contract.md)"
+[[ -z "$changed" ]] && exit 0
+
+if ! bash "$GRAPH" --check; then
+    echo "pre-commit: skill graph check failed (fix, or bypass with --no-verify)" >&2
+    exit 1
+fi
+
+skills_changed="$(echo "$changed" | grep 'skills/.*/SKILL.md$' || true)"
+[[ -z "$skills_changed" ]] && exit 0
+
+# Advisory: blast radius of each touched skill
+echo "$skills_changed" | while read -r file; do
+    skill="${file#*skills/}"
+    skill="${skill%/SKILL.md}"
+    echo "blast radius: $skill"
+    bash "$GRAPH" --dependents "$skill" | sed 's/^/  /'
+done
+
+# Advisory: semantic layer — rebuild index if stale, then drift + suggestions
+if python3 -c "import chromadb, sentence_transformers" 2>/dev/null; then
+    echo "pre-commit: refreshing skill vectors (model load, ~15-30s)..."
+    bash "$REFRESH_VECTORS"
+    python3 "$SUGGEST" drift || true
+    echo "$skills_changed" | while read -r file; do
+        skill="${file#*skills/}"
+        skill="${skill%/SKILL.md}"
+        python3 "$SUGGEST" suggest "$skill" -k 5 || true
+    done
+else
+    echo "pre-commit: chromadb/sentence_transformers missing — drift/suggest skipped"
+fi
+exit 0

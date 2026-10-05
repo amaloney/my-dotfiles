@@ -6,6 +6,8 @@ invocation: auto
 
 # Git Commit
 
+Handoff: `next: done`.
+
 - `git add` with explicit filenames only — never `git add .` or `-A`
 - Attribution: `Assisted-by: AGENT_NAME:MODEL_VERSION` (not `Co-Authored-By`)
 - Commit message: backtick-quote code identifiers; pass via heredoc:

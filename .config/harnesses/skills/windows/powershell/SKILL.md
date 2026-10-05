@@ -6,6 +6,8 @@ invocation: auto
 
 # Windows PowerShell
 
+Handoff: `next: done`.
+
 - **Error handling**: `$ErrorActionPreference = "Stop"`
 - **Parameters**: Full names (`Get-ChildItem -Recurse` not `gci -r`)
 - **Exit**: Always `exit 0` or `exit 1` explicitly

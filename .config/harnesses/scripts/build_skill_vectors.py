@@ -13,13 +13,14 @@ import argparse
 import re
 import sys
 from pathlib import Path
+from typing import Optional
 
 import chromadb
 import chromadb.errors
 from sentence_transformers import SentenceTransformer
 
 
-def parse_skill(skill_path: Path) -> dict | None:
+def parse_skill(skill_path: Path) -> Optional[dict]:
     """Parse a skill file and extract metadata + content."""
     content = skill_path.read_text()
 
@@ -172,6 +173,12 @@ def main():
 
     print(f"\nTotal: {n} chunks indexed")
     print(f"Vector store: {vectors_dir}")
+
+    # Record pairwise skill scores so drift detection has a fresh baseline
+    sys.path.insert(0, str(Path(__file__).parent))
+    import suggest_edges
+
+    suggest_edges.cmd_snapshot(suggest_edges.load_vectors())
 
 
 if __name__ == "__main__":

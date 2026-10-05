@@ -7,6 +7,8 @@ adapted-from: obra/superpowers v6.4.2 (MIT)
 
 # Test-Driven Development
 
+Handoff: `next: bug`.
+
 Write the test first. Watch it fail. Write minimal code to pass. If you didn't watch the test fail,
 you don't know it tests the right thing.
 

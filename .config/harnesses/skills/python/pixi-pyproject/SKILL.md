@@ -6,6 +6,8 @@ invocation: auto
 
 # Pixi pyproject.toml
 
+Handoff: `next: python/style`.
+
 ## Minimal
 
 ```toml

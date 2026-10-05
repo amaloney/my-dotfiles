@@ -6,6 +6,8 @@ invocation: manual
 
 # Python Project Recon
 
+Handoff: `next: done`.
+
 Run FIRST before other Python skills. Outputs `.harness/code_index/profile.json`.
 
 ## When to Run

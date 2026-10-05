@@ -6,6 +6,8 @@ invocation: auto
 
 # AST Check
 
+Handoff: `next: done`.
+
 Run `scripts/ast_checker.py` — static analysis, no dependencies, executes not loads.
 
 ```bash

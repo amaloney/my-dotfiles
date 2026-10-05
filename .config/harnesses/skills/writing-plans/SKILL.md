@@ -7,6 +7,8 @@ adapted-from: obra/superpowers v6.4.2 (MIT)
 
 # Writing Plans
 
+Handoff: `next: done`.
+
 Plans are written for an engineer who has not seen the codebase or the spec. They write idiomatic code
 once given exact interfaces and tests; what they cannot know is what you decided — which files, names,
 signatures, spec values, proving tests. Document those. DRY. YAGNI. TDD. Frequent commits.

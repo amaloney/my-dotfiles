@@ -6,6 +6,8 @@ invocation: auto
 
 # .NET Testing
 
+Handoff: `next: verify`.
+
 ## Framework Selection
 
 | Framework | When                | Trigger                |

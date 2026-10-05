@@ -6,6 +6,8 @@ invocation: auto
 
 # Windows Router
 
+Handoff: `next: done`.
+
 ## Registry
 
 | Skill                      | Purpose          | Triggers                                |

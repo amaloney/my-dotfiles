@@ -9,6 +9,8 @@ invocation: manual
 
 # Code Index
 
+Handoff: `next: done`.
+
 Bi-temporal code knowledge graph + semantic search. ChromaDB stores entity embeddings; SQLite stores entities, relations
 (calls/inherits/imports), and git-tracked temporal history.
 

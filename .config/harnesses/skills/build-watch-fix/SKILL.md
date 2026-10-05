@@ -6,6 +6,8 @@ invocation: manual
 
 # Build-Watch-Fix
 
+Handoff: `next: verify`.
+
 Trigger: build/CI/watch output failing. The build output **is** the feedback loop — [[debugging]] Phase 1 is free.
 Follow [[debugging]] Phases 2-6; this skill adds only build-specific content.
 

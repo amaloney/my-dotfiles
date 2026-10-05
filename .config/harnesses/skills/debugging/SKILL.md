@@ -7,6 +7,8 @@ adapted-from: obra/superpowers v6.4.2 (MIT)
 
 # Debugging
 
+Handoff: `next: test-driven-development`.
+
 Skip phases only when explicitly justified.
 
 ## Iron Law

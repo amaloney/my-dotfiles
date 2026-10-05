@@ -6,6 +6,8 @@ invocation: auto
 
 # Token Efficiency
 
+Handoff: `next: done`.
+
 ## Output Style (Elements of Style)
 
 | Rule                  | Example                                        |

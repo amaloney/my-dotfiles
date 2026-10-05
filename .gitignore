@@ -11,3 +11,4 @@ conda-internal.md
 
 # Harness-generated
 .harness/
+.config/harnesses/vectors/

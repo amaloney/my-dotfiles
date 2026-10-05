@@ -6,6 +6,8 @@ invocation: auto
 
 # Style Router
 
+Handoff: `next: bug`.
+
 | Concern    | Skill                 | Triggers                          |
 | ---------- | --------------------- | --------------------------------- |
 | Types      | [[python/types]]      | annotations, `->`, Optional, Self |

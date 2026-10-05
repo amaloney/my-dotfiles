@@ -6,6 +6,8 @@ invocation: auto
 
 # Modern Python Tooling
 
+Handoff: `next: python/style`.
+
 ## Tool Mapping
 
 pip/virtualenv/pip-tools → `uv`; pipx → `uv tool`; flake8/black/isort/pyupgrade → `ruff`; mypy/pyright → `ty`; pre-commit → `prek`.

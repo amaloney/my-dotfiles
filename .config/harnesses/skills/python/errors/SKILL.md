@@ -6,6 +6,8 @@ invocation: auto
 
 # Exceptions
 
+Handoff: `next: done`.
+
 Always `except Exception as exc:` + log. Never bare `except:` or silent `pass`.
 
 ## Multi-Failure Fetch Pattern

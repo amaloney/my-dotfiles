@@ -6,6 +6,8 @@ invocation: manual
 
 # Research Skill
 
+Handoff: `next: done`.
+
 ## Folder Structure
 
 ```

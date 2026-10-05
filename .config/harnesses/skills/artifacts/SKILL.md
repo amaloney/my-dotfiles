@@ -6,6 +6,8 @@ invocation: auto
 
 # Artifacts
 
+Handoff: `next: done`.
+
 - Never paste base64, data URIs, or encoded binary into chat. Write generated images/diagrams to a file; respond with
   the path only.
 - Mermaid diagrams stay as text source. Never rasterize to SVG/PNG unless explicitly asked; then write to a file.

@@ -6,6 +6,8 @@ invocation: manual
 
 # Test Generator
 
+Handoff: `next: verify`.
+
 ## Types
 
 | Type        | Dir                  | Focus                                |

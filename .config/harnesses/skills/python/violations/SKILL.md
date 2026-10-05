@@ -6,6 +6,8 @@ invocation: manual
 
 # Violations Fixer
 
+Handoff: `next: python/testing`.
+
 ## Detection
 
 Use ruff with rules from `pyproject.toml`:

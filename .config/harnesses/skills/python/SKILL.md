@@ -6,6 +6,8 @@ invocation: auto
 
 # Python Router
 
+Handoff: `next: done`.
+
 ## Session Start (Recon)
 
 ```bash
@@ -31,8 +33,8 @@ Similar exists → extend. Check `profile.patterns.config_py_path` for constants
 
 ## Post-Generation
 
-1. [[python/violations]] — ruff + structure
-2. [[debugging]] — AST bugs/security
+1. [[bug]] — audit (logic, edge/IO/security)
+2. [[python/violations]] — ruff + structure
 3. [[python/test-gen]] — if 1+2 pass
 
 2 fix cycles max → report to user.
@@ -42,6 +44,7 @@ Similar exists → extend. Check `profile.patterns.config_py_path` for constants
 | Skill                       | Type    | Purpose             | Triggers                                                                  |
 | --------------------------- | ------- | ------------------- | ------------------------------------------------------------------------- |
 | [[python/recon]]            | leaf    | Profile project     | session start, profile, scan                                              |
+| [[python/repo-init]]        | leaf    | Repo bootstrap      | bootstrap, onboard, repo init, AGENTS.md                                   |
 | [[python/pixi-pyproject]]   | leaf    | Pixi project setup  | init, pyproject, pixi                                                     |
 | [[python/modern-tooling]]   | leaf    | uv/ruff/ty setup    | uv, ruff, ty, modern, pip replace                                         |
 | [[python/style]]            | router  | Style router        | create, write, implement, style violations, structure violations          |
@@ -66,10 +69,10 @@ Similar exists → extend. Check `profile.patterns.config_py_path` for constants
 
 | Task           | Chain                                                                  |
 | -------------- | ---------------------------------------------------------------------- |
-| New project    | pixi-pyproject → modern-tooling → style → violations → debugging → test-gen |
-| New script     | style → violations → debugging → test-gen                                   |
-| Bug fix        | debugging → test-driven-development → violations → test-gen                                           |
-| Refactor       | style → violations → debugging                                         |
+| New project    | pixi-pyproject + modern-tooling (bootstrap) → style → bug → violations → test-gen |
+| New script     | style → bug → violations → test-gen                                         |
+| Bug fix        | debugging → test-driven-development → violations → test-gen                 |
+| Refactor       | style → bug → violations                                               |
 | Fix violations | violations                                                             |
 | Generate tests | test-gen                                                               |
 | Add tests      | testing + conftest + mocking (as needed)                               |

@@ -6,6 +6,8 @@ invocation: auto
 
 # Conftest Patterns
 
+Handoff: `next: done`.
+
 ## Scope Hierarchy
 
 ```

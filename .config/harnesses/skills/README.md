@@ -1,13 +1,13 @@
 # Skills
 
 Harness-agnostic procedures, shared by Claude Code, Kilo, and OpenCode. Loaded on demand via the harness's skill
-tool or referenced as `[[skill-name]]` links.
+tool or referenced as wiki-links (`[[` + skill-name + `]]`).
 
 This file is documentation, not a skill — skills are only discovered as `<name>/SKILL.md`.
 
 ## Authoring rules
 
-Each skill: simple, single-purpose, linkable. Complexity emerges from composition via `[[links]]`, never from the
+Each skill: simple, single-purpose, linkable. Complexity emerges from composition via wiki-links, never from the
 part itself.
 
 | Principle           | Description                              |
@@ -16,7 +16,7 @@ part itself.
 | Orchestrator → leaf | Routers don't do work, they route        |
 | Tables > prose      | Dense, scannable reference               |
 | 1 example > many    | Show, don't tell                         |
-| Linkable            | Use `[[skill-name]]` for composition     |
+| Linkable            | Use wiki-links for composition           |
 | Commands > descriptions | Runnable beats explained             |
 
 Frontmatter requires `name` + `description` — routing matches on the description, so keep it accurate.

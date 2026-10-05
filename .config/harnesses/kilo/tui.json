@@ -2,11 +2,9 @@
   // Kilo TUI settings. Copied (not linked) to ~/.config/kilo/tui.json by install.sh —
   // the TUI writes back to this file when settings change via the command palette.
   "keybinds": {
-    // ctrl+p is paste (muscle memory); command palette moves to leader
-    "command_list": "<leader>p",
-    "input_paste": {
-      "key": "ctrl+p",
-      "preventDefault": false
-    }
+    // input_paste stays on the binary default ctrl+v (single binding per command —
+    // overriding it to ctrl+p removed ctrl+v paste); palette moves to leader so
+    // neither paste chord is stolen
+    "command_list": "<leader>p"
   }
 }

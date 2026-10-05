@@ -1,12 +1,13 @@
 ---
 name: code-hygiene
-description: Code hygiene stage. Removes private/underscore methods, enforces full type annotations (args + returns), naming and structure rules. Runs after bug stage, before pytest. Ported from python/types + python/naming + python/structure + python/violations.
+description: Code hygiene stage. Removes private/underscore methods, enforces full type annotations (args + returns), naming and structure rules. Runs after bug stage, before python/testing. Ported from python/types + python/naming + python/structure + python/violations.
 ---
 
 # Code Hygiene Skill
 
-Input contract: `file path(s) + stage spec`. Output contract: `status + path + next: pytest`.
-Cosmetic/structural only — never change behavior. If a change alters behavior, it belongs to the bug stage; stop and hand back.
+Input contract: `file path(s) + stage spec`. Output contract: `status + path + next: [[python/testing]]`.
+Cosmetic/structural only — never change behavior. If a change alters behavior, it belongs to the bug stage; do not
+hand back (ranks forbid it) — emit `next: done` with a regression note; main may relaunch bug with a fresh budget.
 
 ## Passes (in order)
 

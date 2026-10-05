@@ -6,6 +6,8 @@ invocation: auto
 
 # Anaconda-Internal (Not Public Conda)
 
+Handoff: `next: done`.
+
 ## Aggregate Repository
 
 Anaconda maintains `aggregate` repo:

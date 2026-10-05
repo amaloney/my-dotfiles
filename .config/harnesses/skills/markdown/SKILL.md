@@ -6,6 +6,8 @@ invocation: auto
 
 # Markdown
 
+Handoff: `next: done`.
+
 Prettier is the formatter. Repo `.prettierrc` overrides; absent → prettier defaults.
 
 ## Commands

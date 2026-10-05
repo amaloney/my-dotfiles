@@ -45,9 +45,10 @@ Output style, banned phrases, abbreviation rules: `token-efficiency` skill.
 | Verification       | `verify`           | (leaf) — verify claims                                                                           |
 | Build failures     | `build-watch-fix`  | (leaf) — build-fix loop                                                                          |
 | Commits            | `git-commit`       | (leaf) — staging, attribution, message format                                                    |
+| Code hygiene       | `code-hygiene`     | (stage) — runs after `bug`, before pytest; types, naming, structure                              |
 
 No matching domain → proceed normally. New domains: author a skill (skill authoring rules live with the skills), never
-grow this file.
+grow this file. Handoff ranks + termination rules: `handoff-contract.md` (Termination).
 
 ## Session Start
 

@@ -6,6 +6,8 @@ invocation: auto
 
 # Structure
 
+Handoff: `next: done`.
+
 Lines <120. **Single return at end** — unless an early return skips expensive work (DB query, API call, heavy
 computation). Multiple returns for simple conditionals add cognitive load; consolidate to one.
 

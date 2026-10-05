@@ -6,6 +6,8 @@ invocation: auto
 
 # Mocking Patterns
 
+Handoff: `next: done`.
+
 ## pytest-mock (Preferred)
 
 ```python

@@ -295,6 +295,9 @@ if ! $SYSTEM; then
     status "Kilo - plugins (shared)"
     symlink "$DOTFILES/.config/harnesses/plugins" "$HOME/.config/kilo/plugins"
 
+    status "Git pre-commit hook (skill graph gate)"
+    symlink "$DOTFILES/.config/harnesses/scripts/pre-commit" "$DOTFILES/.git/hooks/pre-commit"
+
     # OpenCode prefs live in .config/harnesses/opencode/ but are intentionally
     # NOT linked to ~/.config/opencode: Kilo warns on that dir (no fallback).
 

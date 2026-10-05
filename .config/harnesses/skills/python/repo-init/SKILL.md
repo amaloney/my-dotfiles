@@ -5,6 +5,8 @@ description: Bootstrap repo-level AGENTS.md + .harness profile for a Python proj
 
 # Python Repo Init
 
+Handoff: `next: done`.
+
 Bootstrap harness integration for a Python repo: repo-level instructions + `.harness/` profile.
 
 ## When

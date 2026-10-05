@@ -6,6 +6,8 @@ invocation: auto
 
 # Accessibility Guidelines
 
+Handoff: `next: done`.
+
 ## Color Contrast (WCAG AA)
 
 | Content             | Min Ratio |

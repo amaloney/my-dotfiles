@@ -6,6 +6,8 @@ invocation: auto
 
 # Anaconda Enterprise Tools
 
+Handoff: `next: done`.
+
 ## anaconda-auth (Login/Tokens)
 
 | Variable                                | Description                      |

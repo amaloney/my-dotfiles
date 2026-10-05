@@ -6,6 +6,8 @@ invocation: auto
 
 # Type Annotations
 
+Handoff: `next: done`.
+
 All functions: typed parameters + `-> Type` returns.
 
 | Rule           | Use                        | Avoid              |

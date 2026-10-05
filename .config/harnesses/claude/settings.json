@@ -42,6 +42,11 @@
             "type": "command",
             "command": "$HOME/.config/harnesses/skills/code-index/scripts/harness-refresh.sh",
             "timeout": 60
+          },
+          {
+            "type": "command",
+            "command": "$HOME/.config/harnesses/scripts/skill-vectors-refresh.sh",
+            "timeout": 120
           }
         ]
       }
@@ -54,6 +59,11 @@
             "type": "command",
             "command": "$HOME/.config/harnesses/skills/code-index/scripts/harness-refresh.sh",
             "timeout": 60
+          },
+          {
+            "type": "command",
+            "command": "$HOME/.config/harnesses/scripts/skill-vectors-refresh.sh",
+            "timeout": 120
           }
         ]
       }

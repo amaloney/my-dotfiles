@@ -6,6 +6,8 @@ invocation: auto
 
 # Conda Package Building
 
+Handoff: `next: done`.
+
 Dense reference for building conda packages with conda-build. Focus: recipe authoring, dependencies, pinnings,
 troubleshooting.
 

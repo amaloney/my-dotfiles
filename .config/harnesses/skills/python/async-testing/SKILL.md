@@ -6,6 +6,8 @@ invocation: auto
 
 # Async Testing (pytest-asyncio)
 
+Handoff: `next: done`.
+
 ## Setup
 
 ```bash

@@ -6,6 +6,8 @@ invocation: auto
 
 # Property-Based Testing (Hypothesis)
 
+Handoff: `next: done`.
+
 ## When to Use
 
 Recognize algebraic shapes:

@@ -6,6 +6,8 @@ invocation: auto
 
 # Pytest Core
 
+Handoff: `next: verify`.
+
 ## Targeted Testing
 
 **NEVER `pytest tests/`** — scope to changed modules:

@@ -71,6 +71,22 @@ python3 .harness/code_index/query_temporal.py changes 7d
 python3 .harness/code_index/flywheel.py status
 python3 .harness/code_index/flywheel.py skills --class proven
 python3 .harness/code_index/flywheel.py recommend missing_module
+
+# Skill graph (structure gates + blast radius; pre-commit runs both automatically)
+# Vector rebuild is automatic on SKILL.md edits (Kilo plugin + Claude hooks,
+# self-filtering via scripts/skill-vectors-refresh.sh); pre-commit then runs
+# drift + suggest advisory. Human feedback on suggestions stays manual.
+bash .config/harnesses/scripts/skill-graph.sh --check
+bash .config/harnesses/scripts/skill-graph.sh --dependents python/testing
+
+# Skill edges (semantic layer; state in ~/.config/harnesses/vectors/, gitignored)
+python3 .config/harnesses/scripts/suggest_edges.py suggest [skill]   # missing-edge candidates
+python3 .config/harnesses/scripts/suggest_edges.py feedback a b accept|reject
+python3 .config/harnesses/scripts/suggest_edges.py drift             # score drops on existing edges
+# Snapshots for drift are recorded automatically by build_skill_vectors.py --rebuild
+
+# Skill network visualizer (sigma.js, zero-dependency node server)
+node .config/harnesses/scripts/skill_network.js 7474   # http://localhost:7474
 ```
 
 ## Sources & inspirations

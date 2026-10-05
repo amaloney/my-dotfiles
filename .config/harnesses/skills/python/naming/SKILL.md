@@ -6,6 +6,8 @@ invocation: auto
 
 # Naming
 
+Handoff: `next: done`.
+
 | Rule                      | Good                    | Bad                      |
 | ------------------------- | ----------------------- | ------------------------ |
 | No single-letter vars     | `for item in items`     | `for i in items`         |
