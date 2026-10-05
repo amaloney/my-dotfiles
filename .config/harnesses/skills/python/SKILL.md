@@ -105,7 +105,7 @@ before starting.
 
 **Reviewer agents apply the AGENTS.md disprove-first invariant.** Prompt every reviewer with: "Assume
 this change is wrong. Hunt for violations of [[python/structure]] (sugar gate, constants placement),
-[[python/naming]] (underscore misuse), and [[python/errors]] (exit shape). Report findings with
+[[python/naming]] (underscore misuse, cryptic abbreviations — run the naming grep gate), and [[python/errors]] (exit shape). Report findings with
 file:line." A reviewer that finds nothing must say why each gate was checked, not just "looks good".
 
 1. Match task → pipeline
