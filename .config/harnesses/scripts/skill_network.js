@@ -118,6 +118,27 @@ function buildGraph(simThreshold) {
   return { nodes, edges };
 }
 
+// SSE clients get a "change" event when any SKILL.md is written (e.g. by a
+// long-running agent task); the page re-fetches /api/graph on each event.
+const sseClients = new Set();
+let watchTimer = null;
+
+function watchSkills() {
+  let watcher;
+  try {
+    watcher = fs.watch(SKILLS_DIR, { recursive: true });
+  } catch {
+    return; // fs.watch recursive unsupported: page still works on manual reload
+  }
+  watcher.on("change", (_event, filename) => {
+    if (!filename || !filename.endsWith("SKILL.md")) return;
+    clearTimeout(watchTimer);
+    watchTimer = setTimeout(() => {
+      for (const res of sseClients) res.write("event: change\ndata: {}\n\n");
+    }, 800);
+  });
+}
+
 const PAGE = `<!doctype html>
 <html>
 <head>
@@ -202,6 +223,10 @@ async function load() {
 for (const id of ["links", "nexts", "sims"]) document.getElementById(id).onchange = load;
 document.getElementById("simt").onchange = load;
 load();
+
+// Live updates: server pushes "change" when a SKILL.md is written
+const es = new EventSource("/api/events");
+es.addEventListener("change", () => load());
 </script>
 </body>
 </html>`;
