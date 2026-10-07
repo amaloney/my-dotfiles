@@ -18,6 +18,15 @@ All functions: typed parameters + `-> Type` returns.
 
 Instance attrs: declare in `__init__` when not obvious from assignment.
 
+## `from __future__ import annotations`
+
+Omit it by default. Required only for: forward references that can't be reordered, circular type
+imports (prefer `TYPE_CHECKING` + quotes), or annotation syntax above the project's Python floor. On
+floors ≥ 3.10 it is almost never needed — unions (`X | None`), builtin generics (`dict[str, Any]`),
+and `Self` all evaluate natively. Runtime introspection (`get_type_hints`, pydantic-style consumers)
+is simpler without it, and 3.14+ makes deferred evaluation the native default (PEP 649) — don't add
+the import by habit.
+
 ## Returns
 
 - Paths are `pathlib.Path`, never `str` — function params, return values, and config constants alike.

@@ -2,6 +2,7 @@
 name: accessibility
 description: Accessibility guidelines for TUI, CLI, and web interfaces
 invocation: auto
+keywords: ["accessibility", "a11y"]
 ---
 
 # Accessibility Guidelines

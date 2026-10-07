@@ -2,6 +2,8 @@
 name: windows/batch
 description: Windows batch scripting (.bat/.cmd) and CLI command reference
 invocation: auto
+extensions: [".bat", ".cmd"]
+keywords: ["batch"]
 ---
 
 # Windows Batch & CLI

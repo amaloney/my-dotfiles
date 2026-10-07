@@ -2,6 +2,8 @@
 name: python
 description: Python orchestrator - routes to specialized skills
 invocation: auto
+extensions: [".py"]
+keywords: ["python"]
 ---
 
 # Python Router

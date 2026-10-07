@@ -2,6 +2,8 @@
 name: artifacts
 description: Generated output handling - images, diagrams, encoded data
 invocation: auto
+extensions: [".mmd", ".mermaid", ".svg"]
+keywords: ["mermaid", "diagram", "chart", "image"]
 ---
 
 # Artifacts

@@ -2,6 +2,7 @@
 name: windows
 description: Windows orchestrator - routes to PowerShell, Batch, or .NET testing agents
 invocation: auto
+keywords: ["windows"]
 ---
 
 # Windows Router

@@ -2,6 +2,8 @@
 name: bash-shell
 description: Gotchas, patterns, and best practices for POSIX/bash shell scripts (.sh)
 invocation: auto
+extensions: [".sh", ".bash"]
+keywords: ["bash", "shell script", "posix"]
 ---
 
 # Bash/POSIX Shell

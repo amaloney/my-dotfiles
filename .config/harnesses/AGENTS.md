@@ -47,6 +47,11 @@ Output style, banned phrases, abbreviation rules: `token-efficiency` skill.
 | Commits            | `git-commit`       | (leaf) — staging, attribution, message format                                                    |
 | Code hygiene       | `code-hygiene`     | (stage) — runs after `bug`, before pytest; types, naming, structure                              |
 
+**Artifact routing**: skills declare the file extensions and intent keywords they handle in SKILL.md frontmatter
+(`extensions:`, `keywords:`). The table routes task intent; frontmatter routes files touched mid-task — before any
+write/edit, if the file's extension matches a skill's `extensions:` and that skill is not yet loaded this session,
+load it first. New artifact types join by authoring a skill with the frontmatter; never grow a central list.
+
 No matching domain → proceed normally. New domains: author a skill (skill authoring rules live with the skills), never
 grow this file. Handoff ranks + termination rules: `handoff-contract.md` (Termination).
 

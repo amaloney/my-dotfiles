@@ -2,6 +2,8 @@
 name: windows/powershell
 description: Gotchas, patterns, and best practices for Windows PowerShell (.ps1) scripts
 invocation: auto
+extensions: [".ps1", ".psm1", ".psd1"]
+keywords: ["powershell"]
 ---
 
 # Windows PowerShell

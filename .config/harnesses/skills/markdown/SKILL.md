@@ -2,6 +2,8 @@
 name: markdown
 description: Markdown formatting - prettier canonical
 invocation: auto
+extensions: [".md", ".markdown"]
+keywords: ["markdown"]
 ---
 
 # Markdown

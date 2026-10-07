@@ -2,6 +2,7 @@
 name: conda-packaging
 description: Conda package building - recipes, dependencies, pinnings, troubleshooting
 invocation: auto
+keywords: ["conda package", "conda recipe", "meta.yaml", "conda-build"]
 ---
 
 # Conda Package Building

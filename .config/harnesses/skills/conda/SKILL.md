@@ -2,6 +2,7 @@
 name: conda
 description: Conda-first development - package mgmt, envs, lockfiles, full paths
 invocation: auto
+keywords: ["conda"]
 ---
 
 # Conda Development

@@ -60,6 +60,27 @@ rephrasings is sugar — the field declarations already say it. Delete it; keep 
 Property one-liners earn their place only when semantics are non-obvious (threshold, clamp, computed unit) — and the
 doc must name the non-obvious part, not rephrase the name.
 
+## Call Sites
+
+Prefer `keyword=value` for value arguments — constructors and function calls alike. Positional is fine for a
+self-evident resource path (`login, package_name, version`); values (summaries, flags, sentinels like `None`
+or `[]`) take keywords so the call reads without consulting the signature. Omit arguments equal to the default
+unless the choice is deliberate and worth documenting (`public=True`).
+
+**Never guess parameter names.** The local variable name is not the parameter name (`stream` vs `file`,
+`version` vs `release`). When keywording a call, read the real signature from the installed library, then prove
+the full keyword set binds:
+
+```python
+import inspect
+from somelib import SomeClass
+print(inspect.signature(SomeClass.method))
+inspect.signature(SomeClass.method).bind(None, login=..., file=..., ...)  # raises TypeError on a wrong name
+```
+
+A wrong keyword name is a runtime `TypeError` that lint and mocked tests do not catch — the `bind()` check is
+the gate. Applies when writing fresh calls too, not only conversions.
+
 ## Comments
 
 Only when WHY is non-obvious. No tombstones, no decorative blocks.
