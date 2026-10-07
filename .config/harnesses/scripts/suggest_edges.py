@@ -130,13 +130,12 @@ def cmd_suggest(vectors, edges, skill, k, threshold) -> None:
     if not candidates:
         print("no suggestions above threshold")
         return
-    print(f"missing-edge candidates (threshold {threshold}):\n")
+    print(f"# missing-edge candidates (threshold {threshold})")
     for score, a, b in candidates[:k]:
-        pending = ""
         if feedback.get(f"{a}|{b}") == "accept":
-            pending = "  [accepted, edge not yet added]"
-        print(f"  {score:.3f}  {a} <-> {b}{pending}")
-    print("\nrecord a decision: suggest_edges.py feedback <a> <b> accept|reject")
+            print(f"suggest_edges.py feedback {a} {b} accept  # {score:.3f} [accepted, edge not yet added]")
+        else:
+            print(f"suggest_edges.py feedback {a} {b} accept  # {score:.3f}")
 
 
 def cmd_drift(vectors, edges, drop, floor) -> None:
@@ -146,7 +145,7 @@ def cmd_drift(vectors, edges, drop, floor) -> None:
     previous = history["snapshots"][-2]["scores"]
     current = history["snapshots"][-1]["scores"]
 
-    flagged = 0
+    flagged = []
     print(f"edge drift (drop >= {drop} or score < {floor})")
     print(f"  {history['snapshots'][-2]['ts']} -> {history['snapshots'][-1]['ts']}\n")
     for a, b in sorted(edges):
@@ -156,12 +155,16 @@ def cmd_drift(vectors, edges, drop, floor) -> None:
         delta = current[pair] - previous[pair]
         if delta <= -drop:
             print(f"  DRIFT {previous[pair]:.3f} -> {current[pair]:.3f}  ({delta:+.3f})  {a} -> {b}")
-            flagged += 1
+            flagged.append((a, b, current[pair], "drift"))
         elif current[pair] < floor:
             print(f"  WEAK  {current[pair]:.3f}  (below floor)  {a} -> {b}")
-            flagged += 1
+            flagged.append((a, b, current[pair], "weak"))
     if not flagged:
         print("  no drift on existing edges")
+    else:
+        print("\n# consider removing weak/drifted edges:")
+        for a, b, score, reason in flagged:
+            print(f"suggest_edges.py feedback {a} {b} reject  # {score:.3f} ({reason})")
 
 
 def cmd_feedback(a, b, decision) -> None:
