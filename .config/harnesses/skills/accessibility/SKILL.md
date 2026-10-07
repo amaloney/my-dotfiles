@@ -66,3 +66,4 @@ class MyWidget(Static, can_focus=True):
 - [ ] All interactive keyboard accessible
 - [ ] Focus visible
 - [ ] Tab order = visual
+- [ ] Complex images (graphs, maps, charts) must have a text description of all relevant information.
