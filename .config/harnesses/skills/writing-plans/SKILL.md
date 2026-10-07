@@ -52,6 +52,8 @@ approving its neighbor. Each task ends with an independently testable deliverabl
 ````markdown
 ### Task N: [Component]
 
+**Stage:** [create | audit | hygiene | test | verify]
+
 **Files:**
 - Create: `exact/path/file.py`
 - Modify: `exact/path/existing.py:123-145`
@@ -81,6 +83,15 @@ One line on approach when signature + test leave a choice; a body only for an al
 
 - [ ] **Step 5: Commit** — [[git-commit]] conventions
 ````
+
+## Stage Annotations
+
+Every task names its pipeline stage so the executor inherits routing instead of reconstructing it from
+prose. Stages follow the handoff contract: `create`, `audit`, `hygiene`, `test`, `verify`; the domain
+orchestrator names the skill per stage (Python: [[python/style]] for create, [[bug]] for audit,
+[[code-hygiene]] for hygiene, [[python/testing]] for test). A plan without stage annotations is
+incomplete — executors annotate from the domain pipeline before starting rather than defaulting to
+native execution.
 
 ## Step Granularity
 

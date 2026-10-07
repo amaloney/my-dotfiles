@@ -23,6 +23,20 @@ computation). Multiple returns for simple conditionals add cognitive load; conso
 
 **Constants:** [[python/org]].
 
+## Imports
+
+**Absolute imports always.** Never `from .` / `from ..` — relative imports break when a file is exec'd as a
+script (`panel serve`, `python file.py`), hide the package boundary from grep, and turn moves/renames into
+silent breakage. Applies to packages too: `from xray.report import build_workbook`, never
+`from .report import build_workbook`.
+
+Enforcement gap — tooling does not catch this. Ruff/isort sort relative imports happily; flagging them is a
+mandatory review-time gate, run on every file you create or edit:
+
+```bash
+grep -nE '^\s*from \.' <file>    # clean output = pass
+```
+
 ## Functions
 
 **Syntactic sugar adds complexity.** A one-liner helper that just wraps an expression doesn't reduce complexity — it

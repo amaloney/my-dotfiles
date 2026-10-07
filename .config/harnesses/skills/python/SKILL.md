@@ -106,6 +106,10 @@ rg -n "\._[a-z][a-z_]+\(" --type py src/               # Fallback
 chose native. Native is the exception for <3-task plans or trivial diffs — state the choice and reason
 before starting.
 
+**Plan-execution precondition** — before executing an approved plan, verify each task names its pipeline
+stage ([[writing-plans]] stage annotations). Stages missing → annotate the plan from the Pipelines table
+first, or hand it back through [[writing-plans]]. Plan approval is never license to skip stages.
+
 **Reviewer agents apply the AGENTS.md disprove-first invariant.** Prompt every reviewer with: "Assume
 this change is wrong. Hunt for violations of [[python/structure]] (sugar gate, constants placement),
 [[python/naming]] (underscore misuse, cryptic abbreviations — run the naming grep gate), and [[python/errors]] (exit shape). Report findings with
