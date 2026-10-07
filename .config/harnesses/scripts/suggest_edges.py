@@ -6,7 +6,7 @@ embeddings) and the existing edge set from SKILL.md files ([[links]] + next:
 verdicts, same rules as skill-graph.sh).
 
 Usage:
-    python suggest_edges.py suggest [skill] [-k 5] [--threshold 0.5]
+    python suggest_edges.py suggest [skill] [-k 10] [--threshold 0.5]
     python suggest_edges.py drift [--drop 0.10] [--floor 0.35]
     python suggest_edges.py snapshot
     python suggest_edges.py feedback <skill-a> <skill-b> accept|reject
@@ -264,7 +264,7 @@ def main() -> None:
     p.add_argument("--drop", type=float, default=0.10, help="flag if score dropped by this much")
     p.add_argument("--floor", type=float, default=0.35, help="flag if score below this")
 
-    sub.add_parser("snapshot", help="record current pairwise scores (run after --rebuild)")
+    sub.add_parser("snapshot", help="record current pairwise scores (run after build_skill_vectors.py --rebuild)")
 
     p = sub.add_parser("feedback", help="record human decision on a pair")
     p.add_argument("a", metavar="skill-a", help="first skill name")

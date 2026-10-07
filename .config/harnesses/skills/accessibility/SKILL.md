@@ -67,3 +67,5 @@ class MyWidget(Static, can_focus=True):
 - [ ] Focus visible
 - [ ] Tab order = visual
 - [ ] Complex images (graphs, maps, charts) must have a text description of all relevant information.
+- [ ] Landmarks present on the page are used to organize the correct type of content. If landmarks are given names, they
+      need to be uniquely named.
