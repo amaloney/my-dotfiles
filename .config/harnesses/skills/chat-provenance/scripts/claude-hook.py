@@ -5,8 +5,6 @@ Reads the hook's JSON payload on stdin. Never blocks the session: any failure
 exits 0 after a stderr note.
 """
 
-from __future__ import annotations
-
 import argparse
 import json
 import os

@@ -5,8 +5,6 @@ Format v2: true append-only under flock; per-entry metadata carries seq, attr
 (human creator), model, repo state, and a prev-entry hash chain.
 """
 
-from __future__ import annotations
-
 import argparse
 import getpass
 import hashlib

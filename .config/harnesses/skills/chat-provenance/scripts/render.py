@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 """Render a chat-provenance daily log into a readable session narrative on stdout."""
 
-from __future__ import annotations
-
 import argparse
 import re
 import sys

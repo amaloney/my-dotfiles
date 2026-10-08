@@ -1,7 +1,5 @@
 """Tests for chat-provenance scripts: log_entry, save_source, session, render, verify, claude-hook."""
 
-from __future__ import annotations
-
 import json
 import os
 import subprocess

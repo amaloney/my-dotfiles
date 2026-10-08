@@ -6,8 +6,6 @@ and index.md under sessions/ are pure regenerates — `rebuild` reconstructs
 them from the logs; never hand-edit them.
 """
 
-from __future__ import annotations
-
 import argparse
 import json
 import os

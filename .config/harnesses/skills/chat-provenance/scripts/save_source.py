@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 """Capture a fetched web resource into .harness/research/ and link it from the chat-provenance log."""
 
-from __future__ import annotations
-
 import argparse
 import hashlib
 import os

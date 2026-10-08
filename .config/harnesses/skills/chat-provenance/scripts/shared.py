@@ -1,7 +1,5 @@
 """Shared helpers for chat-provenance scripts: repo discovery, redaction, file locking."""
 
-from __future__ import annotations
-
 import os
 import re
 import time

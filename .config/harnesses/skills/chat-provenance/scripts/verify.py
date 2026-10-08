@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 """Verify the per-entry hash chain and seq monotonicity of daily chat-provenance logs."""
 
-from __future__ import annotations
-
 import argparse
 import hashlib
 import sys
