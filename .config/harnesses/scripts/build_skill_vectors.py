@@ -5,11 +5,12 @@ Indexes:
 - Skill files from ~/.config/harnesses/skills/ (dir/SKILL.md convention)
 - Extracts name, description, trigger keywords, and content
 
-Usage:
-    python build_skill_vectors.py [--rebuild]
+Deprecated entry point — use the unified CLI:
+    llm-skills-network build --skill-vectors [--rebuild]
+
+This module still hosts the implementation (imported by the CLI).
 """
 
-import argparse
 import re
 import sys
 from pathlib import Path
@@ -129,20 +130,16 @@ def index_skills(skills_dir: Path, collection, model) -> int:
     return count
 
 
-def main():
-    parser = argparse.ArgumentParser(description="Build vector index from skills")
-    parser.add_argument(
-        "--rebuild", action="store_true", help="Delete and rebuild index"
-    )
-    args = parser.parse_args()
+def build(rebuild: bool = False) -> int:
+    """Build the skill vector index; snapshots pairwise scores at the end."""
+    from llm_skills_network.common import SKILLS_DIR, VECTORS_DIR
 
-    # Paths
-    skills_dir = Path.home() / ".config" / "harnesses" / "skills"
-    vectors_dir = Path.home() / ".config" / "harnesses" / "vectors"
+    skills_dir = SKILLS_DIR
+    vectors_dir = VECTORS_DIR
 
     if not skills_dir.exists():
         print(f"Skills directory not found: {skills_dir}", file=sys.stderr)
-        sys.exit(1)
+        return 1
 
     vectors_dir.mkdir(parents=True, exist_ok=True)
 
@@ -152,7 +149,7 @@ def main():
     print("Initializing vector store...")
     client = chromadb.PersistentClient(path=str(vectors_dir))
 
-    if args.rebuild:
+    if rebuild:
         try:
             client.delete_collection("skills")
             print("Deleted existing collection")
@@ -164,9 +161,9 @@ def main():
     )
 
     existing = collection.count()
-    if existing > 0 and not args.rebuild:
+    if existing > 0 and not rebuild:
         print(f"Collection has {existing} documents. Use --rebuild to reindex.")
-        sys.exit(0)
+        return 0
 
     print(f"Indexing skills from {skills_dir}...")
     n = index_skills(skills_dir, collection, model)
@@ -175,10 +172,18 @@ def main():
     print(f"Vector store: {vectors_dir}")
 
     # Record pairwise skill scores so drift detection has a fresh baseline
-    sys.path.insert(0, str(Path(__file__).parent))
     import suggest_edges
 
     suggest_edges.cmd_snapshot(suggest_edges.load_vectors())
+    return 0
+
+
+def main() -> None:
+    """Deprecated shim: delegate to the unified CLI."""
+    from llm_skills_network.cli import main as cli_main
+
+    print("deprecated: use llm-skills-network build --skill-vectors ...", file=sys.stderr)
+    sys.exit(cli_main(["build", "--skill-vectors"] + sys.argv[1:]))
 
 
 if __name__ == "__main__":

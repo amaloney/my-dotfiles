@@ -1,15 +1,14 @@
 #!/usr/bin/env python3
 """Skill edge suggestions, drift detection, and human feedback.
 
-Reads skill-level embeddings from the vector store (mean of each skill's chunk
-embeddings) and the existing edge set from SKILL.md files ([[links]] + next:
-verdicts, same rules as skill-graph.sh).
+Deprecated entry point — use the unified CLI:
+    llm-skills-network edges --suggest [skill] [-k 10] [--threshold 0.5]
+    llm-skills-network edges --compute-drift [--drop 0.10] [--floor 0.35]
+    llm-skills-network edges --snapshot
+    llm-skills-network edges --feedback <skill-a> <skill-b> accept|reject
 
-Usage:
-    python suggest_edges.py suggest [skill] [-k 10] [--threshold 0.5]
-    python suggest_edges.py drift [--drop 0.10] [--floor 0.35]
-    python suggest_edges.py snapshot
-    python suggest_edges.py feedback <skill-a> <skill-b> accept|reject
+This module still hosts the implementation (imported by the CLI). Module
+import is stdlib-only; chromadb is imported lazily inside load_vectors().
 
 State (both gitignored, under ~/.config/harnesses/vectors/):
     edge_scores.json    timestamped snapshots of pairwise scores (drift history)
@@ -18,26 +17,20 @@ State (both gitignored, under ~/.config/harnesses/vectors/):
 
 from __future__ import annotations
 
-import argparse
 import json
-import re
 import sys
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from itertools import combinations
 from pathlib import Path
 from typing import Any
 
-import chromadb
-import numpy as np
+from llm_skills_network.common import LINK_RE, NEXT_RE, SKILLS_DIR, VECTORS_DIR
 
-SKILLS_DIR = Path.home() / ".config" / "harnesses" / "skills"
-VECTORS_DIR = Path.home() / ".config" / "harnesses" / "vectors"
+UTC = timezone.utc
+
 SCORES_FILE = VECTORS_DIR / "edge_scores.json"
 FEEDBACK_FILE = VECTORS_DIR / "edge_feedback.json"
 MAX_SNAPSHOTS = 10
-
-LINK_RE = re.compile(r"\[\[([a-z][a-z0-9/_-]*)\]\]")
-NEXT_RE = re.compile(r"next: `?(?:\[\[)?([a-z0-9/_-]+)")
 
 SkillPair = tuple[str, str]
 Vector = list[float]
@@ -108,27 +101,30 @@ def load_edges() -> set[SkillPair]:
 
 def load_vectors() -> dict[str, Vector]:
     """Skill-level embedding = mean of its chunk embeddings, L2-normalized."""
+    import chromadb
+
     if not VECTORS_DIR.exists():
-        sys.exit("error: vector index not found\n  run: build_skill_vectors.py --rebuild")
+        sys.exit("error: vector index not found\n  run: llm-skills-network build --skill-vectors --rebuild")
     client = chromadb.PersistentClient(path=str(VECTORS_DIR))
     try:
         collection = client.get_collection("skills")
     except ValueError:
-        sys.exit("error: collection 'skills' not found\n  run: build_skill_vectors.py --rebuild")
+        sys.exit("error: collection 'skills' not found\n  run: llm-skills-network build --skill-vectors --rebuild")
     data = collection.get(include=["embeddings", "metadatas"])
     if not data["ids"]:
-        sys.exit("error: collection is empty\n  run: build_skill_vectors.py --rebuild")
+        sys.exit("error: collection is empty\n  run: llm-skills-network build --skill-vectors --rebuild")
 
     chunks: dict[str, list[Vector]] = {}
     for meta, emb in zip(data["metadatas"], data["embeddings"], strict=True):
         name = skill_name_from_path(meta.get("path", ""))
-        chunks.setdefault(name, []).append(emb)
+        chunks.setdefault(name, []).append(list(emb))
 
     vectors: dict[str, Vector] = {}
     for name, embs in chunks.items():
-        vec = np.mean(np.array(embs), axis=0)
-        norm = np.linalg.norm(vec)
-        vectors[name] = (vec / norm).tolist() if norm else vec.tolist()
+        dims = len(embs[0])
+        mean = [sum(e[i] for e in embs) / len(embs) for i in range(dims)]
+        norm = sum(x * x for x in mean) ** 0.5
+        vectors[name] = [x / norm for x in mean] if norm else mean
     return vectors
 
 
@@ -136,7 +132,7 @@ def pairwise_scores(vectors: dict[str, Vector]) -> dict[str, float]:
     """All unordered pairs as 'a|b' -> cosine similarity."""
     scores: dict[str, float] = {}
     for a, b in combinations(sorted(vectors), 2):
-        scores[f"{a}|{b}"] = float(np.dot(vectors[a], vectors[b]))
+        scores[f"{a}|{b}"] = sum(x * y for x, y in zip(vectors[a], vectors[b], strict=True))
     return scores
 
 
@@ -193,8 +189,10 @@ def cmd_suggest(
 
     print(f"# missing-edge candidates (threshold {threshold})")
     for score, a, b in candidates[:k]:
-        suffix = " [accepted, edge not yet added]" if feedback.get(f"{a}|{b}") == "accept" else ""
-        print(f"suggest_edges.py feedback {a} {b} accept  # {score:.3f}{suffix}")
+        line = f"llm-skills-network edges --feedback {a} {b} accept  # {score:.3f}"
+        if feedback.get(f"{a}|{b}") == "accept":
+            line += f"  →  accepted: llm-skills-network edges --apply {a} {b}"
+        print(line)
 
 
 def cmd_drift(
@@ -231,7 +229,7 @@ def cmd_drift(
     else:
         print("\n# consider removing weak/drifted edges:")
         for a, b, score, reason in flagged:
-            print(f"suggest_edges.py feedback {a} {b} reject  # {score:.3f} ({reason})")
+            print(f"llm-skills-network edges --feedback {a} {b} reject  # {score:.3f} ({reason})")
 
 
 def cmd_feedback(a: str, b: str, decision: str) -> None:
@@ -249,41 +247,24 @@ def cmd_feedback(a: str, b: str, decision: str) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(
-        description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-    )
-    sub = parser.add_subparsers(dest="cmd", required=True)
+    """Deprecated shim: delegate to the unified CLI."""
+    from llm_skills_network.cli import main as cli_main
 
-    p = sub.add_parser("suggest", help="missing-edge candidates")
-    p.add_argument("skill", nargs="?", help="restrict to pairs involving this skill")
-    p.add_argument("-k", type=int, default=10, help="max suggestions (default: 10)")
-    p.add_argument("--threshold", type=float, default=0.5, help="min similarity (default: 0.5)")
-
-    p = sub.add_parser("drift", help="score changes on existing edges vs last snapshot")
-    p.add_argument("--drop", type=float, default=0.10, help="flag if score dropped by this much")
-    p.add_argument("--floor", type=float, default=0.35, help="flag if score below this")
-
-    sub.add_parser("snapshot", help="record current pairwise scores (run after build_skill_vectors.py --rebuild)")
-
-    p = sub.add_parser("feedback", help="record human decision on a pair")
-    p.add_argument("a", metavar="skill-a", help="first skill name")
-    p.add_argument("b", metavar="skill-b", help="second skill name")
-    p.add_argument("decision", choices=["accept", "reject"], help="accept or reject the edge")
-
-    args = parser.parse_args()
-
-    if args.cmd == "feedback":
-        cmd_feedback(args.a, args.b, args.decision)
-        return
-
-    vectors = load_vectors()
-    if args.cmd == "snapshot":
-        cmd_snapshot(vectors)
-    elif args.cmd == "suggest":
-        cmd_suggest(vectors, load_edges(), args.skill, args.k, args.threshold)
-    elif args.cmd == "drift":
-        cmd_drift(vectors, load_edges(), args.drop, args.floor)
+    print("deprecated: use llm-skills-network edges ...", file=sys.stderr)
+    argv = sys.argv[1:]
+    if not argv:
+        print(__doc__, file=sys.stderr)
+        sys.exit(2)
+    mapping = {
+        "suggest": ["edges", "--suggest"],
+        "drift": ["edges", "--compute-drift"],
+        "snapshot": ["edges", "--snapshot"],
+        "feedback": ["edges", "--feedback"],
+    }
+    head = argv[0]
+    if head not in mapping:
+        sys.exit(f"error: unknown subcommand '{head}'\n{__doc__}")
+    sys.exit(cli_main(mapping[head] + argv[1:]))
 
 
 if __name__ == "__main__":
