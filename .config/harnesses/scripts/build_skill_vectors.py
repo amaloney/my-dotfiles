@@ -14,14 +14,14 @@ This module still hosts the implementation (imported by the CLI).
 import re
 import sys
 from pathlib import Path
-from typing import Optional
 
 import chromadb
 import chromadb.errors
+from llm_skills_network.common import skill_files
 from sentence_transformers import SentenceTransformer
 
 
-def parse_skill(skill_path: Path) -> Optional[dict]:
+def parse_skill(skill_path: Path) -> dict | None:
     """Parse a skill file and extract metadata + content."""
     content = skill_path.read_text()
 
@@ -85,7 +85,7 @@ def index_skills(skills_dir: Path, collection, model) -> int:
     """Index all skill files."""
     count = 0
 
-    for skill_path in skills_dir.glob("**/SKILL.md"):
+    for skill_path in skill_files(skills_dir):
         skill = parse_skill(skill_path)
         if not skill:
             continue

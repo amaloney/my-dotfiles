@@ -17,7 +17,7 @@ name = "my-project"
 version = "0.1.0"
 requires-python = ">= 3.12"
 
-[tool.pixi.project]
+[tool.pixi.workspace]               # not [tool.pixi.project]: deprecated name
 channels = ["conda-forge"]
 platforms = ["osx-arm64", "osx-64", "linux-64", "win-64"]
 ```

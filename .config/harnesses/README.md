@@ -28,11 +28,16 @@ Agents never hold rule content — they load the skill.
 | Content | Owner |
 | --- | --- |
 | Python bug patterns + shared detection | `skills/debugging/references/python.md` |
+| Rust bug patterns + debug tooling | `skills/debugging/references/rust.md` |
 | Security patterns (vulns, insecure defaults) | `skills/python/security` |
+| Rust security patterns (unsafe, supply chain) | `skills/rust/security` |
 | Hygiene rules (types, naming, structure) | `skills/python/{types,naming,structure}` |
+| Rust hygiene rules (types, naming, structure) | `skills/rust/{types,naming,structure}` |
+| Rust lint selection (ast-check → clippy) | `skills/ast-check/references/rust-clippy.md` |
 | Edge/IO patterns | `skills/bug` |
-| Code-index tooling, flywheel + graph theory | `skills/code-index/scripts/` |
+| Code-index tooling, flywheel + graph theory | `skills/code-index/scripts/` (Rust extraction: `extract_rust.py`) |
 | Python repo bootstrap | `skills/python/repo-init` |
+| Rust repo bootstrap | `skills/rust/repo-init` |
 
 ## Intentional per-harness duplication (why)
 

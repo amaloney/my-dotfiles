@@ -245,19 +245,18 @@ class UnreachableCodeChecker(ast.NodeVisitor):
     def _check_body(self, body: list[ast.stmt]) -> None:
         """Check for code after return/break/continue/raise."""
         for i, stmt in enumerate(body):
-            if isinstance(stmt, (ast.Return, ast.Break, ast.Continue, ast.Raise)):
-                if i < len(body) - 1:
-                    next_stmt = body[i + 1]
-                    self.issues.append(
-                        Issue(
-                            file=str(self.filepath),
-                            line=next_stmt.lineno,
-                            check="unreachable-code",
-                            category="bugs",
-                            severity="error",
-                            message=f"Unreachable code after {stmt.__class__.__name__.lower()}",
-                        )
+            if isinstance(stmt, (ast.Return, ast.Break, ast.Continue, ast.Raise)) and i < len(body) - 1:
+                next_stmt = body[i + 1]
+                self.issues.append(
+                    Issue(
+                        file=str(self.filepath),
+                        line=next_stmt.lineno,
+                        check="unreachable-code",
+                        category="bugs",
+                        severity="error",
+                        message=f"Unreachable code after {stmt.__class__.__name__.lower()}",
                     )
+                )
 
 
 class UnusedChecker(ast.NodeVisitor):
@@ -371,22 +370,22 @@ class SecurityChecker(ast.NodeVisitor):
             "Popen",
         ):
             for keyword in node.keywords:
-                if keyword.arg == "shell":
-                    if (
-                        isinstance(keyword.value, ast.Constant)
-                        and keyword.value.value is True
-                    ):
-                        self.issues.append(
-                            Issue(
-                                file=str(self.filepath),
-                                line=node.lineno,
-                                check="shell-injection",
-                                category="security",
-                                severity="error",
-                                message="subprocess with shell=True - shell injection risk",
-                                suggestion="Use shell=False and pass args as list",
-                            )
+                if (
+                    keyword.arg == "shell"
+                    and isinstance(keyword.value, ast.Constant)
+                    and keyword.value.value is True
+                ):
+                    self.issues.append(
+                        Issue(
+                            file=str(self.filepath),
+                            line=node.lineno,
+                            check="shell-injection",
+                            category="security",
+                            severity="error",
+                            message="subprocess with shell=True - shell injection risk",
+                            suggestion="Use shell=False and pass args as list",
                         )
+                    )
 
         # Check yaml.load without Loader
         if func_name in ("yaml.load", "load") and self._is_yaml_context(node):
@@ -430,22 +429,23 @@ class SecurityChecker(ast.NodeVisitor):
         for target in node.targets:
             if isinstance(target, ast.Name):
                 var_name = target.id
-                if any(p.search(var_name) for p in self.PASSWORD_PATTERNS):
-                    if isinstance(node.value, ast.Constant) and isinstance(
-                        node.value.value, str
-                    ):
-                        if len(node.value.value) > 0:
-                            self.issues.append(
-                                Issue(
-                                    file=str(self.filepath),
-                                    line=node.lineno,
-                                    check="hardcoded-password",
-                                    category="security",
-                                    severity="error",
-                                    message=f"Hardcoded password/secret in '{var_name}'",
-                                    suggestion="Use environment variables or secrets manager",
-                                )
-                            )
+                if (
+                    any(p.search(var_name) for p in self.PASSWORD_PATTERNS)
+                    and isinstance(node.value, ast.Constant)
+                    and isinstance(node.value.value, str)
+                    and len(node.value.value) > 0
+                ):
+                    self.issues.append(
+                        Issue(
+                            file=str(self.filepath),
+                            line=node.lineno,
+                            check="hardcoded-password",
+                            category="security",
+                            severity="error",
+                            message=f"Hardcoded password/secret in '{var_name}'",
+                            suggestion="Use environment variables or secrets manager",
+                        )
+                    )
         self.generic_visit(node)
 
     def visit_BinOp(self, node: ast.BinOp) -> None:
@@ -455,23 +455,19 @@ class SecurityChecker(ast.NodeVisitor):
                 r"\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER)\b", re.IGNORECASE
             )
             left_str = self._get_string_value(node.left)
-            right_str = self._get_string_value(node.right)
 
-            if left_str and sql_pattern.search(left_str):
-                if isinstance(node.right, ast.Name) or isinstance(
-                    node.right, ast.BinOp
-                ):
-                    self.issues.append(
-                        Issue(
-                            file=str(self.filepath),
-                            line=node.lineno,
-                            check="sql-injection",
-                            category="security",
-                            severity="error",
-                            message="Potential SQL injection via string concatenation",
-                            suggestion="Use parameterized queries",
-                        )
+            if left_str and sql_pattern.search(left_str) and isinstance(node.right, (ast.Name, ast.BinOp)):
+                self.issues.append(
+                    Issue(
+                        file=str(self.filepath),
+                        line=node.lineno,
+                        check="sql-injection",
+                        category="security",
+                        severity="error",
+                        message="Potential SQL injection via string concatenation",
+                        suggestion="Use parameterized queries",
                     )
+                )
         self.generic_visit(node)
 
     def _get_func_name(self, node: ast.Call) -> str:
@@ -484,15 +480,13 @@ class SecurityChecker(ast.NodeVisitor):
         return ""
 
     def _is_yaml_context(self, node: ast.Call) -> bool:
-        if isinstance(node.func, ast.Attribute):
-            if isinstance(node.func.value, ast.Name):
-                return node.func.value.id == "yaml"
+        if isinstance(node.func, ast.Attribute) and isinstance(node.func.value, ast.Name):
+            return node.func.value.id == "yaml"
         return False
 
     def _is_pickle_context(self, node: ast.Call) -> bool:
-        if isinstance(node.func, ast.Attribute):
-            if isinstance(node.func.value, ast.Name):
-                return node.func.value.id == "pickle"
+        if isinstance(node.func, ast.Attribute) and isinstance(node.func.value, ast.Name):
+            return node.func.value.id == "pickle"
         return False
 
     def _get_string_value(self, node: ast.expr) -> str | None:
@@ -570,9 +564,7 @@ class QualityChecker(ast.NodeVisitor):
         """Calculate McCabe cyclomatic complexity."""
         complexity = 1
         for child in ast.walk(node):
-            if isinstance(
-                child, (ast.If, ast.While, ast.For, ast.AsyncFor)
-            ) or isinstance(child, ast.ExceptHandler):
+            if isinstance(child, (ast.If, ast.While, ast.For, ast.AsyncFor, ast.ExceptHandler)):
                 complexity += 1
             elif isinstance(child, ast.BoolOp):
                 complexity += len(child.values) - 1
@@ -604,9 +596,7 @@ class QualityChecker(ast.NodeVisitor):
                         self._calculate_max_depth(stmt.body, current_depth + 1),
                         self._calculate_max_depth(stmt.orelse, current_depth + 1),
                     )
-                elif isinstance(stmt, (ast.For, ast.While, ast.AsyncFor)) or isinstance(
-                    stmt, (ast.With, ast.AsyncWith)
-                ):
+                elif isinstance(stmt, (ast.For, ast.While, ast.AsyncFor, ast.With, ast.AsyncWith)):
                     child_depth = self._calculate_max_depth(
                         stmt.body, current_depth + 1
                     )
@@ -673,12 +663,12 @@ class StructureChecker(ast.NodeVisitor):
         if value is None:
             return False
         for node in ast.walk(value):
-            if isinstance(node, ast.Attribute):
-                if (
-                    isinstance(node.value, ast.Name)
-                    and node.value.id in self.class_names
-                ):
-                    return True
+            if (
+                isinstance(node, ast.Attribute)
+                and isinstance(node.value, ast.Name)
+                and node.value.id in self.class_names
+            ):
+                return True
             if isinstance(node, ast.Name) and node.id in self.class_names:
                 return True
         return False
@@ -726,41 +716,40 @@ class LoggingChecker(ast.NodeVisitor):
         if (
             isinstance(node.func, ast.Attribute)
             and node.func.attr in self.LOGGER_METHODS
+            and node.args
         ):
             # Check for %-formatting in logging
-            if node.args:
-                first_arg = node.args[0]
-                if isinstance(first_arg, ast.BinOp) and isinstance(
-                    first_arg.op, ast.Mod
-                ):
-                    self.issues.append(
-                        Issue(
-                            file=str(self.filepath),
-                            line=node.lineno,
-                            check="string-format-logging",
-                            category="quality",
-                            severity="info",
-                            message="Use lazy % formatting in logging",
-                            suggestion='Use logger.info("msg %s", var) instead of logger.info("msg %s" % var)',
-                        )
+            first_arg = node.args[0]
+            if isinstance(first_arg, ast.BinOp) and isinstance(
+                first_arg.op, ast.Mod
+            ):
+                self.issues.append(
+                    Issue(
+                        file=str(self.filepath),
+                        line=node.lineno,
+                        check="string-format-logging",
+                        category="quality",
+                        severity="info",
+                        message="Use lazy % formatting in logging",
+                        suggestion='Use logger.info("msg %s", var) instead of logger.info("msg %s" % var)',
                     )
-                # Check for .format() in logging
-                elif isinstance(first_arg, ast.Call):
-                    if (
-                        isinstance(first_arg.func, ast.Attribute)
-                        and first_arg.func.attr == "format"
-                    ):
-                        self.issues.append(
-                            Issue(
-                                file=str(self.filepath),
-                                line=node.lineno,
-                                check="string-format-logging",
-                                category="quality",
-                                severity="info",
-                                message="Use lazy formatting in logging",
-                                suggestion='Use logger.info("msg %s", var) instead of logger.info("msg {}".format(var))',
-                            )
-                        )
+                )
+            # Check for .format() in logging
+            elif isinstance(first_arg, ast.Call) and (
+                isinstance(first_arg.func, ast.Attribute)
+                and first_arg.func.attr == "format"
+            ):
+                self.issues.append(
+                    Issue(
+                        file=str(self.filepath),
+                        line=node.lineno,
+                        check="string-format-logging",
+                        category="quality",
+                        severity="info",
+                        message="Use lazy formatting in logging",
+                        suggestion='Use logger.info("msg %s", var) instead of logger.info("msg {}".format(var))',
+                    )
+                )
         self.generic_visit(node)
 
 

@@ -21,9 +21,33 @@ first.
 
 ```bash
 ~/.config/harnesses/skills/code-index/scripts/install.sh .   # installs to .harness/code_index/
-pip install chromadb
-python3 .harness/code_index/build_index_temporal.py          # build index
+pixi install -e dev                                          # dev env from pyproject.toml below
+pixi run -e dev index                                        # build index
 ```
+
+Index deps live in a pixi `dev` feature in `pyproject.toml` ([[python/pixi-pyproject]]). The startup hook
+(`harness-refresh.sh`) uses `.pixi/envs/dev/bin/python`, then `.pixi/envs/default/bin/python`, then system `python3`.
+
+```toml
+[tool.pixi.feature.dev.dependencies]
+chromadb = ">=1.5"
+# pkgs/main build sets the executable-stack flag, which glibc >= 2.41 refuses to load
+onnxruntime = { version = "*", channel = "conda-forge" }
+tree_sitter = ">=0.24"                                       # Rust repos only
+tree-sitter-rust = ">=0.24"                                  # Rust repos only
+
+[tool.pixi.environments]
+default = { solve-group = "default" }
+dev = { features = ["dev"], solve-group = "default" }
+
+[tool.pixi.feature.dev.tasks]
+index = { cmd = "python build_index_temporal.py", cwd = ".harness/code_index" }
+query = { cmd = "python query_temporal.py", cwd = ".harness/code_index" }
+```
+
+Languages: Python via `ast`; Rust via tree-sitter (`extract_rust.py` — structs/enums/traits as `class`, impl/trait fns
+as `method`, `impl Trait for Type` as `inherits`). Without tree-sitter-rust installed, `.rs` files are skipped with one
+warning. Cargo projects index the whole crate/workspace root, excluding `target/`.
 
 Index instances are per-repo under `.harness/code_index/` (gitignore the whole dir). Re-run the builder after large
 changes.

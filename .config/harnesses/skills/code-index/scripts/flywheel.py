@@ -10,15 +10,15 @@ Probabilistic model:
 - Bayesian promotion: P(θ > τ) instead of hard score thresholds
 """
 
+import contextlib
 import json
 import math
 import re
 import sqlite3
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Optional, List, Dict, Any, Tuple
-
+from typing import Any
 
 # Score bounds (legacy)
 MIN_SCORE = -20
@@ -72,15 +72,15 @@ class Skill:
     """A learned pattern that works or doesn't."""
     id: int
     name: str
-    description: Optional[str]
-    error_type: Optional[str]
+    description: str | None
+    error_type: str | None
     score: int  # Legacy integer score
     skill_class: str  # noise, correctable, proven, anti-pattern
     evidence_count: int
     success_count: int
     failure_count: int
     created_at: str
-    last_used_at: Optional[str]
+    last_used_at: str | None
     # Probabilistic fields
     alpha: float = 1.0
     beta: float = 1.0
@@ -104,7 +104,7 @@ class Skill:
         return beta_stddev(self.alpha, self.beta)
 
     @property
-    def confidence_interval(self) -> Tuple[float, float]:
+    def confidence_interval(self) -> tuple[float, float]:
         """95% credible interval (mean ± 1.96σ)."""
         margin = 1.96 * self.stddev
         return (max(0, self.mean - margin), min(1, self.mean + margin))
@@ -150,20 +150,20 @@ class Episode:
     """A record of what happened during a task."""
     id: int
     task_description: str
-    packages: List[str]
-    approach: Optional[str]
-    outcome: Optional[str]
-    lessons: List[str]
-    skills_applied: List[int]
-    skills_discovered: List[int]
+    packages: list[str]
+    approach: str | None
+    outcome: str | None
+    lessons: list[str]
+    skills_applied: list[int]
+    skills_discovered: list[int]
     started_at: str
-    completed_at: Optional[str]
+    completed_at: str | None
 
 
 @dataclass
 class SkillRecommendation:
     """A skill recommendation for a task."""
-    skill: Optional[Skill]
+    skill: Skill | None
     confidence: str  # "high" (proven), "medium" (correctable), "low" (noise), "class-level"
     reason: str
     # Bayesian fields
@@ -185,10 +185,10 @@ class Flywheel:
 
     def __init__(self, db_path: Path):
         self.db_path = db_path
-        self.conn: Optional[sqlite3.Connection] = None
+        self.conn: sqlite3.Connection | None = None
         # Cache for class patterns
-        self._error_class_patterns: Optional[Dict[str, re.Pattern]] = None
-        self._fix_class_patterns: Optional[Dict[str, re.Pattern]] = None
+        self._error_class_patterns: dict[str, re.Pattern] | None = None
+        self._fix_class_patterns: dict[str, re.Pattern] | None = None
 
     def _get_conn(self) -> sqlite3.Connection:
         if self.conn is None:
@@ -242,19 +242,15 @@ class Flywheel:
 
         self._error_class_patterns = {}
         for row in conn.execute("SELECT name, pattern FROM error_classes WHERE pattern IS NOT NULL"):
-            try:
+            with contextlib.suppress(re.error):
                 self._error_class_patterns[row["name"]] = re.compile(row["pattern"], re.IGNORECASE)
-            except re.error:
-                pass
 
         self._fix_class_patterns = {}
         for row in conn.execute("SELECT name, pattern FROM fix_classes WHERE pattern IS NOT NULL"):
-            try:
+            with contextlib.suppress(re.error):
                 self._fix_class_patterns[row["name"]] = re.compile(row["pattern"], re.IGNORECASE)
-            except re.error:
-                pass
 
-    def classify_error(self, error_type: str) -> Optional[str]:
+    def classify_error(self, error_type: str) -> str | None:
         """Map error type to error class using patterns."""
         conn = self._get_conn()
 
@@ -281,7 +277,7 @@ class Flywheel:
 
         return None
 
-    def classify_fix(self, fix_action: str) -> Optional[str]:
+    def classify_fix(self, fix_action: str) -> str | None:
         """Map fix action to fix class using patterns."""
         conn = self._get_conn()
 
@@ -332,7 +328,7 @@ class Flywheel:
         except sqlite3.Error:
             pass
 
-    def get_meta_knowledge(self, error_class: str, fix_class: str) -> Optional[MetaKnowledge]:
+    def get_meta_knowledge(self, error_class: str, fix_class: str) -> MetaKnowledge | None:
         """Get class-level prior for (error_class, fix_class)."""
         conn = self._get_conn()
         row = conn.execute("""
@@ -388,7 +384,7 @@ class Flywheel:
 
         conn.commit()
 
-    def get_inherited_prior(self, error_type: str, fix_action: str) -> Tuple[float, float]:
+    def get_inherited_prior(self, error_type: str, fix_action: str) -> tuple[float, float]:
         """Get prior (α, β) for a new skill from class-level meta-knowledge."""
         error_class = self.classify_error(error_type)
         fix_class = self.classify_fix(fix_action)
@@ -407,8 +403,8 @@ class Flywheel:
     # SKILL MANAGEMENT
     # ═══════════════════════════════════════════════════════════════
 
-    def get_or_create_skill(self, name: str, error_type: Optional[str] = None,
-                           description: Optional[str] = None) -> int:
+    def get_or_create_skill(self, name: str, error_type: str | None = None,
+                           description: str | None = None) -> int:
         """Get existing skill or create new one.
 
         New skills inherit prior from class-level meta-knowledge.
@@ -545,7 +541,7 @@ class Flywheel:
             """, (new_class, datetime.now().isoformat(), skill_id))
             conn.commit()
 
-    def get_skill(self, skill_id: int) -> Optional[Skill]:
+    def get_skill(self, skill_id: int) -> Skill | None:
         """Get a skill by ID."""
         conn = self._get_conn()
         row = conn.execute("SELECT * FROM skills WHERE id = ?", (skill_id,)).fetchone()
@@ -553,7 +549,7 @@ class Flywheel:
             return self._row_to_skill(row)
         return None
 
-    def get_skill_by_name(self, name: str) -> Optional[Skill]:
+    def get_skill_by_name(self, name: str) -> Skill | None:
         """Get a skill by name."""
         conn = self._get_conn()
         row = conn.execute("SELECT * FROM skills WHERE name = ?", (name,)).fetchone()
@@ -574,15 +570,16 @@ class Flywheel:
             failure_count=row["failure_count"],
             created_at=row["created_at"],
             last_used_at=row["last_used_at"],
-            alpha=row["alpha"] if "alpha" in row.keys() else 1.0,
-            beta=row["beta"] if "beta" in row.keys() else 1.0,
+            # sqlite3.Row `in` tests values, not column names — .keys() is required
+            alpha=row["alpha"] if "alpha" in row.keys() else 1.0,  # noqa: SIM118
+            beta=row["beta"] if "beta" in row.keys() else 1.0,  # noqa: SIM118
         )
 
     # ═══════════════════════════════════════════════════════════════
     # SKILL QUERIES
     # ═══════════════════════════════════════════════════════════════
 
-    def get_proven_skills(self, error_type: Optional[str] = None) -> List[Skill]:
+    def get_proven_skills(self, error_type: str | None = None) -> list[Skill]:
         """Get proven skills, optionally filtered by error type."""
         conn = self._get_conn()
         if error_type:
@@ -597,7 +594,7 @@ class Flywheel:
             ).fetchall()
         return [self._row_to_skill(row) for row in rows]
 
-    def get_anti_patterns(self, error_type: Optional[str] = None) -> List[Skill]:
+    def get_anti_patterns(self, error_type: str | None = None) -> list[Skill]:
         """Get anti-patterns to avoid."""
         conn = self._get_conn()
         if error_type:
@@ -612,7 +609,7 @@ class Flywheel:
             ).fetchall()
         return [self._row_to_skill(row) for row in rows]
 
-    def get_recommendations(self, error_type: str) -> List[SkillRecommendation]:
+    def get_recommendations(self, error_type: str) -> list[SkillRecommendation]:
         """Get skill recommendations for an error type (legacy + Bayesian)."""
         recommendations = []
 
@@ -656,7 +653,7 @@ class Flywheel:
 
         return recommendations
 
-    def get_meta_recommendations(self, error_type: str) -> List[SkillRecommendation]:
+    def get_meta_recommendations(self, error_type: str) -> list[SkillRecommendation]:
         """Get recommendations from class-level meta-knowledge (for new error types)."""
         recommendations = []
         error_class = self.classify_error(error_type)
@@ -686,7 +683,10 @@ class Flywheel:
             recommendations.append(SkillRecommendation(
                 skill=None,
                 confidence="class-level",
-                reason=f"Meta: {meta.fix_class} fixes work {meta.mean:.0%} ± {meta.stddev:.0%} for {error_class} errors ({meta.observation_count} obs)",
+                reason=(
+                    f"Meta: {meta.fix_class} fixes work {meta.mean:.0%} ± {meta.stddev:.0%} "
+                    f"for {error_class} errors ({meta.observation_count} obs)"
+                ),
                 mean=meta.mean,
                 stddev=meta.stddev,
                 prob_effective=prob_above_threshold(meta.alpha, meta.beta, TAU),
@@ -695,7 +695,7 @@ class Flywheel:
 
         return recommendations
 
-    def get_warnings(self, error_type: str, proposed_action: str) -> List[str]:
+    def get_warnings(self, error_type: str, proposed_action: str) -> list[str]:
         """Get warnings if proposed action matches an anti-pattern."""
         warnings = []
 
@@ -721,8 +721,8 @@ class Flywheel:
     # EPISODE MANAGEMENT
     # ═══════════════════════════════════════════════════════════════
 
-    def start_episode(self, task_description: str, packages: List[str] = None,
-                     session_id: Optional[str] = None) -> int:
+    def start_episode(self, task_description: str, packages: list[str] = None,
+                     session_id: str | None = None) -> int:
         """Start a new episode."""
         conn = self._get_conn()
         cursor = conn.execute("""
@@ -738,11 +738,11 @@ class Flywheel:
         return cursor.lastrowid
 
     def complete_episode(self, episode_id: int, outcome: str,
-                        approach: Optional[str] = None,
-                        lessons: List[str] = None,
-                        skills_applied: List[int] = None,
-                        skills_discovered: List[int] = None,
-                        fix_attempts: List[int] = None) -> None:
+                        approach: str | None = None,
+                        lessons: list[str] = None,
+                        skills_applied: list[int] = None,
+                        skills_discovered: list[int] = None,
+                        fix_attempts: list[int] = None) -> None:
         """Complete an episode with outcome."""
         conn = self._get_conn()
         started = conn.execute(
@@ -778,7 +778,7 @@ class Flywheel:
         ))
         conn.commit()
 
-    def get_similar_episodes(self, task_description: str, limit: int = 5) -> List[Episode]:
+    def get_similar_episodes(self, task_description: str, limit: int = 5) -> list[Episode]:
         """Find similar past episodes (simple keyword matching)."""
         conn = self._get_conn()
         # Simple word-based matching
@@ -814,11 +814,11 @@ class Flywheel:
     # ═══════════════════════════════════════════════════════════════
 
     def record_decision(self, question: str, choice: str,
-                       rationale: Optional[str] = None,
-                       alternatives: List[str] = None,
-                       episode_id: Optional[int] = None,
-                       error_type: Optional[str] = None,
-                       package: Optional[str] = None) -> int:
+                       rationale: str | None = None,
+                       alternatives: list[str] = None,
+                       episode_id: int | None = None,
+                       error_type: str | None = None,
+                       package: str | None = None) -> int:
         """Record a decision for future reference."""
         conn = self._get_conn()
         cursor = conn.execute("""
@@ -834,7 +834,7 @@ class Flywheel:
         conn.commit()
         return cursor.lastrowid
 
-    def validate_decision(self, decision_id: int, outcome: str, notes: Optional[str] = None) -> None:
+    def validate_decision(self, decision_id: int, outcome: str, notes: str | None = None) -> None:
         """Update decision outcome after validation."""
         conn = self._get_conn()
         conn.execute("""
@@ -843,7 +843,7 @@ class Flywheel:
         """, (outcome, notes, datetime.now().isoformat(), decision_id))
         conn.commit()
 
-    def get_similar_decisions(self, error_type: str, limit: int = 5) -> List[Dict[str, Any]]:
+    def get_similar_decisions(self, error_type: str, limit: int = 5) -> list[dict[str, Any]]:
         """Find similar past decisions."""
         conn = self._get_conn()
         rows = conn.execute("""
@@ -860,7 +860,7 @@ class Flywheel:
 
     def learn_from_fix_attempt(self, fix_attempt_id: int, error_type: str,
                                fix_action: str, outcome: str,
-                               package: Optional[str] = None) -> Optional[int]:
+                               package: str | None = None) -> int | None:
         """Learn from a fix attempt, potentially creating or updating a skill."""
         # Generate skill name from error type and action
         skill_name = f"{fix_action}-for-{error_type}".lower().replace("_", "-")
@@ -877,7 +877,7 @@ class Flywheel:
 
         return skill_id
 
-    def get_flywheel_status(self) -> Dict[str, Any]:
+    def get_flywheel_status(self) -> dict[str, Any]:
         """Get current flywheel status with Bayesian metrics."""
         conn = self._get_conn()
 

@@ -6,22 +6,24 @@ Stores in SQLite (temporal/relational queries) + ChromaDB (semantic search).
 """
 
 import ast
+import contextlib
 import hashlib
 import json
 import sqlite3
 import subprocess
 import sys
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Optional, List, Tuple, Dict
 
 try:
     import chromadb
     from chromadb.config import Settings
 except ImportError:
-    print("ChromaDB not installed. Install with: pip install chromadb")
+    print("ChromaDB not installed. Install with: pixi add --feature dev chromadb  (code-index SKILL.md has the full env)")
     sys.exit(1)
+
+from extract_rust import CARGO_MANIFEST, EXCLUDE_DIRS_RUST, RUST_AVAILABLE, RUST_INSTALL_HINT, extract_rust
 
 
 @dataclass
@@ -32,24 +34,24 @@ class CodeEntity:
     qualified_name: str
     file_path: str
     line_start: int
-    line_end: Optional[int]
-    signature: Optional[str]
-    docstring: Optional[str]
-    parent_id: Optional[str]
-    decorators: List[str]
+    line_end: int | None
+    signature: str | None
+    docstring: str | None
+    parent_id: str | None
+    decorators: list[str]
     is_async: bool = False
     is_property: bool = False
     source_code: str = ""
 
     # Bi-temporal (populated from git)
     valid_from: str = ""
-    valid_until: Optional[str] = None
+    valid_until: str | None = None
     commit_sha_from: str = ""
-    commit_sha_until: Optional[str] = None
+    commit_sha_until: str | None = None
     indexed_at: str = ""
 
     def get_id(self) -> str:
-        key = f"{self.qualified_name}:{self.line_start}"
+        key = f"{self.file_path}:{self.qualified_name}:{self.line_start}"
         return hashlib.md5(key.encode()).hexdigest()
 
     def to_searchable_text(self) -> str:
@@ -69,12 +71,12 @@ class CodeEntity:
 class CodeRelation:
     """Relationship between code entities."""
     source_id: str
-    target_id: Optional[str]
+    target_id: str | None
     target_name: str
     rel_type: str  # calls, inherits, imports, uses_type, decorates, returns, raises
-    line_number: Optional[int]
+    line_number: int | None
     valid_from: str = ""
-    valid_until: Optional[str] = None
+    valid_until: str | None = None
     commit_sha_from: str = ""
 
 
@@ -84,8 +86,8 @@ class RelationExtractor(ast.NodeVisitor):
     def __init__(self, source_id: str, file_path: str):
         self.source_id = source_id
         self.file_path = file_path
-        self.relations: List[CodeRelation] = []
-        self.current_function: Optional[str] = None
+        self.relations: list[CodeRelation] = []
+        self.current_function: str | None = None
 
     def visit_Import(self, node: ast.Import):
         for alias in node.names:
@@ -184,7 +186,7 @@ class RelationExtractor(ast.NodeVisitor):
                         line_number=node.lineno,
                     ))
 
-    def _get_call_name(self, node) -> Optional[str]:
+    def _get_call_name(self, node) -> str | None:
         if isinstance(node, ast.Name):
             return node.id
         elif isinstance(node, ast.Attribute):
@@ -196,7 +198,7 @@ class RelationExtractor(ast.NodeVisitor):
             return self._get_call_name(node.func)
         return None
 
-    def _get_name(self, node) -> Optional[str]:
+    def _get_name(self, node) -> str | None:
         if isinstance(node, ast.Name):
             return node.id
         elif isinstance(node, ast.Attribute):
@@ -214,14 +216,14 @@ class RelationExtractor(ast.NodeVisitor):
 class CodeExtractor(ast.NodeVisitor):
     """Extract code entities with relationship tracking."""
 
-    def __init__(self, file_path: str, source_lines: List[str], module_name: str):
+    def __init__(self, file_path: str, source_lines: list[str], module_name: str):
         self.file_path = file_path
         self.source_lines = source_lines
         self.module_name = module_name
-        self.entities: List[CodeEntity] = []
-        self.relations: List[CodeRelation] = []
-        self.current_class: Optional[str] = None
-        self.class_stack: List[str] = []
+        self.entities: list[CodeEntity] = []
+        self.relations: list[CodeRelation] = []
+        self.current_class: str | None = None
+        self.class_stack: list[str] = []
 
     def get_qualified_name(self, name: str) -> str:
         if self.current_class:
@@ -236,7 +238,7 @@ class CodeExtractor(ast.NodeVisitor):
                 return "\n".join(self.source_lines[node.lineno - 1:node.end_lineno])
             return ""
 
-    def get_decorators(self, node) -> List[str]:
+    def get_decorators(self, node) -> list[str]:
         decorators = []
         for dec in getattr(node, "decorator_list", []):
             if isinstance(dec, ast.Name):
@@ -255,19 +257,15 @@ class CodeExtractor(ast.NodeVisitor):
         for arg in node.args.args:
             arg_str = arg.arg
             if arg.annotation:
-                try:
+                with contextlib.suppress(Exception):
                     arg_str += f": {ast.unparse(arg.annotation)}"
-                except Exception:
-                    pass
             args.append(arg_str)
 
         prefix = "async def" if isinstance(node, ast.AsyncFunctionDef) else "def"
         sig = f"{prefix} {node.name}({', '.join(args)})"
         if node.returns:
-            try:
+            with contextlib.suppress(Exception):
                 sig += f" -> {ast.unparse(node.returns)}"
-            except Exception:
-                pass
         return sig
 
     def visit_ClassDef(self, node: ast.ClassDef):
@@ -342,7 +340,7 @@ class CodeExtractor(ast.NodeVisitor):
         self.generic_visit(node)
 
 
-def get_git_info(repo_path: Path) -> Tuple[str, str]:
+def get_git_info(repo_path: Path) -> tuple[str, str]:
     """Get current commit SHA and timestamp."""
     try:
         sha = subprocess.check_output(
@@ -359,7 +357,7 @@ def get_git_info(repo_path: Path) -> Tuple[str, str]:
         return "unknown", now
 
 
-def get_file_first_commit(file_path: Path, repo_path: Path) -> Tuple[str, str]:
+def get_file_first_commit(file_path: Path, repo_path: Path) -> tuple[str, str]:
     """Get the first commit that introduced a file."""
     try:
         rel_path = file_path.relative_to(repo_path)
@@ -377,7 +375,7 @@ def get_file_first_commit(file_path: Path, repo_path: Path) -> Tuple[str, str]:
     return get_git_info(repo_path)
 
 
-def extract_from_file(file_path: Path, repo_path: Path) -> tuple[List[CodeEntity], List[CodeRelation]]:
+def extract_from_file(file_path: Path, repo_path: Path) -> tuple[list[CodeEntity], list[CodeRelation]]:
     """Extract entities and relations from a Python file."""
     try:
         source = file_path.read_text(encoding="utf-8")
@@ -416,6 +414,61 @@ def extract_from_file(file_path: Path, repo_path: Path) -> tuple[List[CodeEntity
         return [], []
 
 
+def extract_from_rust_file(file_path: Path, repo_path: Path) -> tuple[list[CodeEntity], list[CodeRelation]]:
+    """Extract entities and relations from a Rust file (tree-sitter), stamped with git temporal info.
+
+    Args:
+        file_path: The `.rs` file.
+        repo_path: Repository root; git history and crate-root search are relative to it.
+
+    Returns:
+        Entities and their relations; both empty when parsing fails.
+    """
+    try:
+        items = extract_rust(file_path, repo_path)
+    except Exception as error:  # Aggregator boundary: one unparseable file must not sink the index
+        print(f"  Error processing {file_path}: {error}")
+        # Early exit skips the git subprocess in get_file_first_commit
+        return [], []
+
+    commit_sha, commit_time = get_file_first_commit(file_path, repo_path)
+    indexed_at = datetime.now().isoformat()
+    entities: list[CodeEntity] = []
+    relations: list[CodeRelation] = []
+    for item in items:
+        entity = CodeEntity(
+            name=item.name,
+            entity_type=item.entity_type,
+            qualified_name=item.qualified_name,
+            file_path=str(file_path),
+            line_start=item.line_start,
+            line_end=item.line_end,
+            signature=item.signature,
+            docstring=item.docstring,
+            parent_id=None,  # Resolved in build_index
+            decorators=item.decorators,
+            is_async=item.is_async,
+            source_code=item.source_code,
+            valid_from=commit_time,
+            commit_sha_from=commit_sha,
+            indexed_at=indexed_at,
+        )
+        entities.append(entity)
+        relations.extend(
+            CodeRelation(
+                source_id=entity.get_id(),
+                target_id=None,
+                target_name=relation.target_name,
+                rel_type=relation.rel_type,
+                line_number=relation.line_number,
+                valid_from=commit_time,
+                commit_sha_from=commit_sha,
+            )
+            for relation in item.relations
+        )
+    return entities, relations
+
+
 def init_database(db_path: Path):
     """Initialize SQLite database with schema."""
     schema_path = db_path.parent / "schema.sql"
@@ -429,7 +482,7 @@ def init_database(db_path: Path):
     return conn
 
 
-def store_entities(conn: sqlite3.Connection, entities: List[CodeEntity]):
+def store_entities(conn: sqlite3.Connection, entities: list[CodeEntity]):
     """Store entities in SQLite."""
     for e in entities:
         conn.execute("""
@@ -447,10 +500,10 @@ def store_entities(conn: sqlite3.Connection, entities: List[CodeEntity]):
     conn.commit()
 
 
-def store_relations(conn: sqlite3.Connection, relations: List[CodeRelation]):
+def store_relations(conn: sqlite3.Connection, relations: list[CodeRelation]):
     """Store relations in SQLite."""
     for r in relations:
-        try:
+        with contextlib.suppress(sqlite3.IntegrityError):  # Duplicate relation
             conn.execute("""
                 INSERT OR IGNORE INTO relations
                 (source_id, target_id, target_name, rel_type, valid_from, valid_until,
@@ -460,22 +513,18 @@ def store_relations(conn: sqlite3.Connection, relations: List[CodeRelation]):
                 r.source_id, r.target_id, r.target_name, r.rel_type,
                 r.valid_from, r.valid_until, r.commit_sha_from, r.line_number
             ))
-        except sqlite3.IntegrityError:
-            pass  # Duplicate relation
     conn.commit()
 
 
-def store_in_chromadb(db_dir: Path, entities: List[CodeEntity]):
+def store_in_chromadb(db_dir: Path, entities: list[CodeEntity]):
     """Store entities in ChromaDB for semantic search."""
     client = chromadb.PersistentClient(
         path=str(db_dir / "chroma_db"),
         settings=Settings(anonymized_telemetry=False),
     )
 
-    try:
+    with contextlib.suppress(Exception):
         client.delete_collection("code_entities")
-    except Exception:
-        pass
 
     collection = client.create_collection(
         name="code_entities",
@@ -521,19 +570,31 @@ def build_index(source_dir: Path, db_dir: Path, repo_path: Path):
     )
 
     # Extract from all files
-    all_entities: List[CodeEntity] = []
-    all_relations: List[CodeRelation] = []
+    all_entities: list[CodeEntity] = []
+    all_relations: list[CodeRelation] = []
+    # Relative parts: an absolute check would drop everything when the repo itself sits under a dot-dir
     py_files = [
-        f for f in source_dir.rglob("*.py")
-        if not any(part.startswith((".", "_")) for part in f.parts)
+        python_file for python_file in source_dir.rglob("*.py")
+        if not any(part.startswith((".", "_")) for part in python_file.relative_to(source_dir).parts)
     ]
+    rs_files = [
+        rust_file for rust_file in source_dir.rglob("*.rs")
+        if not any(part.startswith((".", "_")) for part in rust_file.relative_to(source_dir).parts)
+        and not EXCLUDE_DIRS_RUST.intersection(rust_file.relative_to(source_dir).parts)
+    ]
+    if rs_files and not RUST_AVAILABLE:
+        print(f"  tree-sitter-rust missing; skipping {len(rs_files)} .rs files ({RUST_INSTALL_HINT})")
+        rs_files = []
 
-    for py_file in py_files:
-        entities, relations = extract_from_file(py_file, repo_path)
+    for source_file in [*py_files, *rs_files]:
+        if source_file.suffix == ".rs":
+            entities, relations = extract_from_rust_file(source_file, repo_path)
+        else:
+            entities, relations = extract_from_file(source_file, repo_path)
         all_entities.extend(entities)
         all_relations.extend(relations)
         if entities:
-            print(f"  {py_file.relative_to(source_dir)}: {len(entities)} entities, {len(relations)} relations")
+            print(f"  {source_file.relative_to(source_dir)}: {len(entities)} entities, {len(relations)} relations")
 
     if not all_entities:
         print("No entities found!")
@@ -591,7 +652,7 @@ def build_index(source_dir: Path, db_dir: Path, repo_path: Path):
             "raises": sum(1 for r in all_relations if r.rel_type == "raises"),
         },
         "total_relations": len(all_relations),
-        "files": len(py_files),
+        "files": len(py_files) + len(rs_files),
         "commit": current_sha,
         "built_at": datetime.now().isoformat(),
     }
@@ -626,9 +687,12 @@ if __name__ == "__main__":
     project_root = script_dir.parent.parent.resolve()
     db_dir = script_dir
 
-    # Find source directory: CLI arg > src/ > project root
+    # Find source directory: CLI arg > cargo project root > src/ package > project root
     if args.source_dir:
         source_dir = Path(args.source_dir).resolve()
+    elif (project_root / CARGO_MANIFEST).exists():
+        # Rust src/ holds modules (and src/bin), not a single package dir — index the whole crate/workspace
+        source_dir = project_root
     elif (project_root / "src").exists():
         # Find first package in src/
         src_dirs = [d for d in (project_root / "src").iterdir() if d.is_dir() and not d.name.startswith("_")]

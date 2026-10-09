@@ -28,12 +28,12 @@ Handoff edges (`next:`) form a DAG. Reference links (`[[...]]`) transfer no cont
 
 | Rank | Stage          | Skills                                                                                                                            |
 | ---- | -------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| 0    | route          | `python`, `windows`, `conda`                                                                                                       |
-| 1    | diagnose/plan  | `debugging`, `writing-plans`, `research`, `code-index`, `python/recon`, `python/repo-init`, `python/pixi-pyproject`, `python/modern-tooling` |
-| 2    | create         | `python/style`, `python/types`, `python/naming`, `python/structure`, `python/errors`, `python/org`, `python/security`, `test-driven-development`, `bash-shell`, `markdown`, `artifacts`, `accessibility`, `windows/*`, `conda/*` |
+| 0    | route          | `python`, `rust`, `windows`, `conda`                                                                                               |
+| 1    | diagnose/plan  | `debugging`, `writing-plans`, `research`, `code-index`, `python/recon`, `python/repo-init`, `python/pixi-pyproject`, `python/modern-tooling`, `rust/recon`, `rust/repo-init`, `rust/tooling` |
+| 2    | create         | `python/style`, `python/types`, `python/naming`, `python/structure`, `python/errors`, `python/org`, `python/security`, `rust/style`, `rust/types`, `rust/naming`, `rust/structure`, `rust/errors`, `rust/org`, `rust/security`, `test-driven-development`, `bash-shell`, `markdown`, `artifacts`, `accessibility`, `windows/*`, `conda/*` |
 | 3    | audit          | `bug`, `ast-check`                                                                                                                 |
-| 4    | hygiene        | `code-hygiene`, `python/violations`                                                                                                |
-| 5    | test           | `python/testing`, `python/test-gen`, `python/conftest`, `python/mocking`, `python/property-testing`, `python/async-testing`, `python/bdd`, `windows/dotnet-testing`, `build-watch-fix` |
+| 4    | hygiene        | `code-hygiene`, `python/violations`, `rust/violations`                                                                             |
+| 5    | test           | `python/testing`, `python/test-gen`, `python/conftest`, `python/mocking`, `python/property-testing`, `python/async-testing`, `python/bdd`, `rust/testing`, `rust/test-gen`, `rust/property-testing`, `windows/dotnet-testing`, `build-watch-fix` |
 | 6    | verify/ship    | `verify`, `git-commit`                                                                                                             |
 
 Rules:
@@ -51,10 +51,10 @@ Rules:
 
 ## Hooks
 
-- Format/lint (ruff, isort) and code re-indexing fire on edit/write events — orthogonal gate, never a delegated stage.
+- Format/lint (ruff, isort, rustfmt) and code re-indexing fire on edit/write events — orthogonal gate, never a delegated stage.
 
 ## Energy barrier
 
 - No new code without a code-index verdict: similarity >= threshold hands `file:symbol` refs to refactor-python; below
-  threshold (or no match) hands the spec to python.
+  threshold (or no match) hands the spec to python (`.py`) or rust (`.rs`).
 - Greenfield creation requires an explicit "no match" verdict; it is the fallback, never the default.

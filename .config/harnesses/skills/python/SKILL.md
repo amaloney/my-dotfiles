@@ -28,7 +28,7 @@ Missing or stale → run [[python/recon]]. Profile consumed by all python skills
 cat .harness/code_index/profile.json | jq '.patterns.config_py_path'
 
 # Search indexed code for existing implementations
-python3 .harness/code_index/query.py func "<pattern>"     # If code index exists
+python3 .harness/code_index/query.py search "<pattern>"   # If code index exists
 ```
 
 Similar exists → extend. Check `profile.patterns.config_py_path` for constants.

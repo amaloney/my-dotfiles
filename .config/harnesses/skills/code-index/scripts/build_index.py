@@ -8,6 +8,7 @@ Configuration is read from index_config.json in the same directory.
 """
 
 import ast
+import contextlib
 import hashlib
 import json
 import sys
@@ -18,19 +19,22 @@ try:
     import chromadb
     from chromadb.config import Settings
 except ImportError:
-    print("ChromaDB not installed. Install with: pip install chromadb")
+    print("ChromaDB not installed. Install with: pixi add --feature dev chromadb  (code-index SKILL.md has the full env)")
     sys.exit(1)
+
+from extract_rust import EXCLUDE_DIRS_RUST, RUST_AVAILABLE, RUST_INSTALL_HINT, extract_rust
 
 SCRIPT_DIR = Path(__file__).parent
 CONFIG_PATH = SCRIPT_DIR / "index_config.json"
 DEFAULT_CONFIG = {
-    "source_patterns": ["**/*.py"],
+    "source_patterns": ["**/*.py", "**/*.rs"],
     "exclude_patterns": [
         "**/test_*.py",
         "**/*_test.py",
         "**/conftest.py",
         "**/__pycache__/**",
     ],
+    "exclude_dirs": sorted(EXCLUDE_DIRS_RUST),
     "collection_name": "code_entities",
 }
 
@@ -114,36 +118,28 @@ class CodeExtractor(ast.NodeVisitor):
         for arg in node.args.args:
             arg_str = arg.arg
             if arg.annotation:
-                try:
+                with contextlib.suppress(Exception):
                     arg_str += f": {ast.unparse(arg.annotation)}"
-                except Exception:
-                    pass
             args.append(arg_str)
 
         for i, default in enumerate(reversed(node.args.defaults)):
             idx = len(args) - i - 1
             if idx >= 0:
-                try:
+                with contextlib.suppress(Exception):
                     args[idx] += f" = {ast.unparse(default)}"
-                except Exception:
-                    pass
 
         sig = f"def {node.name}({', '.join(args)})"
         if node.returns:
-            try:
+            with contextlib.suppress(Exception):
                 sig += f" -> {ast.unparse(node.returns)}"
-            except Exception:
-                pass
         return sig
 
     def visit_ClassDef(self, node: ast.ClassDef):
         """Extract class definition."""
         bases = []
         for base in node.bases:
-            try:
+            with contextlib.suppress(Exception):
                 bases.append(ast.unparse(base))
-            except Exception:
-                pass
 
         signature = f"class {node.name}"
         if bases:
@@ -198,6 +194,37 @@ class CodeExtractor(ast.NodeVisitor):
         )
 
 
+def extract_entities_from_rust_file(file_path: Path, project_root: Path) -> list[CodeEntity]:
+    """Parse a Rust file via tree-sitter and map items onto CodeEntity.
+
+    Args:
+        file_path: The `.rs` file.
+        project_root: Repository root; bounds the crate-root search.
+
+    Returns:
+        One entity per struct/enum/trait/union, method and free fn; empty when parsing fails.
+    """
+    entities: list[CodeEntity] = []
+    try:
+        entities = [
+            CodeEntity(
+                name=item.name,
+                entity_type=item.entity_type,
+                file_path=str(file_path),
+                line_number=item.line_start,
+                signature=item.signature,
+                docstring=item.docstring,
+                parent_class=item.parent_class,
+                source_code=item.source_code,
+                decorators=item.decorators,
+            )
+            for item in extract_rust(file_path, project_root)
+        ]
+    except Exception as error:  # Aggregator boundary: one unparseable file must not sink the index
+        print(f"  Error processing {file_path}: {error}")
+    return entities
+
+
 def extract_entities_from_file(file_path: Path) -> list[CodeEntity]:
     """Parse a Python file and extract all code entities."""
     try:
@@ -217,10 +244,7 @@ def extract_entities_from_file(file_path: Path) -> list[CodeEntity]:
 def matches_pattern(path: Path, patterns: list[str], root: Path) -> bool:
     """Check if path matches any of the glob patterns."""
     rel_path = path.relative_to(root)
-    for pattern in patterns:
-        if rel_path.match(pattern):
-            return True
-    return False
+    return any(rel_path.match(pattern) for pattern in patterns)
 
 
 def build_index(project_root: Path, db_dir: Path, config: dict):
@@ -248,17 +272,29 @@ def build_index(project_root: Path, db_dir: Path, config: dict):
     source_files = []
 
     for pattern in config.get("source_patterns", ["**/*.py"]):
-        source_files.extend(project_root.rglob(pattern.lstrip("*/")))
+        source_files.extend(project_root.glob(pattern))
 
     exclude_patterns = config.get("exclude_patterns", [])
+    # Path.match `**` is not recursive, so build dirs (cargo target/) and hidden dirs (.harness/, .venv/) are
+    # excluded by path component
+    exclude_dirs = set(config.get("exclude_dirs", EXCLUDE_DIRS_RUST))
     source_files = [
-        f
-        for f in source_files
-        if f.is_file() and not matches_pattern(f, exclude_patterns, project_root)
+        source_file
+        for source_file in source_files
+        if source_file.is_file()
+        and not matches_pattern(source_file, exclude_patterns, project_root)
+        and not exclude_dirs.intersection(source_file.relative_to(project_root).parts[:-1])
+        and not any(part.startswith(".") for part in source_file.relative_to(project_root).parts[:-1])
     ]
+    if not RUST_AVAILABLE and any(source_file.suffix == ".rs" for source_file in source_files):
+        print(f"  tree-sitter-rust missing; skipping .rs files ({RUST_INSTALL_HINT})")
+        source_files = [source_file for source_file in source_files if source_file.suffix != ".rs"]
 
     for src_file in sorted(set(source_files)):
-        entities = extract_entities_from_file(src_file)
+        if src_file.suffix == ".rs":
+            entities = extract_entities_from_rust_file(src_file, project_root)
+        else:
+            entities = extract_entities_from_file(src_file)
         all_entities.extend(entities)
         if entities:
             print(f"  {src_file.relative_to(project_root)}: {len(entities)} entities")

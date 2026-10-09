@@ -34,7 +34,8 @@ Output style, banned phrases, abbreviation rules: `token-efficiency` skill.
 | Domain             | Skill                     | Routes To                                                                        |
 | ------------------ | ------------------------- | -------------------------------------------------------------------------------- |
 | Python             | `python`                  | orchestrator — registry in skill                                                 |
-| Python analysis    | `ast-check`               | (leaf) — AST bugs/security/quality/structure                                     |
+| Rust               | `rust`                    | orchestrator — registry in skill                                                 |
+| Python analysis    | `ast-check`               | (leaf) — AST bugs/security/quality/structure; Rust via clippy lint mapping       |
 | Debugging          | `debugging`               | (leaf) — 6-phase diagnosis; language tables in references/                       |
 | Writing code       | `test-driven-development` | (leaf) — red-green-refactor; failing test first                                  |
 | Planning           | `writing-plans`           | (leaf) — multi-step implementation plans before code                             |

@@ -19,14 +19,14 @@ from __future__ import annotations
 
 import json
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from itertools import combinations
 from pathlib import Path
 from typing import Any
 
-from llm_skills_network.common import LINK_RE, NEXT_RE, SKILLS_DIR, VECTORS_DIR
+from llm_skills_network.common import LINK_RE, NEXT_RE, SKILLS_DIR, VECTORS_DIR, skill_files
 
-UTC = timezone.utc
+UTC = UTC
 
 SCORES_FILE = VECTORS_DIR / "edge_scores.json"
 FEEDBACK_FILE = VECTORS_DIR / "edge_feedback.json"
@@ -40,7 +40,7 @@ def get_known_skills() -> set[str]:
     """All skill names from SKILL.md files."""
     return {
         str(p.parent.relative_to(SKILLS_DIR))
-        for p in SKILLS_DIR.glob("**/SKILL.md")
+        for p in skill_files()
     }
 
 
@@ -88,7 +88,7 @@ def skill_name_from_path(path: str) -> str:
 def load_edges() -> set[SkillPair]:
     """Existing edges as unordered pairs (a, b) with a < b."""
     edges: set[SkillPair] = set()
-    for skill_path in SKILLS_DIR.glob("**/SKILL.md"):
+    for skill_path in skill_files():
         src = str(skill_path.parent.relative_to(SKILLS_DIR))
         text = skill_path.read_text()
         targets = set(LINK_RE.findall(text)) | set(NEXT_RE.findall(text))

@@ -1,0 +1,96 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Rust project recon profile",
+  "description": "Skeleton emitted by profile.sh from `cargo metadata --no-deps`. profile.sh populates version, language, generated, and project.*; an agent reviews and fills all remaining fields. Write to .harness/code_index/profile.json.",
+  "type": "object",
+  "required": ["version", "language", "generated", "project", "structure", "patterns", "testing", "linting"],
+  "properties": {
+    "version": { "type": "string", "description": "Profile schema version, e.g. \"1.0\"." },
+    "language": { "const": "rust", "description": "Discriminates from the python profile shape." },
+    "generated": { "type": "string", "description": "ISO-8601 UTC timestamp of generation." },
+    "project": {
+      "type": "object",
+      "description": "Project identity, toolchain, and cargo targets.",
+      "properties": {
+        "name": { "type": "string", "description": "Single package name, else the workspace directory name." },
+        "type": {
+          "type": "string",
+          "enum": ["cli", "library", "webapp", "proc-macro", "workspace"],
+          "description": "Detected project type."
+        },
+        "edition": { "type": "string", "description": "Cargo edition(s); comma-joined if members differ." },
+        "rust_version": { "type": ["string", "null"], "description": "MSRV from `rust-version`." },
+        "toolchain": { "type": ["string", "null"], "description": "rust-toolchain.toml channel." },
+        "workspace_members": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": { "name": { "type": "string" }, "manifest_path": { "type": "string" } }
+          }
+        },
+        "targets": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "package": { "type": "string" },
+              "name": { "type": "string" },
+              "kind": { "type": "string", "description": "lib | bin | test | bench | example | proc-macro | ..." }
+            }
+          }
+        },
+        "features": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "package": { "type": "string" },
+              "features": { "type": "array", "items": { "type": "string" } }
+            }
+          }
+        }
+      }
+    },
+    "structure": {
+      "type": "object",
+      "description": "Repo layout map (agent-filled).",
+      "properties": {
+        "src_dirs": { "type": "array", "items": { "type": "string" } },
+        "test_dirs": { "type": "array", "items": { "type": "string" }, "description": "Integration test dirs (tests/)." },
+        "bench_dirs": { "type": "array", "items": { "type": "string" } },
+        "example_dirs": { "type": "array", "items": { "type": "string" } },
+        "entry_points": { "type": "array", "items": { "type": "string" }, "description": "main.rs / src/bin/*.rs." }
+      }
+    },
+    "patterns": {
+      "type": "object",
+      "description": "Code conventions observed (agent-filled).",
+      "properties": {
+        "config_rs_path": { "type": ["string", "null"], "description": "Module holding shared constants." },
+        "constants_locations": { "type": "array", "items": { "type": "string" } },
+        "scattered_constants": { "type": "array", "items": { "type": "string" }, "description": "Violations to fix." },
+        "error_crate": {
+          "type": ["string", "null"],
+          "enum": ["thiserror", "anyhow", "both", "custom", null],
+          "description": "Error-handling approach in use."
+        }
+      }
+    },
+    "testing": {
+      "type": "object",
+      "properties": {
+        "runner": { "type": ["string", "null"], "enum": ["nextest", "cargo-test", null] },
+        "frameworks": { "type": "array", "items": { "type": "string" }, "description": "e.g. rstest, insta." },
+        "property": { "type": ["string", "null"], "description": "proptest | quickcheck | null." }
+      }
+    },
+    "linting": {
+      "type": "object",
+      "properties": {
+        "clippy_config": { "type": ["string", "null"], "description": "Path to clippy.toml if present." },
+        "rustfmt_config": { "type": ["string", "null"], "description": "Path to rustfmt.toml if present." },
+        "lints_table": { "type": ["string", "null"], "description": "Cargo.toml holding [lints] / [workspace.lints]." }
+      }
+    }
+  }
+}

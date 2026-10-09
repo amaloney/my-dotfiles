@@ -64,6 +64,7 @@ def query(text: str, k: int = 5, threshold: float = 0.0):
         results["documents"][0],
         results["metadatas"][0],
         results["distances"][0],
+        strict=True,
     ):
         score = 1 - dist  # Cosine distance to similarity
 

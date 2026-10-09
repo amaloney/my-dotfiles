@@ -20,6 +20,8 @@ SKILLS_DIR = HARNESS_DIR / "skills"
 VECTORS_DIR = HARNESS_DIR / "vectors"
 AGENTS_MD = HARNESS_DIR / "AGENTS.md"
 CONTRACT_MD = HARNESS_DIR / "handoff-contract.md"
+# Claude's skill sync writes Anthropic skills here; not part of the harness graph
+SKILLS_SYNCED_DIRNAME = "synced"
 
 LINK_RE = re.compile(r"\[\[([a-z][a-z0-9/_-]*)\]\]")
 NEXT_RE = re.compile(r"next: `?(?:\[\[)?([a-z0-9/_-]+)")
@@ -29,7 +31,19 @@ RANK_NAME_RE = re.compile(r"`([^`]+)`")
 
 
 def skill_files(skills_dir: Path = SKILLS_DIR) -> list[Path]:
-    return sorted(skills_dir.glob("**/SKILL.md"))
+    """Harness SKILL.md files, excluding Claude's skill-sync output.
+
+    Args:
+        skills_dir: Root of the harness skill tree.
+
+    Returns:
+        Sorted SKILL.md paths outside `skills_dir / SKILLS_SYNCED_DIRNAME`.
+    """
+    return sorted(
+        path
+        for path in skills_dir.glob("**/SKILL.md")
+        if path.relative_to(skills_dir).parts[0] != SKILLS_SYNCED_DIRNAME
+    )
 
 
 def skill_name(skill_path: Path, skills_dir: Path = SKILLS_DIR) -> str:

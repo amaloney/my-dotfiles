@@ -2,7 +2,9 @@
 # Bisect test files to find which creates unwanted files/state.
 # Usage: find-polluter.sh <pollution_path> <test_glob> [test_command]
 # Example: find-polluter.sh '.git' 'src/**/*.test.ts'
-# test_command defaults to auto-detect: package.json -> npm test; pytest.ini/pyproject.toml -> pytest
+# Rust:    find-polluter.sh 'target/tmp-out' 'tests/*.rs'   (each file runs as `cargo test --test <stem>`)
+# test_command defaults to auto-detect: package.json -> npm test; pytest.ini/pyproject.toml -> pytest;
+# Cargo.toml -> cargo test --test
 
 set -o errexit -o nounset -o pipefail
 
@@ -21,6 +23,9 @@ if [ -z "$TEST_CMD" ]; then
     TEST_CMD="npm test --"
   elif [ -f pytest.ini ] || [ -f pyproject.toml ]; then
     TEST_CMD="pytest"
+  elif [ -f Cargo.toml ]; then
+    # cargo takes an integration-test target name, not a path; mapped per file below
+    TEST_CMD="cargo test --test"
   else
     echo "Cannot auto-detect test command; pass one explicitly." >&2
     exit 1
@@ -48,7 +53,9 @@ for TEST_FILE in $TEST_FILES; do
   fi
 
   echo "[$COUNT/$TOTAL] Testing: $TEST_FILE"
-  $TEST_CMD "$TEST_FILE" > /dev/null 2>&1 || true
+  TEST_ARG="$TEST_FILE"
+  [ "$TEST_CMD" = "cargo test --test" ] && TEST_ARG="$(basename "$TEST_FILE" .rs)"
+  $TEST_CMD "$TEST_ARG" > /dev/null 2>&1 || true
 
   if [ -e "$POLLUTION_CHECK" ]; then
     echo ""
@@ -58,7 +65,7 @@ for TEST_FILE in $TEST_FILES; do
     ls -la "$POLLUTION_CHECK"
     echo ""
     echo "To investigate:"
-    echo "  $TEST_CMD $TEST_FILE    # Run just this test"
+    echo "  $TEST_CMD $TEST_ARG    # Run just this test"
     exit 1
   fi
 done

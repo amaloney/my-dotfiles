@@ -119,6 +119,8 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/linux-64/tbb-2023.1.0-haa8c3ee_2.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/tk-8.6.13-noxft_h1df4ec4_4.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/tokenizers-0.23.1-py314h98f1220_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-64/tree-sitter-rust-0.24.2-py311hf4bc344_2.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-64/tree_sitter-0.26.0-py314hfe1a184_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/uvloop-0.22.1-py314h89acca1_2.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/watchfiles-1.3.0-py311h1180b86_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/websockets-17.2-py314hc824af9_0.conda
@@ -413,6 +415,8 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/osx-64/tbb-2021.13.0-hf9f308f_8.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-64/tk-8.6.13-ha6c374e_4.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-64/tokenizers-0.23.1-py314hf0eec66_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/osx-64/tree-sitter-rust-0.24.2-py311h067ff39_2.conda
+      - conda: https://conda.anaconda.org/conda-forge/osx-64/tree_sitter-0.26.0-py314h17af80e_1.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-64/uvloop-0.22.1-py314hca6f81c_2.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-64/watchfiles-1.3.0-py311hc840d9e_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-64/websockets-17.2-py314h1946765_0.conda
@@ -632,6 +636,8 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/snappy-1.2.2-h3951085_2.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/tk-8.6.13-hbeba79b_4.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/tokenizers-0.23.1-py314hf2f33b6_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/osx-arm64/tree-sitter-rust-0.24.2-py311hf4d5923_2.conda
+      - conda: https://conda.anaconda.org/conda-forge/osx-arm64/tree_sitter-0.26.0-py314hd98292b_1.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/uvloop-0.22.1-py314h61c6340_2.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/watchfiles-1.3.0-py311h3a7148f_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/websockets-17.2-py314hf2636f2_0.conda
@@ -745,6 +751,8 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/linux-64/tbb-2023.1.0-haa8c3ee_2.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/tk-8.6.13-noxft_h1df4ec4_4.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/tokenizers-0.23.1-py314h98f1220_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-64/tree-sitter-rust-0.24.2-py311hf4bc344_2.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-64/tree_sitter-0.26.0-py314hfe1a184_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/uvloop-0.22.1-py314h89acca1_2.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/watchfiles-1.3.0-py311h1180b86_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/websockets-17.2-py314hc824af9_0.conda
@@ -1048,6 +1056,8 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/osx-64/tbb-2021.13.0-hf9f308f_8.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-64/tk-8.6.13-ha6c374e_4.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-64/tokenizers-0.23.1-py314hf0eec66_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/osx-64/tree-sitter-rust-0.24.2-py311h067ff39_2.conda
+      - conda: https://conda.anaconda.org/conda-forge/osx-64/tree_sitter-0.26.0-py314h17af80e_1.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-64/uvloop-0.22.1-py314hca6f81c_2.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-64/watchfiles-1.3.0-py311hc840d9e_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-64/websockets-17.2-py314h1946765_0.conda
@@ -1272,6 +1282,8 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/snappy-1.2.2-h3951085_2.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/tk-8.6.13-hbeba79b_4.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/tokenizers-0.23.1-py314hf2f33b6_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/osx-arm64/tree-sitter-rust-0.24.2-py311hf4d5923_2.conda
+      - conda: https://conda.anaconda.org/conda-forge/osx-arm64/tree_sitter-0.26.0-py314hd98292b_1.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/uvloop-0.22.1-py314h61c6340_2.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/watchfiles-1.3.0-py311h3a7148f_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/websockets-17.2-py314hf2636f2_0.conda
@@ -2896,6 +2908,33 @@ packages:
   run_exports: {}
   size: 2517916
   timestamp: 1782755491050
+- conda: https://conda.anaconda.org/conda-forge/linux-64/tree-sitter-rust-0.24.2-py311hf4bc344_2.conda
+  noarch: python
+  sha256: ab61d532a5bd5ee1a4472719605cbf0705ac89e8706dd183be99e03784c012e9
+  md5: a6c35c1f055db09c0cc36569941b76d4
+  depends:
+  - python
+  - libgcc >=15
+  - __glibc >=2.17,<3.0.a0
+  - _python_abi3_support 1.*
+  - cpython >=3.11
+  license: MIT
+  license_family: MIT
+  run_exports: {}
+  size: 126604
+  timestamp: 1789818833770
+- conda: https://conda.anaconda.org/conda-forge/linux-64/tree_sitter-0.26.0-py314hfe1a184_1.conda
+  sha256: b4ed8aad9b7f46d2f2e84f4b7589a59c84e7d480001dc0e2e72a5124f2207008
+  md5: 9b5b9f3fa503967df6910e5fc1e8550b
+  depends:
+  - python
+  - libgcc >=15
+  - __glibc >=2.17,<3.0.a0
+  - python_abi 3.14.* *_cp314
+  license: MIT and EPL-2.0
+  run_exports: {}
+  size: 166265
+  timestamp: 1788528380872
 - conda: https://conda.anaconda.org/conda-forge/linux-64/uvloop-0.22.1-py314h89acca1_2.conda
   sha256: 6ce05ef7dc103612e840c246074643e0b12178ca73573d39b01bd038342a54c4
   md5: 8c10846f44c7e6eab479e85c5a43a215
@@ -5945,6 +5984,31 @@ packages:
   run_exports: {}
   size: 2353339
   timestamp: 1782756105694
+- conda: https://conda.anaconda.org/conda-forge/osx-64/tree-sitter-rust-0.24.2-py311h067ff39_2.conda
+  noarch: python
+  sha256: abcad3192d7dbd7b0bab4cb587ec55eb5bbe5df66e0d7fc3a5b4db3eaf8e804a
+  md5: 5f7cb60aac55d28580bb950b915d16b8
+  depends:
+  - python
+  - __osx >=11.0
+  - _python_abi3_support 1.*
+  - cpython >=3.11
+  license: MIT
+  license_family: MIT
+  run_exports: {}
+  size: 134660
+  timestamp: 1789818928014
+- conda: https://conda.anaconda.org/conda-forge/osx-64/tree_sitter-0.26.0-py314h17af80e_1.conda
+  sha256: c160d27a32770a23c277f62bc821af3b634ebb0f15482ef09a58269069aad9d4
+  md5: 36be094b917700a9cd8ebecae03b68cd
+  depends:
+  - python
+  - __osx >=11.0
+  - python_abi 3.14.* *_cp314
+  license: MIT and EPL-2.0
+  run_exports: {}
+  size: 128853
+  timestamp: 1788528505289
 - conda: https://conda.anaconda.org/conda-forge/osx-64/uvloop-0.22.1-py314hca6f81c_2.conda
   sha256: 974513067421f63e57e85022f07843bedfd3a6374944dd5ef3f74d584acf98e2
   md5: e09e981e222a978e49e7a2fe84a3a39e
@@ -7472,6 +7536,31 @@ packages:
   run_exports: {}
   size: 2260186
   timestamp: 1782756332071
+- conda: https://conda.anaconda.org/conda-forge/osx-arm64/tree-sitter-rust-0.24.2-py311hf4d5923_2.conda
+  noarch: python
+  sha256: 264646873d9623df360b18c91d7077926aea1927a838748ee9987dc6ea903437
+  md5: ad7fd9d5191cedcb26d8cb1938241239
+  depends:
+  - python
+  - __osx >=11.0
+  - _python_abi3_support 1.*
+  - cpython >=3.11
+  license: MIT
+  license_family: MIT
+  run_exports: {}
+  size: 132692
+  timestamp: 1789818836984
+- conda: https://conda.anaconda.org/conda-forge/osx-arm64/tree_sitter-0.26.0-py314hd98292b_1.conda
+  sha256: 0824766380d9084657b7c6075b6a9695b4e0397eae178bc83776260dff17c21b
+  md5: d18a16bd2bc98cf8152d4d377b254f88
+  depends:
+  - python
+  - __osx >=11.0
+  - python_abi 3.14.* *_cp314
+  license: MIT and EPL-2.0
+  run_exports: {}
+  size: 134005
+  timestamp: 1788958496288
 - conda: https://conda.anaconda.org/conda-forge/osx-arm64/uvloop-0.22.1-py314h61c6340_2.conda
   sha256: d8150b183d80638a2b3f807bf9270c2a8a07a097c76dd3d59f7382c9025532c1
   md5: b019318e8543895e017244dc74587d0e

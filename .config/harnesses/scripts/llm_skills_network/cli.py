@@ -24,7 +24,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from llm_skills_network import graph
-from llm_skills_network.common import SKILLS_DIR, VECTORS_DIR, load_ranks, rank_of
+from llm_skills_network.common import SKILLS_DIR, VECTORS_DIR, load_ranks, rank_of, skill_files
 
 DEBOUNCE_SECONDS = 600
 
@@ -50,7 +50,7 @@ def build_vectors_if_stale() -> int:
                 return 0
         except ValueError:
             pass
-        newest = max((p.stat().st_mtime for p in SKILLS_DIR.glob("**/SKILL.md")), default=0)
+        newest = max((p.stat().st_mtime for p in skill_files()), default=0)
         if newest <= stamp.stat().st_mtime:
             return 0
     try:

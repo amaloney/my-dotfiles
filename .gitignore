@@ -12,3 +12,6 @@ conda-internal.md
 # Harness-generated
 .harness/
 .config/harnesses/vectors/
+
+# Claude skill sync output (lands in ~/.claude/skills/synced)
+.config/harnesses/skills/synced/

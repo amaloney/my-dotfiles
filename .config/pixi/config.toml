@@ -1,1 +1,5 @@
+default-channels = ["conda-forge"]
+pinning-strategy = "minor"
+
+[shell]
 change-ps1 = false

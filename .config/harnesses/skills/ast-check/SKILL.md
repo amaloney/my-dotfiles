@@ -1,6 +1,6 @@
 ---
 name: ast-check
-description: AST analysis - bug, security, quality, structure checks on Python source
+description: AST analysis - bug, security, quality, structure checks on Python source; Rust via clippy lint mapping
 invocation: auto
 ---
 
@@ -30,3 +30,8 @@ Individual: `-c underscore`, `-c undefined`.
 ## Output
 
 Exit 1 if any error-severity issue. `--verbose` adds fix suggestions. `--json` for pipelines.
+
+## Rust
+
+`ast_checker.py` is Python-only. For `.rs`, the same four groups map onto clippy lints — command, `[lints]` table, and
+`clippy.toml` thresholds in [references/rust-clippy.md](references/rust-clippy.md).

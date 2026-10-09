@@ -2,7 +2,8 @@
 name: bug
 description:
   Bug audit and fix stage. Fans out to audit sub-subagents (logic, edge/IO/security), aggregates findings, applies
-  fixes. Runs after code creation/refactor, before code-hygiene. Ported from python/bugs + python/security.
+  fixes. Runs after code creation/refactor, before code-hygiene. Ported from python/bugs + python/security; Rust via
+  rust/security.
 ---
 
 # Bug Skill
@@ -24,10 +25,15 @@ the edit permission.
 
 ## Pattern sources (single owners — do not duplicate)
 
-| Category         | Owner file                                                        |
-| ---------------- | ----------------------------------------------------------------- |
-| A — logic        | `~/.config/harnesses/skills/debugging/references/python.md`        |
-| B — security     | `~/.config/harnesses/skills/python/security/SKILL.md`              |
+Pick by the artifact's file extension:
+
+| Language     | A — logic                                                    | B — security                                         |
+| ------------ | ------------------------------------------------------------ | ---------------------------------------------------- |
+| `.py`        | `~/.config/harnesses/skills/debugging/references/python.md`  | `~/.config/harnesses/skills/python/security/SKILL.md` |
+| `.rs`        | `~/.config/harnesses/skills/debugging/references/rust.md`    | `~/.config/harnesses/skills/rust/security/SKILL.md`  |
+
+Rust sub-sub A also runs `cargo clippy --all-targets -- -W clippy::correctness -W clippy::suspicious` as its static
+pass ([[ast-check]] mapping). Mixed-language artifacts → each sub-subagent gets both rows.
 
 Owner files hold the pattern tables and detection commands. Sub-subagent prompts carry only path + category, so
 include the matching owner path in their prompt context.
@@ -45,7 +51,7 @@ Owned here — no other home:
 
 ## Pattern memory
 
-At start: recall `bug` patterns (GOOD/BAD). On novel fix: save the pattern back. Format:
+At start: recall `bug` patterns (GOOD/BAD). On novel fix: save the pattern back, tagged with the language. Format:
 
 ```
 # BAD

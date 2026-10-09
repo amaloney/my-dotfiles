@@ -1,0 +1,5 @@
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint]
+extend-ignore = ["BLE001", "S110", "S112"]

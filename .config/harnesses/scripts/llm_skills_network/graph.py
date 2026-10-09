@@ -11,8 +11,10 @@ import subprocess
 import sys
 from pathlib import Path
 
-from .common import AGENTS_MD, CONTRACT_MD, SKILLS_DIR
 from .common import (
+    AGENTS_MD,
+    CONTRACT_MD,
+    SKILLS_DIR,
     load_ranks,
     mentioned_in,
     rank_of,
@@ -59,7 +61,7 @@ def check(
         fail = 1
 
     ranks = load_ranks(contract)
-    for src, (links, nexts) in parsed.items():
+    for src, (_links, nexts) in parsed.items():
         if not nexts:
             print(f"NO-HANDOFF: {src} declares no next: verdict")
             fail = 1

@@ -305,6 +305,8 @@ if ! $SYSTEM; then
     status "Kilo - skills (shared)"
     for skill_dir in "$DOTFILES/.config/harnesses/skills"/*/; do
         skill_dir="${skill_dir%/}"
+        # synced/ is Claude's skill-sync output (gitignored), not a harness skill
+        [[ "$(basename "$skill_dir")" == "synced" ]] && continue
         symlink "$skill_dir" "$HOME/.config/kilo/skills/$(basename "$skill_dir")"
     done
 

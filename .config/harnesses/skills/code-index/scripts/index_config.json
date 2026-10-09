@@ -1,5 +1,5 @@
 {
-  "source_patterns": ["**/*.py"],
+  "source_patterns": ["**/*.py", "**/*.rs"],
   "exclude_patterns": [
     "**/test_*.py",
     "**/*_test.py",
@@ -11,5 +11,6 @@
     "**/.pixi/**",
     "**/.venv/**"
   ],
+  "exclude_dirs": ["target"],
   "collection_name": "code_entities"
 }

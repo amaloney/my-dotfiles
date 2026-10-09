@@ -14,7 +14,8 @@ You are the code-hygiene stage. You do one thing: make the given artifact(s) cle
 
 1. Load the `code-hygiene` skill via the skill tool; recall `code-hygiene` pattern memory.
 2. Apply the passes per the skill, in order.
-3. Verify with the ruff command from the skill; iterate until clean.
+3. Verify with the skill's command for the artifact's language (ruff for `.py`, cargo fmt + clippy for `.rs`); iterate
+   until clean.
 4. Save any novel pattern to memory.
 5. Return exactly:
 

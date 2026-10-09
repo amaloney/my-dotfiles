@@ -19,7 +19,7 @@ try:
     import chromadb
     from chromadb.config import Settings
 except ImportError:
-    print("ChromaDB not installed. Install with: pip install chromadb")
+    print("ChromaDB not installed. Install with: pixi add --feature dev chromadb  (code-index SKILL.md has the full env)")
     sys.exit(1)
 
 SCRIPT_DIR = Path(__file__).parent
@@ -93,7 +93,7 @@ def search(
     print(f"\nSearch: '{query}'\nFound {len(results['ids'][0])} results:\n")
 
     for i, (meta, doc, dist) in enumerate(
-        zip(results["metadatas"][0], results["documents"][0], results["distances"][0])
+        zip(results["metadatas"][0], results["documents"][0], results["distances"][0], strict=True)
     ):
         print(f"[{i + 1}] Relevance: {1 - dist:.2f}")
         print(format_result(meta, doc, show_code))
@@ -126,10 +126,7 @@ def list_methods(class_name: str | None = None):
     """List methods, optionally filtered by class."""
     collection = get_collection()
 
-    if class_name:
-        where_filter = {"$and": [{"type": "method"}, {"parent_class": class_name}]}
-    else:
-        where_filter = {"type": "method"}
+    where_filter = {"$and": [{"type": "method"}, {"parent_class": class_name}]} if class_name else {"type": "method"}
 
     results = collection.get(where=where_filter, include=["metadatas"])
 
@@ -198,7 +195,7 @@ def show(name: str):
         search(name, n_results=3)
         return
 
-    for meta, doc in zip(results["metadatas"], results["documents"]):
+    for meta, doc in zip(results["metadatas"], results["documents"], strict=True):
         print(format_result(meta, doc, show_code=True))
 
 
@@ -227,7 +224,7 @@ def similar(name: str, n_results: int = 5):
     print(f"\nEntities similar to '{name}':\n")
 
     count = 0
-    for meta, dist in zip(results["metadatas"][0], results["distances"][0]):
+    for meta, dist in zip(results["metadatas"][0], results["distances"][0], strict=True):
         if meta["name"] == name.split(".")[-1]:
             continue
         if meta["type"] == "method" and meta.get("parent_class"):

@@ -10,13 +10,12 @@ import sqlite3
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Optional, List
 
 try:
     import chromadb
     from chromadb.config import Settings
 except ImportError:
-    print("ChromaDB not installed. Install with: pip install chromadb")
+    print("ChromaDB not installed. Install with: pixi add --feature dev chromadb  (code-index SKILL.md has the full env)")
     sys.exit(1)
 
 
@@ -26,7 +25,7 @@ class CodeGraphQuery:
     def __init__(self, db_dir: Path):
         self.db_dir = db_dir
         self.db_path = db_dir / "code_graph.db"
-        self.conn: Optional[sqlite3.Connection] = None
+        self.conn: sqlite3.Connection | None = None
         self.chroma_client = None
         self.collection = None
 
@@ -53,7 +52,7 @@ class CodeGraphQuery:
     # SEMANTIC SEARCH (ChromaDB)
     # ═══════════════════════════════════════════════════════════════
 
-    def search(self, query: str, n_results: int = 5, entity_type: Optional[str] = None) -> List[dict]:
+    def search(self, query: str, n_results: int = 5, entity_type: str | None = None) -> list[dict]:
         """Semantic search for code entities."""
         collection = self._get_collection()
 
@@ -66,7 +65,7 @@ class CodeGraphQuery:
         )
 
         entities = []
-        for i, doc in enumerate(results["documents"][0]):
+        for i in range(len(results["documents"][0])):
             meta = results["metadatas"][0][i]
             distance = results["distances"][0][i] if results.get("distances") else None
             entities.append({
@@ -81,7 +80,7 @@ class CodeGraphQuery:
             })
         return entities
 
-    def similar(self, entity_name: str, n_results: int = 5) -> List[dict]:
+    def similar(self, entity_name: str, n_results: int = 5) -> list[dict]:
         """Find entities similar to a given one."""
         collection = self._get_collection()
 
@@ -101,7 +100,7 @@ class CodeGraphQuery:
     # TEMPORAL QUERIES (SQLite)
     # ═══════════════════════════════════════════════════════════════
 
-    def entities_at_time(self, timestamp: str) -> List[dict]:
+    def entities_at_time(self, timestamp: str) -> list[dict]:
         """Get entities that existed at a specific time."""
         conn = self._get_conn()
         cursor = conn.execute("""
@@ -135,7 +134,7 @@ class CodeGraphQuery:
             "removed": [dict(row) for row in removed],
         }
 
-    def entity_history(self, name: str) -> List[dict]:
+    def entity_history(self, name: str) -> list[dict]:
         """Get history of an entity by name."""
         conn = self._get_conn()
         cursor = conn.execute("""
@@ -151,7 +150,7 @@ class CodeGraphQuery:
     # RELATIONAL QUERIES (SQLite)
     # ═══════════════════════════════════════════════════════════════
 
-    def callers_of(self, name: str) -> List[dict]:
+    def callers_of(self, name: str) -> list[dict]:
         """Find all entities that call a given function/method."""
         conn = self._get_conn()
         cursor = conn.execute("""
@@ -165,7 +164,7 @@ class CodeGraphQuery:
         """, (f"%{name}%",))
         return [dict(row) for row in cursor.fetchall()]
 
-    def calls_from(self, name: str) -> List[dict]:
+    def calls_from(self, name: str) -> list[dict]:
         """Find all functions/methods called by a given entity."""
         conn = self._get_conn()
         cursor = conn.execute("""
@@ -271,7 +270,7 @@ class CodeGraphQuery:
 
     def record_fix_attempt(self, package: str, error_type: str, fix_action: str,
                           error_message: str = "", fix_details: str = "",
-                          file_path: Optional[str] = None, commit_sha: Optional[str] = None) -> int:
+                          file_path: str | None = None, commit_sha: str | None = None) -> int:
         """Record a fix attempt for learning."""
         conn = self._get_conn()
         cursor = conn.execute("""
@@ -294,7 +293,7 @@ class CodeGraphQuery:
         """, (outcome, notes, datetime.now().isoformat(), fix_id))
         conn.commit()
 
-    def successful_fixes_for(self, error_type: str) -> List[dict]:
+    def successful_fixes_for(self, error_type: str) -> list[dict]:
         """Get successful fixes for an error type."""
         conn = self._get_conn()
         cursor = conn.execute("""
@@ -307,7 +306,7 @@ class CodeGraphQuery:
         """, (error_type,))
         return [dict(row) for row in cursor.fetchall()]
 
-    def fix_history_for_package(self, package: str) -> List[dict]:
+    def fix_history_for_package(self, package: str) -> list[dict]:
         """Get fix attempt history for a package."""
         conn = self._get_conn()
         cursor = conn.execute("""
@@ -317,7 +316,7 @@ class CodeGraphQuery:
         """, (package,))
         return [dict(row) for row in cursor.fetchall()]
 
-    def fix_success_rates(self) -> List[dict]:
+    def fix_success_rates(self) -> list[dict]:
         """Get success rates by error type and action."""
         conn = self._get_conn()
         cursor = conn.execute("SELECT * FROM fix_success_rates")
@@ -334,7 +333,7 @@ class CodeGraphQuery:
             return json.loads(stats_path.read_text())
         return {}
 
-    def list_classes(self) -> List[dict]:
+    def list_classes(self) -> list[dict]:
         """List all current classes."""
         conn = self._get_conn()
         cursor = conn.execute("""
@@ -345,7 +344,7 @@ class CodeGraphQuery:
         """)
         return [dict(row) for row in cursor.fetchall()]
 
-    def list_methods(self, class_name: Optional[str] = None) -> List[dict]:
+    def list_methods(self, class_name: str | None = None) -> list[dict]:
         """List methods, optionally filtered by class."""
         conn = self._get_conn()
         if class_name:
@@ -365,7 +364,7 @@ class CodeGraphQuery:
             """)
         return [dict(row) for row in cursor.fetchall()]
 
-    def list_functions(self) -> List[dict]:
+    def list_functions(self) -> list[dict]:
         """List all current functions."""
         conn = self._get_conn()
         cursor = conn.execute("""
@@ -376,7 +375,7 @@ class CodeGraphQuery:
         """)
         return [dict(row) for row in cursor.fetchall()]
 
-    def show(self, name: str) -> Optional[dict]:
+    def show(self, name: str) -> dict | None:
         """Show detailed info about an entity."""
         conn = self._get_conn()
         cursor = conn.execute("""
@@ -496,7 +495,7 @@ def main():
             if tree['inherits_from']:
                 print(f"  Inherits from: {', '.join(tree['inherits_from'])}")
             if tree['inherited_by']:
-                print(f"  Inherited by:")
+                print("  Inherited by:")
                 for c in tree['inherited_by']:
                     print(f"    - {c['qualified_name']}")
 

@@ -1,4 +1,9 @@
+import subprocess
+from pathlib import Path
+
 from gi.repository import GObject, Nautilus
+
+PATH_LOCALSEND = Path("/usr/bin/localsend")
 
 if not (Nautilus._version.startswith("3.") or Nautilus._version.startswith("4.")):
     msg = f"Nautilus requires 3 or 4, got {Nautilus._version}"
@@ -9,13 +14,15 @@ class LocalSendExtension(GObject.GObject, Nautilus.MenuProvider):
     def __init__(self) -> None:
         super().__init__()
 
-    def menu_activate_cb(self, menu_item: Nautilus.MenuItem, selected_file_paths: list) -> None:
-        try:
-            command = ["/usr/bin/localsend"] + file_paths
-            subprocess.Popen(command)
-
-        except Exception as e:
-            print(f"Failed to send files with LocalSend: {e}")
+    def menu_activate_cb(self, menu_item: Nautilus.MenuItem, selected_file_paths: list[str]) -> None:
+        if not selected_file_paths:
+            # trash://, smb:// etc. have no local path
+            print("LocalSend: no local file paths selected")
+        else:
+            try:
+                subprocess.Popen([str(PATH_LOCALSEND), *selected_file_paths])
+            except OSError as error:
+                print(f"Failed to send files with LocalSend: {error}")
 
     def get_file_items(self, selected_files: list[Nautilus.FileInfo]) -> list:
         # Don't show the menu item if nothing is selected
