@@ -95,6 +95,12 @@ if [[ $OSTYPE == linux* ]]; then
     # append_path $TEX_HOME
 
     export SHELL=/usr/bin/bash
+    export XDG_CONFIG_HOME="${HOME}/.config"
+    export XDG_CACHE_HOME="${HOME}/.cache"
+    export XDG_DATA_HOME="${HOME}/.local/share"
+    export XDG_STATE_HOME="${HOME}/.local./state"
+    export XDG_DATA_DIRS=/usr/local/share:/usr/share
+    export XDG_CONFIG_DIRS=/etc/xdg
 fi
 
 # start starship
@@ -114,6 +120,18 @@ pixi-activate() {
         export CONDA_DEFAULT_ENV="${PIXI_PROJECT_NAME}-${PIXI_ENVIRONMENT_NAME}"
     fi
 }
+
+__conda_setup="$(\"$HOME/miniconda3/bin/conda\" 'shell.bash' 'hook' 2> /dev/null)"
+if [ $? -eq 0 ]; then
+    eval "$__conda_setup"
+else
+    if [ -f "$HOME/miniconda3/etc/profile.d/conda.sh" ]; then
+        . "$HOME/miniconda3/etc/profile.d/conda.sh"
+    else
+        PATH="$HOME/miniconda3/bin:$PATH"
+    fi
+fi
+unset __conda_setup
 
 append_path $PIXI/bin
 append_path $CARGO_HOME/bin
