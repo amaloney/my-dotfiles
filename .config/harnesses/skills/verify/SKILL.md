@@ -22,12 +22,13 @@ Skip any step = lying, not verifying.
 
 ## Requirements by Task
 
-| Task           | Must Have                        | Insufficient         |
-| -------------- | -------------------------------- | -------------------- |
-| Tests pass     | Actual output showing 0 failures | "should pass"        |
-| Build succeeds | Build command with exit 0        | Linter passing       |
-| Bug fixed      | Original symptom test passes     | Code changes assumed |
-| Regression     | Red-green cycle verified         | Single passing run   |
+| Task               | Must Have                                                                          | Insufficient         |
+| ------------------ | ---------------------------------------------------------------------------------- | -------------------- |
+| Tests pass         | Actual output showing 0 failures                                                   | "should pass"        |
+| Build succeeds     | Build command with exit 0                                                          | Linter passing       |
+| Bug fixed          | Original symptom test passes                                                       | Code changes assumed |
+| Regression         | Red-green cycle verified                                                           | Single passing run   |
+| Style/naming clean | `bash ~/.config/harnesses/scripts/style-gates.sh <paths>` run fresh, output pasted | "ruff passed" alone  |
 
 ## Red Flags — Stop
 

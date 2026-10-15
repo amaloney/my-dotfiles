@@ -37,6 +37,9 @@ mandatory review-time gate, run on every file you create or edit:
 grep -nE '^\s*from \.' <file>    # clean output = pass
 ```
 
+Enforced by `~/.config/harnesses/scripts/style-gates.sh` (relative-import gate included; suppression marker
+`# naming:allow` on a legitimate match).
+
 ## Functions
 
 **Syntactic sugar adds complexity.** A one-liner helper that just wraps an expression doesn't reduce complexity — it
@@ -46,11 +49,11 @@ adds indirection. Inline it.
 do not create it. `normalize_name()` wrapping one regex, called once, is the canonical violation — it forces the
 reader to jump away to learn it is just `re.sub(...).lower()`.
 
-| Pattern                                    | Problem                | Fix                 |
-| ------------------------------------------ | ---------------------- | ------------------- |
-| `def get_x(): return obj.x`                | Wrapper adds nothing   | Inline `obj.x`      |
-| `def normalize_name(n): return re.sub(...)`| Single-use, single expression | Inline at call site + why-comment |
-| `def csv_env(n): return {…comprehension…}` | Sugar, not abstraction | Inline at call site |
+| Pattern                                     | Problem                       | Fix                               |
+| ------------------------------------------- | ----------------------------- | --------------------------------- |
+| `def get_x(): return obj.x`                 | Wrapper adds nothing          | Inline `obj.x`                    |
+| `def normalize_name(n): return re.sub(...)` | Single-use, single expression | Inline at call site + why-comment |
+| `def csv_env(n): return {…comprehension…}`  | Sugar, not abstraction        | Inline at call site               |
 
 **When to extract:** Logic is reused 3+ times, OR name documents non-obvious intent, OR expression is complex enough to
 obscure the calling code. Docstrings do not rescue sugar — a 13-line docstring on a 1-line function is the smell.

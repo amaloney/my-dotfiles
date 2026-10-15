@@ -8,12 +8,12 @@ invocation: auto
 
 Handoff: `next: done`.
 
-| Rule                      | Good                    | Bad                      |
-| ------------------------- | ----------------------- | ------------------------ |
-| No single-letter vars     | `for item in items`     | `for i in items`         |
-| No cryptic abbreviations  | `for record in records` | `for rec in records`     |
-| Prefix constants          | `URL_PYPI_API`          | `PYPI_API_URL`           |
-| No reflexive `_`          | `def get_card(self):`   | `def _get_card(self):`   |
+| Rule                     | Good                    | Bad                    |
+| ------------------------ | ----------------------- | ---------------------- |
+| No single-letter vars    | `for item in items`     | `for i in items`       |
+| No cryptic abbreviations | `for record in records` | `for rec in records`   |
+| Prefix constants         | `URL_PYPI_API`          | `PYPI_API_URL`         |
+| No reflexive `_`         | `def get_card(self):`   | `def _get_card(self):` |
 
 **Single-letter variables are NEVER acceptable.** Not in loops, not in comprehensions, not in lambdas. Code is read by
 humans — `v`, `s`, `c`, `i`, `x` communicate nothing.
@@ -49,16 +49,16 @@ with urlopen(request) as response:
     shutil.copyfileobj(response, file_handle)
 ```
 
-| Bad   | Good                      |
-| ----- | ------------------------- |
-| `rec` | `record`                  |
-| `req` | `request` / `http_request` |
-| `resp` | `response`               |
-| `fh`  | `file_handle`             |
-| `exc` | `error`                   |
-| `ret` | `result`                  |
-| `hdr` | `header`                  |
-| `buf` | `buffer`                  |
+| Bad    | Good                       |
+| ------ | -------------------------- |
+| `rec`  | `record`                   |
+| `req`  | `request` / `http_request` |
+| `resp` | `response`                 |
+| `fh`   | `file_handle`              |
+| `exc`  | `error`                    |
+| `ret`  | `result`                   |
+| `hdr`  | `header`                   |
+| `buf`  | `buffer`                   |
 
 Allowed idioms — established vocabulary, not abbreviations of a local concept: `args`, `kwargs`, `argv`, `url`,
 `api`, `id`.
@@ -71,6 +71,9 @@ grep -nE '\b(rec|req|resp|fh|exc|ret|hdr|buf)\b' <file>
 ```
 
 Clean output = pass. When review rejects an abbreviation not in the list, add it to the table and the pattern.
+
+**Enforced by `~/.config/harnesses/scripts/style-gates.sh`** — the gates below run there in one command; suppression
+marker on a legitimate match is `# naming:allow`.
 
 ## Underscore Prefix
 
@@ -104,20 +107,20 @@ def refresh(self): ...
 **Refactoring underscore-heavy code:** Remove `_` prefix from instance variables and methods. Keep only where shadowing
 builtins or true framework internals. For every `_name`:
 
-| Question                              | Action                                       |
-| ------------------------------------- | -------------------------------------------- |
-| Called only within this file?         | Rename public anyway — hiding buys nothing   |
-| Another module would use it?          | Make public                                  |
-| Genuinely internal mutable state?     | Keep underscore (only case)                  |
+| Question                          | Action                                     |
+| --------------------------------- | ------------------------------------------ |
+| Called only within this file?     | Rename public anyway — hiding buys nothing |
+| Another module would use it?      | Make public                                |
+| Genuinely internal mutable state? | Keep underscore (only case)                |
 
 **Module-level functions are not private.** Same rule as methods: default to NO underscore. Only two legitimate uses:
 a `@property` backing field, or an explicit internal API contract the module publishes.
 
-| Pattern | Underscore? | Reason |
-| --- | --- | --- |
-| `def parse_rate_limit():` | NO | Module helper; importable, not private |
-| `def build_request():` | NO | Same |
-| `self._value` backing `@property value` | YES | Property backing field |
-| `def _register_impl():` in a plugin package | MAYBE | Explicit internal API contract |
+| Pattern                                     | Underscore? | Reason                                 |
+| ------------------------------------------- | ----------- | -------------------------------------- |
+| `def parse_rate_limit():`                   | NO          | Module helper; importable, not private |
+| `def build_request():`                      | NO          | Same                                   |
+| `self._value` backing `@property value`     | YES         | Property backing field                 |
+| `def _register_impl():` in a plugin package | MAYBE       | Explicit internal API contract         |
 
 [[python/types]] [[debugging/references/python]]

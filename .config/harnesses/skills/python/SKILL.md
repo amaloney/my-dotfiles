@@ -35,9 +35,11 @@ Similar exists → extend. Check `profile.patterns.config_py_path` for constants
 
 ## Post-Generation
 
-1. [[bug]] — audit (logic, edge/IO/security)
-2. [[python/violations]] — ruff + structure
-3. [[python/test-gen]] — if 1+2 pass
+1. `bash ~/.config/harnesses/scripts/style-gates.sh <changed paths>` — all review-time gates (ruff, naming,
+   relative imports, underscore rule, ast structure) in one command; paste clean output as evidence
+2. [[bug]] — audit (logic, edge/IO/security)
+3. [[python/violations]] — ruff + structure
+4. [[python/test-gen]] — if 1–3 pass
 
 2 fix cycles max → report to user.
 
@@ -46,7 +48,7 @@ Similar exists → extend. Check `profile.patterns.config_py_path` for constants
 | Skill                       | Type    | Purpose             | Triggers                                                                  |
 | --------------------------- | ------- | ------------------- | ------------------------------------------------------------------------- |
 | [[python/recon]]            | leaf    | Profile project     | session start, profile, scan                                              |
-| [[python/repo-init]]        | leaf    | Repo bootstrap      | bootstrap, onboard, repo init, AGENTS.md                                   |
+| [[python/repo-init]]        | leaf    | Repo bootstrap      | bootstrap, onboard, repo init, AGENTS.md                                  |
 | [[python/pixi-pyproject]]   | leaf    | Pixi project setup  | init, pyproject, pixi                                                     |
 | [[python/modern-tooling]]   | leaf    | uv/ruff/ty setup    | uv, ruff, ty, modern, pip replace                                         |
 | [[python/style]]            | router  | Style router        | create, write, implement, style violations, structure violations          |
@@ -55,7 +57,7 @@ Similar exists → extend. Check `profile.patterns.config_py_path` for constants
 | [[python/structure]]        | leaf    | File layout         | imports, line length                                                      |
 | [[python/errors]]           | leaf    | Exception handling  | try/except                                                                |
 | [[python/org]]              | leaf    | File organization   | config.py, utils.py                                                       |
-| [[debugging]]             | leaf    | Bug check/fix       | fix, debug, error                                                         |
+| [[debugging]]               | leaf    | Bug check/fix       | fix, debug, error                                                         |
 | [[python/testing]]          | leaf    | Pytest core         | test, pytest, assert                                                      |
 | [[python/conftest]]         | leaf    | Shared fixtures     | conftest, fixture, scope                                                  |
 | [[python/mocking]]          | leaf    | Mock patterns       | mock, patch, mocker                                                       |
@@ -69,16 +71,16 @@ Similar exists → extend. Check `profile.patterns.config_py_path` for constants
 
 ## Pipelines
 
-| Task           | Chain                                                                  |
-| -------------- | ---------------------------------------------------------------------- |
+| Task           | Chain                                                                             |
+| -------------- | --------------------------------------------------------------------------------- |
 | New project    | pixi-pyproject + modern-tooling (bootstrap) → style → bug → violations → test-gen |
-| New script     | style → bug → violations → test-gen                                         |
-| Bug fix        | debugging → test-driven-development → violations → test-gen                 |
-| Refactor       | style → bug → violations                                               |
-| Fix violations | violations                                                             |
-| Generate tests | test-gen                                                               |
-| Add tests      | testing + conftest + mocking (as needed)                               |
-| Property tests | property-testing                                                       |
+| New script     | style → bug → violations → test-gen                                               |
+| Bug fix        | debugging → test-driven-development → violations → test-gen                       |
+| Refactor       | style → bug → violations                                                          |
+| Fix violations | violations                                                                        |
+| Generate tests | test-gen                                                                          |
+| Add tests      | testing + conftest + mocking (as needed)                                          |
+| Property tests | property-testing                                                                  |
 
 Test-type skill selection: [[python/test-gen]].
 
@@ -91,13 +93,13 @@ rg -n "\._[a-z][a-z_]+\(" --type py src/               # Fallback
 
 ## Principles
 
-| Prefer                         | Over                                                            |
-| ------------------------------ | --------------------------------------------------------------- |
-| Extend existing                | Create new                                                      |
-| Flat/explicit                  | Nested/clever                                                   |
-| 3 similar lines                | Premature abstraction                                           |
-| Active environment (missing package → stop, report name) | Installing packages                 |
-| `NotImplementedError` for WIP  | `TODO` comments                                                 |
+| Prefer                                                   | Over                  |
+| -------------------------------------------------------- | --------------------- |
+| Extend existing                                          | Create new            |
+| Flat/explicit                                            | Nested/clever         |
+| 3 similar lines                                          | Premature abstraction |
+| Active environment (missing package → stop, report name) | Installing packages   |
+| `NotImplementedError` for WIP                            | `TODO` comments       |
 
 ## Execution
 
@@ -114,8 +116,9 @@ first, or hand it back through [[writing-plans]]. Plan approval is never license
 
 **Reviewer agents apply the AGENTS.md disprove-first invariant.** Prompt every reviewer with: "Assume
 this change is wrong. Hunt for violations of [[python/structure]] (sugar gate, constants placement),
-[[python/naming]] (underscore misuse, cryptic abbreviations — run the naming grep gate), and [[python/errors]] (exit shape). Report findings with
-file:line." A reviewer that finds nothing must say why each gate was checked, not just "looks good".
+[[python/naming]] (underscore misuse, cryptic abbreviations — run the naming grep gate), and [[python/errors]] (exit shape). Run
+`~/.config/harnesses/scripts/style-gates.sh` on the diff and report its output. Report findings with
+file:line." A reviewer that finds nothing must say why each gate was checked and show clean gate output, not just "looks good".
 
 1. Match task → pipeline
 2. Each step: `Agent({ prompt: "Load [[python/<skill>]]. <task> + <artifact>" })`

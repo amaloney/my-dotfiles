@@ -13,6 +13,9 @@ Rules for multi-agent pipelines. The main agent is an orchestrator only.
 - Do one thing, and only one thing, then hand off.
 - Input contract: file path + stage spec. Hydrate from disc — never from prompt-embedded code.
 - Output contract: exactly one short result — status + artifact path + `next: <stage>`.
+- Gate evidence: create/audit/hygiene stages run `~/.config/harnesses/scripts/style-gates.sh` on their
+  output and paste the command output into the artifact ledger. A stage result without gate evidence is
+  invalid — "ruff passed" alone is not gate evidence.
 - Recall own skill's pattern memory (GOOD/BAD examples) at start; save new patterns on novel fixes.
 - Fan-out containment: sub-subagents are owned by the subagent that spawned them and are invisible to main; only
   aggregated results return.
@@ -26,15 +29,15 @@ Rules for multi-agent pipelines. The main agent is an orchestrator only.
 
 Handoff edges (`next:`) form a DAG. Reference links (`[[...]]`) transfer no control and are unconstrained.
 
-| Rank | Stage          | Skills                                                                                                                            |
-| ---- | -------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| 0    | route          | `python`, `rust`, `windows`, `conda`                                                                                               |
-| 1    | diagnose/plan  | `debugging`, `writing-plans`, `research`, `code-index`, `python/recon`, `python/repo-init`, `python/pixi-pyproject`, `python/modern-tooling`, `rust/recon`, `rust/repo-init`, `rust/tooling` |
-| 2    | create         | `python/style`, `python/types`, `python/naming`, `python/structure`, `python/errors`, `python/org`, `python/security`, `rust/style`, `rust/types`, `rust/naming`, `rust/structure`, `rust/errors`, `rust/org`, `rust/security`, `test-driven-development`, `bash-shell`, `markdown`, `artifacts`, `accessibility`, `windows/*`, `conda/*` |
-| 3    | audit          | `bug`, `ast-check`                                                                                                                 |
-| 4    | hygiene        | `code-hygiene`, `python/violations`, `rust/violations`                                                                             |
-| 5    | test           | `python/testing`, `python/test-gen`, `python/conftest`, `python/mocking`, `python/property-testing`, `python/async-testing`, `python/bdd`, `rust/testing`, `rust/test-gen`, `rust/property-testing`, `windows/dotnet-testing`, `build-watch-fix` |
-| 6    | verify/ship    | `verify`, `git-commit`                                                                                                             |
+| Rank | Stage         | Skills                                                                                                                                                                                                                                                                                                                                    |
+| ---- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 0    | route         | `python`, `rust`, `windows`, `conda`                                                                                                                                                                                                                                                                                                      |
+| 1    | diagnose/plan | `debugging`, `writing-plans`, `research`, `code-index`, `python/recon`, `python/repo-init`, `python/pixi-pyproject`, `python/modern-tooling`, `rust/recon`, `rust/repo-init`, `rust/tooling`                                                                                                                                              |
+| 2    | create        | `python/style`, `python/types`, `python/naming`, `python/structure`, `python/errors`, `python/org`, `python/security`, `rust/style`, `rust/types`, `rust/naming`, `rust/structure`, `rust/errors`, `rust/org`, `rust/security`, `test-driven-development`, `bash-shell`, `markdown`, `artifacts`, `accessibility`, `windows/*`, `conda/*` |
+| 3    | audit         | `bug`, `ast-check`                                                                                                                                                                                                                                                                                                                        |
+| 4    | hygiene       | `code-hygiene`, `python/violations`, `rust/violations`                                                                                                                                                                                                                                                                                    |
+| 5    | test          | `python/testing`, `python/test-gen`, `python/conftest`, `python/mocking`, `python/property-testing`, `python/async-testing`, `python/bdd`, `rust/testing`, `rust/test-gen`, `rust/property-testing`, `windows/dotnet-testing`, `build-watch-fix`                                                                                          |
+| 6    | verify/ship   | `verify`, `git-commit`                                                                                                                                                                                                                                                                                                                    |
 
 Rules:
 
@@ -52,6 +55,8 @@ Rules:
 ## Hooks
 
 - Format/lint (ruff, isort, rustfmt) and code re-indexing fire on edit/write events — orthogonal gate, never a delegated stage.
+- Harnesses without edit/write hook facilities (e.g. Kilo's `kilo.jsonc` has none) have no event-driven lint gate; there
+  the agent-invoked gate is `~/.config/harnesses/scripts/style-gates.sh`, required by the stage output contract above.
 
 ## Energy barrier
 
