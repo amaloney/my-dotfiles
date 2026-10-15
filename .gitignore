@@ -1,11 +1,14 @@
+# macOS
+.DS_Store
+
 # Python
 __pycache__
-
 *-lock.json
 *.dot
 *.png
 *.svg
 
+# Conda
 conda-anaconda-tools.md
 conda-internal.md
 

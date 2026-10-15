@@ -31,6 +31,29 @@ Handoff: `next: done`.
 | "I'll refactor to..." | "Refactoring..." |
 | "Now let's fix X" | "Fixing X" |
 
+## Discouraged Prose
+
+Rhetorical templates that score well in RLHF but carry no information.
+
+### Banned Words
+
+"robust", "leveraging", "seamlessly", "empowers", "delve", "dig into", "certainly", "absolutely", "indeed"
+
+### Structural Patterns
+
+| Pattern | Example | Fix |
+| --- | --- | --- |
+| Escalation | "not just X but Y" | State the second half only |
+| Summary restatement | "That confirms X" | Delete |
+| Triplet adjectives | "fast, flexible, powerful" | Keep only what you can back up |
+| Announcements | "Here's the thing", "Let's dive in", "The key insight is" | Delete opener, keep content |
+| Tidy closers | "Ultimately, it's about...", "And that changes everything" | Delete if it restates or adds empty emphasis |
+| Vague authority | "experts argue", "many believe" | Name the source or own the claim |
+| Over-formatting | Bold labels on every bullet, headers over two paragraphs | Remove decoration |
+| Short choppy sentences | Rapid-fire for false decisiveness | Join with connectives |
+
+**Instead**: Plain declarative sentences. No rhetorical contrasts. No summary restatements. No flattery. Delete everything that isn't information.
+
 ## Compression
 
 Drop articles. Abbreviate: DB/auth/config/fn/impl. Arrows: X → Y. Fragments OK. Tables > prose.

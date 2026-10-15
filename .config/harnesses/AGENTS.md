@@ -52,6 +52,7 @@ Output style, banned phrases, abbreviation rules: `token-efficiency` skill.
 | Build failures     | `build-watch-fix`         | (leaf) — build-fix loop                                                          |
 | Commits            | `git-commit`              | (leaf) — staging, attribution, message format                                    |
 | Code hygiene       | `code-hygiene`            | (stage) — runs after `bug`, before pytest; types, naming, structure              |
+| AI code smells     | `discouraged-patterns`    | (stage) — RLHF-rewarded noise; comments, single-use abstractions, error handling |
 
 **Artifact routing**: skills declare the file extensions and intent keywords they handle in SKILL.md frontmatter
 (`extensions:`, `keywords:`). The table routes task intent; frontmatter routes files touched mid-task — before any
