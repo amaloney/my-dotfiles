@@ -228,10 +228,11 @@ if (-not (Test-Path $ezaSource)) {
 }
 
 # PowerShell profile (copy, since symlinks require admin)
+# Use $PROFILE to get correct path for both Windows PowerShell (5.x) and PowerShell Core (7+)
 Write-Status "PowerShell Profile"
 $psProfileSource = "$dotfiles\.config\powershell\Microsoft.PowerShell_profile.ps1"
-$psProfileDir = "$env:USERPROFILE\Documents\PowerShell"
-$psProfilePath = "$psProfileDir\Microsoft.PowerShell_profile.ps1"
+$psProfilePath = $PROFILE
+$psProfileDir = Split-Path -Parent $psProfilePath
 if (-not (Test-Path $psProfileSource)) {
     Write-Host "   ERROR: Source not found: $psProfileSource" -ForegroundColor Red
 } else {
@@ -380,7 +381,10 @@ if (-not (Test-Path $condaSource)) {
 }
 
 # Claude Code config (junctions to %USERPROFILE%\.claude)
+# Source: .config/harnesses/ (AGENTS.md, skills/, scripts/, agents/, README.md)
+#         .config/harnesses/claude/ (settings.json, keybindings.json)
 $claudeBase = "$env:USERPROFILE\.claude"
+$harnessBase = "$dotfiles\.config\harnesses"
 if (-not (Test-Path $claudeBase)) {
     if (-not $DryRun) {
         New-Item -ItemType Directory -Path $claudeBase -Force | Out-Null
@@ -388,7 +392,7 @@ if (-not (Test-Path $claudeBase)) {
 }
 
 Write-Status "Claude Code - CLAUDE.md"
-$claudeMdSource = "$dotfiles\.config\claude\CLAUDE.md"
+$claudeMdSource = "$harnessBase\AGENTS.md"
 $claudeMdPath = "$claudeBase\CLAUDE.md"
 if (-not (Test-Path $claudeMdSource)) {
     Write-Host "   ERROR: Source not found: $claudeMdSource" -ForegroundColor Red
@@ -419,7 +423,7 @@ if (-not (Test-Path $claudeMdSource)) {
 }
 
 Write-Status "Claude Code - skills"
-$skillsSource = "$dotfiles\.config\claude\skills"
+$skillsSource = "$harnessBase\skills"
 $skillsPath = "$claudeBase\skills"
 if (-not (Test-Path $skillsSource)) {
     Write-Host "   ERROR: Source not found: $skillsSource" -ForegroundColor Red
@@ -427,13 +431,115 @@ if (-not (Test-Path $skillsSource)) {
     New-Junction -Link $skillsPath -Target $skillsSource
 }
 
-Write-Status "Claude Code - templates"
-$templatesSource = "$dotfiles\.config\claude\templates"
-$templatesPath = "$claudeBase\templates"
-if (-not (Test-Path $templatesSource)) {
-    Write-Host "   ERROR: Source not found: $templatesSource" -ForegroundColor Red
+Write-Status "Claude Code - scripts"
+$scriptsSource = "$harnessBase\scripts"
+$scriptsPath = "$claudeBase\scripts"
+if (-not (Test-Path $scriptsSource)) {
+    Write-Host "   ERROR: Source not found: $scriptsSource" -ForegroundColor Red
 } else {
-    New-Junction -Link $templatesPath -Target $templatesSource
+    New-Junction -Link $scriptsPath -Target $scriptsSource
+}
+
+Write-Status "Claude Code - agents"
+$agentsSource = "$harnessBase\agents"
+$agentsPath = "$claudeBase\agents"
+if (-not (Test-Path $agentsSource)) {
+    Write-Host "   ERROR: Source not found: $agentsSource" -ForegroundColor Red
+} else {
+    New-Junction -Link $agentsPath -Target $agentsSource
+}
+
+Write-Status "Claude Code - README.md"
+$readmeSource = "$harnessBase\README.md"
+$readmePath = "$claudeBase\README.md"
+if (-not (Test-Path $readmeSource)) {
+    Write-Host "   ERROR: Source not found: $readmeSource" -ForegroundColor Red
+} else {
+    if (Test-Path $readmePath) {
+        $sourceHash = (Get-FileHash $readmeSource).Hash
+        $destHash = (Get-FileHash $readmePath).Hash
+        if ($sourceHash -eq $destHash) {
+            Write-Skip "$readmePath already up to date"
+        } elseif ($Force) {
+            if ($DryRun) {
+                Write-Host "   Would copy: $readmeSource -> $readmePath" -ForegroundColor Gray
+            } else {
+                Copy-Item $readmeSource $readmePath -Force
+                Write-Done "Updated $readmePath"
+            }
+        } else {
+            Write-Skip "$readmePath exists (use -Force to overwrite)"
+        }
+    } else {
+        if ($DryRun) {
+            Write-Host "   Would copy: $readmeSource -> $readmePath" -ForegroundColor Gray
+        } else {
+            Copy-Item $readmeSource $readmePath
+            Write-Done "Copied to $readmePath"
+        }
+    }
+}
+
+Write-Status "Claude Code - keybindings.json"
+$keybindingsSource = "$harnessBase\claude\keybindings.json"
+$keybindingsPath = "$claudeBase\keybindings.json"
+if (-not (Test-Path $keybindingsSource)) {
+    Write-Host "   ERROR: Source not found: $keybindingsSource" -ForegroundColor Red
+} else {
+    if (Test-Path $keybindingsPath) {
+        $sourceHash = (Get-FileHash $keybindingsSource).Hash
+        $destHash = (Get-FileHash $keybindingsPath).Hash
+        if ($sourceHash -eq $destHash) {
+            Write-Skip "$keybindingsPath already up to date"
+        } elseif ($Force) {
+            if ($DryRun) {
+                Write-Host "   Would copy: $keybindingsSource -> $keybindingsPath" -ForegroundColor Gray
+            } else {
+                Copy-Item $keybindingsSource $keybindingsPath -Force
+                Write-Done "Updated $keybindingsPath"
+            }
+        } else {
+            Write-Skip "$keybindingsPath exists (use -Force to overwrite)"
+        }
+    } else {
+        if ($DryRun) {
+            Write-Host "   Would copy: $keybindingsSource -> $keybindingsPath" -ForegroundColor Gray
+        } else {
+            Copy-Item $keybindingsSource $keybindingsPath
+            Write-Done "Copied to $keybindingsPath"
+        }
+    }
+}
+
+Write-Status "Claude Code - settings.json"
+$settingsSource = "$harnessBase\claude\settings.json"
+$settingsPath = "$claudeBase\settings.json"
+if (-not (Test-Path $settingsSource)) {
+    Write-Host "   ERROR: Source not found: $settingsSource" -ForegroundColor Red
+} else {
+    if (Test-Path $settingsPath) {
+        $sourceHash = (Get-FileHash $settingsSource).Hash
+        $destHash = (Get-FileHash $settingsPath).Hash
+        if ($sourceHash -eq $destHash) {
+            Write-Skip "$settingsPath already up to date"
+        } elseif ($Force) {
+            if ($DryRun) {
+                Write-Host "   Would copy: $settingsSource -> $settingsPath" -ForegroundColor Gray
+            } else {
+                Copy-Item $settingsSource $settingsPath -Force
+                Write-Done "Updated $settingsPath"
+            }
+        } else {
+            Write-Skip "$settingsPath exists (use -Force to overwrite)"
+        }
+    } else {
+        if ($DryRun) {
+            Write-Host "   Would copy: $settingsSource -> $settingsPath" -ForegroundColor Gray
+        } else {
+            Copy-Item $settingsSource $settingsPath
+            Write-Done "Copied to $settingsPath"
+        }
+    }
 }
 
 # Install tools (unless skipped or update-only mode)
@@ -447,6 +553,7 @@ if (-not $SkipTools -and -not $Update) {
     Install-Tool -Name "Yazi" -WingetId "sxyazi.yazi" -Command "yazi"
     Install-Tool -Name "Eza" -WingetId "eza-community.eza" -Command "eza"
     Install-Tool -Name "Starship" -WingetId "Starship.Starship" -Command "starship"
+    Install-Tool -Name "Tree-sitter" -WingetId "tree-sitter.tree-sitter" -Command "tree-sitter"
     Install-Tool -Name "Python" -WingetId "Python.Python.3.12" -Command "python"
     Install-Tool -Name "Git" -WingetId "Git.Git" -Command "git"
 

@@ -25,6 +25,7 @@ Set-Alias -Name vi -Value nvim
 
 # eza (if installed)
 if (Get-Command eza -ErrorAction SilentlyContinue) {
+    $env:EZA_CONFIG_DIR = "$env:APPDATA\eza"
     Remove-Item Alias:ls -ErrorAction SilentlyContinue
     function ls { eza --icons=auto @args }
     function ll { eza -la --icons=auto @args }
