@@ -1,0 +1,526 @@
+# =============================================================================
+# .condarc: complete reference, grouped by conda's own config categories
+# Target: conda 26.9.x (latest stable: 26.9.3, released 2026-10-14)
+# Keys, defaults and groups come from conda/base/context.py (category_map,
+# description_map). This is the same source `conda config --describe` uses.
+#
+# HOW TO READ THIS FILE
+#   Uncommented lines  = active settings (a "frozen / reproducible env" profile)
+#   Commented lines    = every other option, shown with its DEFAULT value.
+#                        Uncomment a line to use it.
+#
+# WHERE TO PUT IT (searched in order; later files override earlier ones)
+#   /etc/conda/.condarc, $CONDA_ROOT/.condarc      system-wide
+#   ~/.config/conda/.condarc, ~/.condarc           per user
+#   $CONDARC                                       explicit path (env var)
+#   $CONDA_PREFIX/.condarc                         one env (`conda config --env`)
+#
+# USEFUL COMMANDS
+#   conda config --show-sources   # which files are loaded
+#   conda config --show <key>     # effective value of a key
+#   conda config --describe       # all keys, including ones added by plugins
+#   CONDA_<KEY_UPPERCASE>=...     # every key can also be set as an env var
+#
+# Plugins (rattler solver, conda-pypi, conda-anaconda-tos, ...) can add more
+# keys, listed under "plugins:" in `conda config --describe`.
+# =============================================================================
+
+
+# =============================================================================
+# 1. CHANNEL CONFIGURATION
+# =============================================================================
+
+# Channels conda searches, highest priority first.
+channels:
+  - conda-forge
+
+# URL prepended to bare channel names; "conda-forge" resolves to
+# <channel_alias>/conda-forge.
+# channel_alias: https://conda.anaconda.org
+
+# Per-channel overrides. Each item needs a "channel" key: a name, multichannel,
+# URL, or glob-like URL pattern. Supported settings are auth-related plugin
+# settings and exclude_newer.
+# channel_settings:
+#   - channel: conda-forge
+#     exclude_newer: 7d
+#   - channel: https://my.private/channel/*
+#     auth: my-auth-handler
+
+# Channels that make up the "defaults" multichannel. An empty list removes
+# defaults entirely. custom_multichannels.defaults overrides this.
+default_channels: []
+
+# Allow the --override-channels command-line flag.
+# override_channels_enabled: true
+
+# The only channels allowed on the system; any other channel is an error.
+# Include "local" if you use conda-build with --use-local. Empty = no limit.
+# allowlist_channels: []        # alias: whitelist_channels
+
+# Channels that may never be used. Any use is an error.
+# denylist_channels: []
+
+# Map a channel name to a base URL. The name is NOT part of the URL.
+# custom_channels:
+#   conda-forge: https://my-mirror.example.com/packages
+
+# Define multichannels: a name that expands to several channels. "local" is
+# reserved for conda-build output.
+# custom_multichannels:
+#   defaults:
+#     - https://repo.anaconda.com/pkgs/main
+#     - https://repo.anaconda.com/pkgs/r
+
+# Previously used channel_alias values. Useful when moving between Anaconda
+# repository instances.
+# migrated_channel_aliases: []
+
+# Map of channel name -> that channel's previous location.
+# migrated_custom_channels: {}
+
+# After `anaconda login`, add the matching private token to channel URLs
+# automatically.
+# add_anaconda_token: true      # alias: add_binstar_token
+
+# Warn, but don't fail, when a channel URL isn't a valid channel.
+# allow_non_channel_urls: false
+
+# Repodata filenames to try, in order: a small "latest only" index first,
+# then the full index.
+# repodata_fns:
+#   - current_repodata.json
+#   - repodata.json
+
+# Download only .tar.bz2 packages, never .conda. Forced to true when an
+# old conda-build (<3.18.3) is installed. Default: unset (auto).
+# use_only_tar_bz2: null
+
+# Threads for downloading and reading repodata. 0/unset = Python's default
+# executor behavior.
+# repodata_threads: 0
+
+# Threads for downloading packages. 0/unset = Python's default executor
+# behavior.
+# fetch_threads: 0
+
+# DEPRECATED, use `preview` instead. List of experimental features to enable.
+# experimental: []
+
+# Disable the index cache lock (the lock is on by default).
+# no_lock: false
+
+# Use repodata.json.zst (compressed) when the channel provides it.
+# repodata_use_zst: true
+
+# Use sharded repodata (CEP 16) when the channel provides it. Much faster
+# on large channels.
+# repodata_use_shards: true
+
+
+# =============================================================================
+# 2. BASIC CONDA CONFIGURATION
+# =============================================================================
+
+# Directories searched for *named* envs (-n). New named envs go in the first
+# writable one. Supports env vars. Doesn't affect --prefix envs.
+# envs_dirs:                     # alias: envs_path
+#   - ~/miniforge3/envs
+#   - ~/.conda/envs
+
+# Package cache directories. Downloads are extracted to the first writable
+# one. Supports env vars.
+# pkgs_dirs:
+#   - ~/miniforge3/pkgs
+#   - ~/.conda/pkgs
+
+# Default thread count for parallel work. The *_threads keys override it
+# per step. 0/unset = let each operation decide.
+# default_threads: 0
+
+# Preview features to opt into (replaces `experimental`).
+# preview: []
+
+
+# =============================================================================
+# 3. NETWORK CONFIGURATION
+# =============================================================================
+
+# Client certificate: one file holding key and cert (.pem), or the cert only
+# when client_ssl_cert_key is also set.
+# client_ssl_cert: null         # alias: client_cert
+
+# Key file that goes with client_ssl_cert.
+# client_ssl_cert_key: null     # alias: client_cert_key
+
+# Repodata cache lifetime:
+#   0/false = always revalidate (HTTP 304 still honored)
+#   1/true  = obey the server's Cache-Control max-age header
+#   N       = cache for N seconds
+# local_repodata_ttl: 1
+
+# Restrict conda to cached downloads and file:// URLs (air-gapped mode).
+offline: false
+
+# Proxies, keyed by "scheme" or "scheme://hostname".
+# Values look like scheme://[user:password@]host[:port]. Env vars expand.
+# proxy_servers:
+#   http: http://proxy.example.com:8080
+#   https: http://proxy.example.com:8080
+
+# Seconds to wait while connecting to a remote URL.
+# remote_connect_timeout_secs: 9.15
+
+# Retries per HTTP connection.
+# remote_max_retries: 3
+
+# Backoff factor between HTTP retries.
+# remote_backoff_factor: 1
+
+# Seconds to wait for a response once a request has been sent.
+# remote_read_timeout_secs: 60.0
+
+# HTTPS certificate verification:
+#   true (default) | false | path to a CA bundle | path to a CA directory |
+#   truststore (use the OS certificate store)
+# ssl_verify: true              # alias: verify_ssl
+
+
+# =============================================================================
+# 4. SOLVER CONFIGURATION
+# =============================================================================
+
+# Add pip as a dependency of python, so installing python always installs
+# pip too. Default is true, scheduled to change to false in conda 27.9.
+add_pip_as_python_dependency: false
+
+# Packages that, when installed, are always updated to the latest version
+# on every install/update.
+# aggressive_update_packages:
+#   - ca-certificates
+#   - certifi
+#   - openssl
+
+# Update conda itself whenever a newer or higher-priority version is found
+# during an operation in base.
+auto_update_conda: false        # alias: self_update
+
+# strict   = ignore lower-priority channels for any package name found in a
+#            higher-priority channel (recommended)
+# flexible = the solver may use lower-priority channels to satisfy deps (default)
+# disabled = highest version wins; channel order only breaks ties
+channel_priority: strict
+
+# Ignore packages published after this cutoff (new in 26.9.0). Accepts:
+#   RFC 3339 timestamp "2026-10-19T00:00:00Z"  -> fixed snapshot (a real freeze)
+#   ISO 8601 date      "2026-10-19"            -> start of next day, UTC
+#   durations          7d | 3d12h | 1w | P7D   -> rolling delay (security)
+#   seconds            86400
+#   0 = no delay; empty = disabled (default). Records with no timestamp are kept.
+# Quoted so YAML keeps it a string.
+exclude_newer: "2026-10-19T00:00:00Z"   # alias: cooldown
+
+# Per-package exclude_newer overrides: a duration, a timestamp, or false
+# (exempt the package). Precedence: package > channel_settings > global.
+exclude_newer_package:          # alias: cooldown_exclude
+  openssl: false
+  ca-certificates: false
+
+# Packages added to every new environment.
+# create_default_packages: []
+
+# Package specs that may never be installed.
+disallowed_packages:            # alias: disallow
+  - anaconda
+
+# Uninstall and reinstall requested packages even if already present.
+# force_reinstall: false
+
+# Specs pinned for every solve (BETA). Exact versions give a true freeze.
+# For per-env pins, put this in $CONDA_PREFIX/.condarc or conda-meta/pinned.
+pinned_packages:
+  - python=3.12.11
+  - numpy=2.3.3
+  - pandas=2.3.2
+
+# Let plugins (e.g. conda-pypi) manage non-conda packages such as pip/PyPI
+# installs.
+# prefix_data_interoperability: false   # alias: pip_interop_enabled
+
+# Features tracked by default (similar to create_default_packages).
+# track_features: []
+
+# Solver backend: libmamba (default) | classic | rattler (needs the
+# conda-rattler-solver plugin; planned to become the default in 26.10).
+# solver: libmamba              # alias: experimental_solver
+
+
+# =============================================================================
+# 5. PACKAGE LINKING AND INSTALL-TIME CONFIGURATION
+# =============================================================================
+
+# When a hard link isn't possible (cache on another filesystem): true =
+# symlink, false = copy.
+# allow_softlinks: false
+
+# Always copy files into envs instead of hard-linking.
+# always_copy: false            # alias: copy
+
+# Always symlink files from the package cache. WARNING: cleaning the cache
+# can break long-lived envs.
+# always_softlink: false        # alias: softlink
+
+# What to do when two packages install the same file path:
+# clobber | warn | prevent
+# path_conflict: clobber
+
+# If an unlink/link transaction fails, undo the changes already made on disk.
+# rollback_enabled: true
+
+# Package integrity checks during install: enabled | warn | disabled
+# safety_checks: warn
+
+# Also verify the sha256 of every file in each package (slower).
+# extra_safety_checks: false
+
+# Base URL for trust metadata (*.root.json, key_mgr.json) used for signature
+# verification.
+# signing_metadata_url_base: null
+
+# Let packages create OS shortcuts (e.g. the Windows Start Menu) at install.
+# shortcuts: true
+
+# Create shortcuts only for these package names.
+# shortcuts_only: []
+
+# Let non-root / non-admin users run create, install, update and remove.
+# non_admin_enabled: true
+
+# Treat .tar.bz2 and .conda files with the same name as different packages
+# in the cache.
+# separate_format_cache: false
+
+# Threads for the transaction verification step (effective default: 1).
+# verify_threads: 0
+
+# Threads for the unlink/link step (effective default: 1; mostly I/O bound).
+# execute_threads: 0
+
+
+# =============================================================================
+# 6. CONDA-BUILD CONFIGURATION
+# =============================================================================
+
+# Where conda-build puts built packages. croot takes precedence over this.
+# bld_path: ""
+
+# Where conda-build puts built packages; also feeds the "local" multichannel.
+# croot: ""
+
+# Upload packages to anaconda.org automatically after `conda build`.
+# Only conda-build reads this.
+anaconda_upload: false          # alias: binstar_upload
+
+# General conda-build options, as a nested map.
+# conda_build:                  # alias: conda-build
+#   root-dir: ~/conda-builds
+#   output_folder: ~/conda-bld-out
+#   pkg_format: 2               # 2 = .conda, 1 = .tar.bz2
+#   anaconda_token: <token>     # setting this also enables upload
+#   quiet: false
+#   filename_hashing: true
+#   error_overlinking: false
+
+
+# =============================================================================
+# 7. OUTPUT, PROMPT, AND FLOW CONTROL CONFIGURATION
+# =============================================================================
+
+# Answer "yes" to every prompt (same as --yes). Keep it off for frozen envs.
+always_yes: false               # alias: yes
+
+# Activate `default_activation_env` automatically when a shell starts.
+# Renamed from auto_activate_base in 25.5; the old name still works.
+auto_activate: false            # alias: auto_activate_base
+
+# Env activated at shell start (if auto_activate) and by a bare
+# `conda activate`.
+# default_activation_env: base
+
+# Implicitly use --stack on activate while CONDA_SHLVL <= this value.
+# 0/false = never; 1/true = one level.
+# auto_stack: 0
+
+# Add "(env)" to the shell prompt ($PS1) on activate.
+changeps1: false
+
+# Prompt template. Variables: {prefix} = full path, {name} = basename,
+# {default_env} = name for -n envs, otherwise the full prefix.
+# Tip for --prefix ./.conda envs: '({name}) ' shows a short label.
+# env_prompt: '({default_env}) '
+
+# Force all stdout to be structured JSON.
+# json: false
+
+# Console output backend.
+# console: classic
+
+# Warn when a newer conda is available during create/install/update/remove.
+# notify_outdated_conda: true
+
+# Hide progress bars and other output.
+# quiet: false
+
+# Opt in or out of anonymous error reports to conda maintainers.
+# DEPRECATED: pending removal in conda 27.3.
+report_errors: false
+
+# Show each package's source channel in plans and `conda list`.
+show_channel_urls: true         # default: null (auto)
+
+# Default columns in `conda list` output.
+# list_fields: [...]            # see `conda list --help` for valid fields
+
+# Log level: 0 = warn, 1 = info, 2 = debug, 3 = trace.
+# verbosity: 0                  # alias: verbose
+
+# On a failed solve, search for the conflicting packages and report them.
+# unsatisfiable_hints: true
+
+# How many dependency levels deep to search for conflict hints. Higher is
+# more complete but slower.
+# unsatisfiable_hints_check_depth: 2
+
+# Channel notices shown on install/create/update. 0 hides them.
+# number_channel_notices: 5
+
+# Uppercase env var names created with `conda env config vars set`.
+# envvars_force_uppercase: true
+
+# Extra platforms for `conda export` and lockfiles. The current platform is
+# always included. Handy so multi-platform lockfiles don't need --platform
+# every time.
+# export_platforms:             # alias: extra_platforms
+#   - linux-64
+#   - osx-arm64
+#   - win-64
+
+# Override detected virtual packages (e.g. to solve for another machine).
+# override_virtual_packages:    # alias: virtual_packages
+#   __cuda: "12.4"
+#   __glibc: "2.28"
+
+
+# =============================================================================
+# 8. CLI-ONLY (usually passed as flags, but can be set here)
+# =============================================================================
+
+# Dependency handling: not_set | no_deps | only_deps
+# deps_modifier: not_set
+
+# Default behavior for `conda install`:
+#   update_specs (default) - change only what the requested specs need
+#   freeze_installed       - never change installed packages; fail instead
+#   update_deps            - also update dependencies
+#   update_all             - update everything in the env
+#   specs_satisfied_skip_solve - skip the solve if the specs are already met
+update_modifier: freeze_installed
+
+# Override safeguards (--force). Dangerous.
+# force: false
+
+# Remove a package without removing its dependents (--force-remove).
+# force_remove: false
+
+# Allow packages to overwrite each other's files (--clobber).
+# clobber: false
+
+# Show the plan without making changes (--dry-run).
+# dry_run: false
+
+# Download and extract packages but don't link them (--download-only).
+# download_only: false
+
+# Ignore pinned_packages and conda-meta/pinned (--no-pin).
+# ignore_pinned: false
+
+# Use the cached index even if expired (--use-index-cache).
+# use_index_cache: false
+
+# Include conda-build's "local" channel (--use-local).
+# use_local: false
+
+
+# =============================================================================
+# 9. HIDDEN AND UNDOCUMENTED (shown by conda but not in its docs)
+# =============================================================================
+
+# Refuse to modify envs marked with conda-meta/frozen (CEP 22, conda 25.5+)
+# unless --override-frozen is passed. Mark an env:
+#   touch $CONDA_PREFIX/conda-meta/frozen
+# Note the plural key name. Env var: CONDA_PROTECT_FROZEN_ENVS
+protect_frozen_envs: true
+
+# Add newly created prefixes to ~/.conda/environments.txt so they show up in
+# `conda env list`.
+# register_envs: true
+
+# Allow cyclical dependencies instead of raising an error.
+# allow_cycles: true
+
+# Allow the solver to downgrade conda itself.
+# allow_conda_downgrades: false
+
+# Debug/trace logging, the same as verbosity 2/3.
+# debug: false
+# trace: false
+
+# Developer mode for running conda from a source checkout.
+# dev: false
+
+# Default Python major.minor (defaults to the Python running conda).
+# default_python: "3.12"
+
+# Experimental per-app "private" envs.
+# enable_private_envs: false
+
+# DEPRECATED: URL for error reports (removed together with report_errors).
+# error_upload_url: https://conda.io/conda-post/unexpected-error
+
+# Use 32-bit packages on a 64-bit system (only for conda-build).
+# force_32bit: false
+
+# Path of the base (root) installation.
+# root_prefix: ""               # alias: root_dir
+
+# SAT backend for the classic solver: pycosat | pycryptosat | pysat
+# sat_solver: pycosat
+
+# Classic solver: ignore package timestamps when breaking ties.
+# solver_ignore_timestamps: false
+
+# Platform to solve for (e.g. linux-64, osx-arm64, win-arm64). Default is
+# auto-detected.
+# subdir: ""
+
+# Subdirs to read from each channel (default: <subdir> and noarch).
+# subdirs: []
+
+# Override prefix rewriting (e.g. when building Docker images or RPMs).
+# target_prefix_override: ""
+
+
+# =============================================================================
+# 10. PLUGIN CONFIGURATION
+# =============================================================================
+
+# Disable all non-built-in plugins (same as --no-plugins).
+# no_plugins: false
+
+
+# =============================================================================
+# 11. EXPERIMENTAL
+# =============================================================================
+
+# Environment-spec plugin to use for env files (auto-detected if unset).
+# environment_specifier: null   # alias: env_spec

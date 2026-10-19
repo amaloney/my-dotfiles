@@ -1,16 +1,44 @@
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # ~/.condarc
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-add_pip_as_python_dependency: true
-anaconda_upload: false
-always_yes: true
-auto_activate_base: false
-auto_update_conda: false
+# CHANNEL CONFIGURATION
 channels:
   - defaults
+  - https://repo.anaconda.cloud/repo/main-x
 default_channels:
-  - https://repo.anaconda.com/pkgs/main
-changeps1: false
+  - https://repo.anaconda.cloud/repo/main
+  - https://repo.anaconda.cloud/repo/r
+  - https://repo.anaconda.cloud/repo/msys2
+channel_settings:
+  - channel: https://repo.anaconda.cloud/*
+    auth: anaconda-auth
+override_channels_enabled: true
+no_lock: true
+
+# NETWORK CONFIGURATION
 offline: false
+ssl_verify: true
+
+# SOLVER CONFIGURATION
+add_pip_as_python_dependency: false
+auto_update_conda: false
+channel_priority: strict
+prefix_data_interoperability: true
+solver: libmamba
+
+# CONDA BUILD
+anaconda_upload: false
+
+# OUTPUT, PROMPT, AND FLOW CONTROL CONFIGURATION
+always_yes: true
+auto_activate: false
+changeps1: false
 report_errors: false
+show_channel_urls: true
+
+# CLI
+update_modifier: freeze_installed
+
+# OTHER
 protect_frozen_env: true
+register_envs: true
