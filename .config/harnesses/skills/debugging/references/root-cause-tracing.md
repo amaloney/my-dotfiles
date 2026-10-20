@@ -34,12 +34,12 @@ Capture: `<test command> 2>&1 | grep 'DEBUG'` — find which test/caller trigger
 ## Case study: empty projectDir
 
 - **Symptom**: `.git` created in `packages/core/` (source tree)
-- **Trace**: `git init` got empty `cwd` → empty `projectDir` param → `Session.create()` passed `''` →
-  test read `context.tempDir` before `beforeEach` ran → `setupCoreTest()` returns `{ tempDir: '' }` initially
+- **Trace**: `git init` got empty `cwd` → empty `projectDir` param → `Session.create()` passed `''` → test read
+  `context.tempDir` before `beforeEach` ran → `setupCoreTest()` returns `{ tempDir: '' }` initially
 - **Root cause**: top-level variable initialization reading a not-yet-set value
 - **Fix at source**: made `tempDir` a getter that throws before `beforeEach`
-- **Then**: defense-in-depth — validation added at all 4 layers the value passes through
-  (see [defense-in-depth.md](defense-in-depth.md))
+- **Then**: defense-in-depth — validation added at all 4 layers the value passes through (see
+  [defense-in-depth.md](defense-in-depth.md))
 
 ## Tips
 

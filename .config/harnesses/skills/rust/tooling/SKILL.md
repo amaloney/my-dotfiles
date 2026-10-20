@@ -11,18 +11,18 @@ Handoff: `next: rust/style`.
 
 ## Tool Mapping
 
-| Concern          | Tool                                      | Python analogue        |
-| ---------------- | ----------------------------------------- | ---------------------- |
-| Toolchain pin    | `rust-toolchain.toml` (rustup)            | `requires-python`      |
-| Deps + build     | `cargo add` / `cargo build`               | uv                     |
-| Format           | `cargo fmt` (rustfmt)                     | ruff format            |
-| Lint             | `cargo clippy`                            | ruff check             |
-| Types            | the compiler                              | ty                     |
-| Test runner      | `cargo nextest run` (fallback `cargo test`) | pytest               |
-| Vuln advisories  | `cargo audit`                             | pip-audit              |
-| License/ban/dupe | `cargo deny check`                        | —                      |
-| Unused deps      | `cargo machete`                           | deptry                 |
-| Task runner      | `just` or `cargo xtask`                   | pixi tasks             |
+| Concern          | Tool                                        | Python analogue   |
+| ---------------- | ------------------------------------------- | ----------------- |
+| Toolchain pin    | `rust-toolchain.toml` (rustup)              | `requires-python` |
+| Deps + build     | `cargo add` / `cargo build`                 | uv                |
+| Format           | `cargo fmt` (rustfmt)                       | ruff format       |
+| Lint             | `cargo clippy`                              | ruff check        |
+| Types            | the compiler                                | ty                |
+| Test runner      | `cargo nextest run` (fallback `cargo test`) | pytest            |
+| Vuln advisories  | `cargo audit`                               | pip-audit         |
+| License/ban/dupe | `cargo deny check`                          | —                 |
+| Unused deps      | `cargo machete`                             | deptry            |
+| Task runner      | `just` or `cargo xtask`                     | pixi tasks        |
 
 ## Commands
 
@@ -48,8 +48,8 @@ Set `rust-version` (MSRV) in `Cargo.toml` for libraries; it bounds which std API
 
 ## Lints in Cargo.toml
 
-Lint config lives in `Cargo.toml`, not `#![warn(...)]` attributes scattered across crate roots. Workspaces declare
-once in `[workspace.lints]` and members opt in with `[lints] workspace = true`.
+Lint config lives in `Cargo.toml`, not `#![warn(...)]` attributes scattered across crate roots. Workspaces declare once
+in `[workspace.lints]` and members opt in with `[lints] workspace = true`.
 
 ```toml
 [lints.rust]
@@ -64,8 +64,8 @@ module_name_repetitions = "allow"
 must_use_candidate = "allow"
 ```
 
-Group levels need `priority = -1` so individual lint overrides win. Ast-check-equivalent lint selection:
-[[ast-check]] (`references/rust-clippy.md`).
+Group levels need `priority = -1` so individual lint overrides win. Ast-check-equivalent lint selection: [[ast-check]]
+(`references/rust-clippy.md`).
 
 ## rustfmt.toml
 

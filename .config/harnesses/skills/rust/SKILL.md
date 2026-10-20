@@ -10,36 +10,19 @@ keywords: ["rust", "cargo"]
 
 Handoff: `next: done`.
 
-## Session Start (Recon)
+## Session Start
 
-```bash
-# Check profile exists and is fresh (<7 days)
-test -f .harness/code_index/profile.json && \
-  find .harness/code_index/profile.json -mtime -7 | grep -q . && \
-  echo "profile: current" || echo "profile: needs update"
-```
-
-Missing or stale → run [[rust/recon]]. Profile consumed by all rust skills.
+Profile check: `test -f .harness/code_index/profile.json && find .harness/code_index/profile.json -mtime -7 | grep -q .`
+Missing/stale → [[rust/recon]].
 
 ## Pre-Generation
 
-```bash
-# Query profile for context
-jq '.patterns.config_rs_path, .project.workspace_members' .harness/code_index/profile.json
-
-# Search indexed code for existing implementations
-python3 .harness/code_index/query.py search "<pattern>"   # If code index exists
-```
-
-Similar exists → extend. Check `profile.patterns.config_rs_path` for constants.
+Query: `jq '.patterns.config_rs_path, .project.workspace_members' .harness/code_index/profile.json` Search:
+`python3 .harness/code_index/query.py search "<pattern>"` Similar exists → extend.
 
 ## Post-Generation
 
-1. [[bug]] — audit (logic, edge/IO/security)
-2. [[rust/violations]] — rustfmt + clippy
-3. [[rust/test-gen]] — if 1+2 pass
-
-2 fix cycles max → report to user.
+[[bug]] → [[rust/violations]] → [[rust/test-gen]]. 2 fix cycles max.
 
 ## Registry
 
@@ -62,65 +45,51 @@ Similar exists → extend. Check `profile.patterns.config_rs_path` for constants
 | [[rust/test-gen]]         | fan-out | Gen tests (fan-out)   | generate tests, add coverage                                     |
 | [[build-watch-fix]]       | leaf    | Auto-fix loop         | build failure, auto-fix, watch                                   |
 
-**Not yet covered** — mocking (`mockall`), async testing (`#[tokio::test]`), BDD (`cucumber`). A request for these →
-say no rust skill exists yet, apply [[rust/testing]] conventions, and flag it to the user rather than improvising rules.
+**Not yet covered** — mocking (`mockall`), async testing (`#[tokio::test]`), BDD (`cucumber`). A request for these → say
+no rust skill exists yet, apply [[rust/testing]] conventions, and flag it to the user rather than improvising rules.
 
 ## Pipelines
 
-| Task           | Chain                                                              |
-| -------------- | ------------------------------------------------------------------ |
-| New project    | tooling (bootstrap) → style → bug → violations → test-gen          |
-| New module     | style → bug → violations → test-gen                                |
-| Bug fix        | debugging → test-driven-development → violations → test-gen        |
-| Refactor       | style → bug → violations                                           |
-| Fix violations | violations                                                         |
-| Generate tests | test-gen                                                           |
-| Add tests      | testing                                                            |
-| Property tests | property-testing                                                   |
+| Task           | Chain                                                       |
+| -------------- | ----------------------------------------------------------- |
+| New project    | tooling (bootstrap) → style → bug → violations → test-gen   |
+| New module     | style → bug → violations → test-gen                         |
+| Bug fix        | debugging → test-driven-development → violations → test-gen |
+| Refactor       | style → bug → violations                                    |
+| Fix violations | violations                                                  |
+| Generate tests | test-gen                                                    |
+| Add tests      | testing                                                     |
+| Property tests | property-testing                                            |
 
 ## Bug Finding
 
-No custom AST checker for Rust — clippy is the checker. Lint-group mapping: [[ast-check]] (`references/rust-clippy.md`).
-
-```bash
-cargo clippy --all-targets --all-features --message-format=short -- -W clippy::correctness -W clippy::suspicious
-rg -n '\.unwrap\(\)|\.expect\(' --type rust src/       # Fallback: panics outside tests
-```
+Clippy is the checker. Mapping: [[ast-check]] (`references/rust-clippy.md`).
+`cargo clippy --all-targets --all-features -- -W clippy::correctness -W clippy::suspicious` Fallback:
+`rg -n '\.unwrap\(\)|\.expect\(' --type rust src/`
 
 ## Principles
 
-| Prefer                                                   | Over                          |
-| -------------------------------------------------------- | ----------------------------- |
-| Extend existing                                          | Create new                    |
-| Flat/explicit                                            | Nested/clever (macro magic)   |
-| 3 similar lines                                          | Premature trait/generic       |
-| Borrow (`&T`)                                            | `.clone()` to appease borrowck |
-| Existing deps (missing crate → stop, report name)        | `cargo add` on your own       |
-| `todo!()` / `unimplemented!()` for WIP                   | `TODO` comments               |
+| Prefer                                            | Over                           |
+| ------------------------------------------------- | ------------------------------ |
+| Extend existing                                   | Create new                     |
+| Flat/explicit                                     | Nested/clever (macro magic)    |
+| 3 similar lines                                   | Premature trait/generic        |
+| Borrow (`&T`)                                     | `.clone()` to appease borrowck |
+| Existing deps (missing crate → stop, report name) | `cargo add` on your own        |
+| `todo!()` / `unimplemented!()` for WIP            | `TODO` comments                |
 
 ## Execution
 
-**Prescriptive** — load skill first, spawn sub-agents, no exploring.
+**Prescriptive** — skill first, sub-agents, no exploring.
 
-**Orchestration triggers**: "orchestrate", "fan-out", OR "implement/execute this plan" where the plan has
-≥3 tasks. Plan execution defaults to subagent-per-task with reviewer gates unless the user explicitly
-chose native. Native is the exception for <3-task plans or trivial diffs — state the choice and reason
-before starting.
+**Orchestration**: "orchestrate"/"fan-out" OR plan ≥3 tasks → subagent-per-task with reviewers. <3 tasks or trivial →
+native (state reason).
 
-**Plan-execution precondition** — before executing an approved plan, verify each task names its pipeline
-stage ([[writing-plans]] stage annotations). Stages missing → annotate the plan from the Pipelines table
-first, or hand it back through [[writing-plans]]. Plan approval is never license to skip stages.
+**Plan precondition**: verify tasks have pipeline stage annotations ([[writing-plans]]). Missing → annotate or return.
 
-**Reviewer agents apply the AGENTS.md disprove-first invariant.** Prompt every reviewer with: "Assume
-this change is wrong. Hunt for violations of [[rust/structure]] (sugar gate, `pub` minimality),
-[[rust/naming]] (cryptic abbreviations — run the naming grep gate), [[rust/types]] (gratuitous clones, owned params),
-and [[rust/errors]] (unwrap/expect outside tests). Report findings with file:line." A reviewer that finds nothing
-must say why each gate was checked, not just "looks good".
+**Reviewers**: disprove-first. Prompt: "Assume wrong. Hunt [[rust/structure]], [[rust/naming]], [[rust/types]],
+[[rust/errors]]. Report file:line." No findings → show why.
 
-1. Match task → pipeline
-2. Each step: `Agent({ prompt: "Load [[rust/<skill>]]. <task> + <artifact>" })`
-3. **Gate**: violations and bugs must pass before test-gen
-   - violations: `cargo fmt --check && cargo clippy --all-targets -- -D warnings` returns clean
-   - bugs: agent confirms no issues found
-4. Pass artifacts between agents
-5. Return after final
+1. Task → pipeline → `Agent({ prompt: "[[rust/<skill>]] + <artifact>" })`
+2. Gate: `cargo fmt --check && cargo clippy -- -D warnings` clean before test-gen
+3. Pass artifacts, return after final

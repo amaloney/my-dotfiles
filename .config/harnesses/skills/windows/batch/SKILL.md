@@ -18,13 +18,9 @@ SETLOCAL EnableDelayedExpansion
 EXIT /B 0                           REM Always explicit (not GOTO :eof)
 ```
 
-## Delayed Expansion (Critical)
+## Delayed Expansion
 
-Variables expand at **parse time**. Inside IF/FOR blocks, use `!var!`:
-
-```batch
-FOR /F "tokens=*" %%G IN ('dir /b') DO ( ECHO !count! & SET /A count+=1 )
-```
+Variables expand at parse time. Inside IF/FOR: use `!var!` not `%var%`.
 
 ## Variables & Exit Codes
 
@@ -66,16 +62,8 @@ SET _SCRIPT_RUNNING=
 
 ## PowerShell from Batch
 
-**Always full path** — installers/uninstallers run with limited PATH:
-
-```batch
-REM BAD - fails in installer context
-powershell -NoProfile -File "script.ps1"
-
-REM GOOD - works everywhere, %* forwards args
-"%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" ^
-    -NoProfile -ExecutionPolicy Bypass -File "script.ps1" %*
-```
+**Full path** — installers have limited PATH:
+`"%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -ExecutionPolicy Bypass -File "script.ps1" %*`
 
 ## CLI Commands
 
@@ -128,14 +116,4 @@ schtasks /delete /tn "Task" /f
 
 ## Template
 
-```batch
-@ECHO OFF
-SETLOCAL EnableDelayedExpansion
-IF DEFINED _SCRIPT_RUNNING EXIT /B 0
-SET _SCRIPT_RUNNING=1
-REM Main logic
-:end
-SET _SCRIPT_RUNNING=
-ENDLOCAL
-EXIT /B 0
-```
+`@ECHO OFF`, `SETLOCAL EnableDelayedExpansion`, re-entry guard, main logic, cleanup, `EXIT /B 0`.

@@ -12,21 +12,21 @@ Recoverable failure → `Result`. Bug / broken invariant → `panic!`. Never the
 
 ## Crate choice
 
-| Crate kind            | Error type                                          |
-| --------------------- | --------------------------------------------------- |
-| Library               | `thiserror` enum per module boundary — callers match on variants |
-| Binary / application  | `anyhow::Result` + `.context(...)` at each boundary |
-| Both (lib + bin)      | `thiserror` in lib, `anyhow` in `main.rs`           |
+| Crate kind           | Error type                                                       |
+| -------------------- | ---------------------------------------------------------------- |
+| Library              | `thiserror` enum per module boundary — callers match on variants |
+| Binary / application | `anyhow::Result` + `.context(...)` at each boundary              |
+| Both (lib + bin)     | `thiserror` in lib, `anyhow` in `main.rs`                        |
 
 Record the choice in `profile.patterns.error_crate` ([[rust/recon]]); match what the crate already uses.
 
 ## `unwrap` / `expect`
 
-| Where                                         | Allowed?                                             |
-| --------------------------------------------- | ---------------------------------------------------- |
-| Tests, doctests, examples                     | Yes                                                  |
+| Where                                                                | Allowed?                       |
+| -------------------------------------------------------------------- | ------------------------------ |
+| Tests, doctests, examples                                            | Yes                            |
 | Provably infallible (`"127.0.0.1".parse::<IpAddr>()`, regex literal) | `expect("why it cannot fail")` |
-| Anything touching IO, user input, network, env | **Never** — propagate with `?`                      |
+| Anything touching IO, user input, network, env                       | **Never** — propagate with `?` |
 
 Enforced by clippy `unwrap_used` / `expect_used` ([[rust/tooling]] lint table); tests opt out with
 `#[cfg_attr(test, allow(clippy::unwrap_used))]` or `allow-unwrap-in-tests = true` in `clippy.toml`.
@@ -47,7 +47,7 @@ discards the source chain. Wrap with `#[from]` / `#[source]` in `thiserror` vari
 
 ## Multi-failure fetch pattern
 
-One logical result with several *non-fatal* failure modes (cache miss, fallback source) → `match` into a single value,
+One logical result with several _non-fatal_ failure modes (cache miss, fallback source) → `match` into a single value,
 one exit:
 
 ```rust
@@ -64,9 +64,9 @@ Ok(data)
 
 ## Scoped matching
 
-Match the narrowest variant (`io::ErrorKind::NotFound`) over catch-all `Err(_) =>`. A wildcard arm silently swallows
-new variants added later — reserved for aggregator boundaries where one source must never sink the whole result,
-and it must log.
+Match the narrowest variant (`io::ErrorKind::NotFound`) over catch-all `Err(_) =>`. A wildcard arm silently swallows new
+variants added later — reserved for aggregator boundaries where one source must never sink the whole result, and it must
+log.
 
 ## Never
 

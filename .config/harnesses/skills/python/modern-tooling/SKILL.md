@@ -10,21 +10,22 @@ Handoff: `next: python/style`.
 
 ## Tool Mapping
 
-pip/virtualenv/pip-tools → `uv`; pipx → `uv tool`; flake8/black/isort/pyupgrade → `ruff`; mypy/pyright → `ty`; pre-commit → `prek`.
+pip/virtualenv/pip-tools → `uv`; pipx → `uv tool`; flake8/black/isort/pyupgrade → `ruff`; mypy/pyright → `ty`;
+pre-commit → `prek`.
 
 ## uv Commands
 
-| Task                | Command                         | Replaces                          |
-| ------------------- | ------------------------------- | --------------------------------- |
-| Create project      | `uv init myproject`             | —                                 |
-| Add dependency      | `uv add requests`               | `pip install requests`            |
-| Add dev dependency  | `uv add --dev pytest`           | —                                 |
-| Remove dependency   | `uv remove requests`            | `pip uninstall requests`          |
-| Sync environment    | `uv sync`                       | `pip install -e .` (auto editable) |
-| Run script          | `uv run python script.py`       | `python script.py`                |
-| Export requirements | `uv export > requirements.txt`  | `pip freeze`                      |
-| Install CLI tool    | `uv tool install ruff`          | `pipx install ruff`               |
-| Run CLI tool once   | `uvx ruff check .`              | `pipx run ruff`                   |
+| Task                | Command                        | Replaces                           |
+| ------------------- | ------------------------------ | ---------------------------------- |
+| Create project      | `uv init myproject`            | —                                  |
+| Add dependency      | `uv add requests`              | `pip install requests`             |
+| Add dev dependency  | `uv add --dev pytest`          | —                                  |
+| Remove dependency   | `uv remove requests`           | `pip uninstall requests`           |
+| Sync environment    | `uv sync`                      | `pip install -e .` (auto editable) |
+| Run script          | `uv run python script.py`      | `python script.py`                 |
+| Export requirements | `uv export > requirements.txt` | `pip freeze`                       |
+| Install CLI tool    | `uv tool install ruff`         | `pipx install ruff`                |
+| Run CLI tool once   | `uvx ruff check .`             | `pipx run ruff`                    |
 
 ## ruff Commands
 
@@ -37,10 +38,8 @@ ruff check --select I --fix .   # fix imports only (replaces isort)
 
 ### pyproject.toml Config
 
-Dependencies: ranged pins always (`>=2.32,<3`), never `"*"`. The lockfile is the reproducibility layer;
-`"*"` says nothing about intent and hides stale constraints.
-
-Canonical ruff select list (single statement): `select = ["E", "F", "I", "UP", "B", "SIM", "ANN", "ASYNC", "S"]`.
+Dependencies: ranged pins (`>=2.32,<3`), never `"*"`. Ruff select:
+`["E", "F", "I", "UP", "B", "SIM", "ANN", "ASYNC", "S"]`.
 
 ```toml
 [tool.ruff]
@@ -111,26 +110,12 @@ For single-file scripts with dependencies — no pyproject.toml needed:
 # ///
 ```
 
-Commands: `uv init --script s.py`, `uv add --script s.py requests`, `uv run s.py`.
-
-**Use PEP 723 for:** single-file scripts, quick automation, self-contained utilities.
-**Use pyproject.toml for:** multi-file projects, reusable packages.
+Commands: `uv init --script`, `uv add --script`, `uv run`. Single-file → PEP 723; multi-file → pyproject.toml.
 
 ## Dependency Groups (PEP 735)
 
-Prefer `[dependency-groups]` over `[project.optional-dependencies]` for dev tools:
-
-```toml
-[dependency-groups]
-dev = [{include-group = "lint"}, {include-group = "test"}]
-lint = ["ruff", "ty"]
-test = ["pytest", "pytest-cov", "hypothesis"]
-docs = ["sphinx", "myst-parser"]
-```
-
-```bash
-uv add --group dev pytest       # add to group; `uv sync --all-groups` installs all
-```
+Prefer `[dependency-groups]` over optional-deps: `dev = [{include-group = "lint"}, ...]`. `uv add --group dev pytest`,
+`uv sync --all-groups`.
 
 ## pyproject.toml Full Example
 
@@ -138,11 +123,6 @@ See [references/pyproject.md](references/pyproject.md).
 
 ## Decision Tree
 
-```
-What are you building?
-├── Single-file script with deps? → PEP 723 inline metadata
-├── Multi-file project (not distributed)? → uv init + minimal pyproject.toml
-└── Reusable package/library? → uv init --package + full pyproject.toml
-```
+Single-file → PEP 723. Multi-file → `uv init`. Package → `uv init --package`.
 
 [[python/pixi-pyproject]] [[python/violations]] [[python/style]]

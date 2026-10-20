@@ -12,7 +12,7 @@ sys.path.insert(0, str(SCRIPTS))
 
 from extract_rust import RustItem, extract_rust, module_name_for  # noqa: E402
 
-LIB_RS = '''\
+LIB_RS = """\
 //! Fixture crate.
 pub mod net;
 
@@ -48,7 +48,7 @@ fn helper(count: usize) -> usize {
     use std::cmp::max;
     max(count, 1)
 }
-'''
+"""
 
 
 @pytest.fixture

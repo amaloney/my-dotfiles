@@ -2,51 +2,15 @@
 
 ## Pinnings
 
-### Explicit vs Implicit
-
-```yaml
-# Explicit pin
-requirements:
-  host:
-    - libpng >=1.6
-
-# Implicit pin (from conda_build_config.yaml)
-requirements:
-  host:
-    - numpy {{ numpy }} # or just `- numpy` if key exists in cbc
-```
+**Explicit**: `- libpng >=1.6` in host. **Implicit**: `- numpy {{ numpy }}` from conda_build_config.yaml.
 
 ### run_exports
 
-When library X declares `run_exports`, adding X to `host:` auto-adds it to `run:` with proper pin.
+Library declares `run_exports` → host dep auto-adds to run. `weak`: from host only. `strong`: from build too (runtimes).
 
-```yaml
-# In library's recipe
-build:
-  run_exports:
-    - {{ pin_subpackage('mylib', max_pin='x.x') }}  # weak (default)
-    # OR
-    weak:
-      - {{ pin_subpackage('mylib', max_pin='x.x') }}
-    strong:  # applies even from build: section
-      - libgcc
-```
+### run_exports Constraints
 
-**Weak vs Strong**:
-
-- `weak`: applies when in `host:`, adds to `run:`
-- `strong`: applies from `build:` too (runtimes like libgcc)
-
-### run_exports with Constraints
-
-```yaml
-build:
-  run_exports:
-    weak_constrains:
-      - optional-plugin >=2.0 # adds to run_constrained
-    strong_constrains:
-      - system-feature >=1.0
-```
+`weak_constrains` / `strong_constrains` add to run_constrained.
 
 ### Pin Guidelines
 
@@ -59,13 +23,7 @@ build:
 
 ### run_constrained
 
-Express conflicts or optional deps without forcing install:
-
-```yaml
-run_constrained:
-  - conflicting-pkg <0 # never install together
-  - optional-feature >=2.0 # if installed, must be >=2.0
-```
+Conflicts/optional deps without forcing install: `conflicting-pkg <0`, `optional-feature >=2.0`.
 
 ### Pinning Expressions
 
@@ -86,15 +44,7 @@ pin_run_as_build:
 
 ### Scope
 
-- **Global**: aggregate root, applies to all recipes when building from there
-- **Local**: recipe folder, overrides global
-- **meta.yaml**: inline values override both
-
-### Search Order
-
-1. `conda_build_config.yaml` in HOME folder (or .condarc `conda_build/config_file`)
-2. `conda_build_config.yaml` in current working directory
-3. `conda_build_config.yaml` in recipe folder (same as meta.yaml)
+Global (aggregate) → Local (recipe) → meta.yaml inline. Search: HOME → cwd → recipe folder.
 
 ### Key Features
 

@@ -8,9 +8,9 @@ invocation: auto
 
 Handoff: `next: done`.
 
-Lines ≤120 (`max_width = 120`, [[rust/tooling]]). Prefer expression-oriented flow (`match`/`if` as values) over
-mutable accumulators. Early `return`/`?` is idiomatic for guard clauses and error propagation; avoid scattered
-`return`s in the happy path.
+Lines ≤120 (`max_width = 120`, [[rust/tooling]]). Prefer expression-oriented flow (`match`/`if` as values) over mutable
+accumulators. Early `return`/`?` is idiomatic for guard clauses and error propagation; avoid scattered `return`s in the
+happy path.
 
 ## File Order (strict)
 
@@ -28,8 +28,8 @@ mutable accumulators. Early `return`/`?` is idiomatic for guard clauses and erro
 
 ## Modules
 
-- File modules: `foo.rs` + `foo/bar.rs` (2018+ layout). No new `mod.rs` files unless the crate already uses them —
-  match the crate.
+- File modules: `foo.rs` + `foo/bar.rs` (2018+ layout). No new `mod.rs` files unless the crate already uses them — match
+  the crate.
 - One concept per module; a module that needs a `utils` submodule is usually two modules.
 
 ## `use` declarations
@@ -45,13 +45,13 @@ use serde::Deserialize;
 use crate::config::URL_REGISTRY;
 ```
 
-Paths via `crate::`, not `super::super::`. `super::` only inside `mod tests` (`use super::*;`). No glob imports
-outside tests and preludes.
+Paths via `crate::`, not `super::super::`. `super::` only inside `mod tests` (`use super::*;`). No glob imports outside
+tests and preludes.
 
 ## Visibility
 
-**Default to private; widen deliberately.** Order of preference: private → `pub(crate)` → `pub`. A `pub` item is
-API surface — it needs a doc comment and semver care. In binaries, `pub` buys nothing; use `pub(crate)` or private.
+**Default to private; widen deliberately.** Order of preference: private → `pub(crate)` → `pub`. A `pub` item is API
+surface — it needs a doc comment and semver care. In binaries, `pub` buys nothing; use `pub(crate)` or private.
 
 Review gate on every file you create or edit:
 
@@ -66,12 +66,12 @@ rg -n '^\s*pub (fn|struct|enum|trait|const|mod)' <file>   # each hit: is it used
 **Gate before creating any function:** "is this more than one expression, used more than once?" No to either → do not
 create it.
 
-| Pattern                                      | Problem                       | Fix                |
-| -------------------------------------------- | ----------------------------- | ------------------ |
-| `fn name(&self) -> &str { &self.name }` on a private field used only in-crate | Getter ceremony | Field access |
-| `fn normalize(s: &str) -> String { s.trim().to_lowercase() }` used once | Single-use, single expression | Inline + why-comment |
-| Trait with one impl "for testing"            | Sugar at type level           | Concrete type      |
-| `macro_rules!` for a pattern used twice      | Macro magic                   | Function or inline |
+| Pattern                                                                       | Problem                       | Fix                  |
+| ----------------------------------------------------------------------------- | ----------------------------- | -------------------- |
+| `fn name(&self) -> &str { &self.name }` on a private field used only in-crate | Getter ceremony               | Field access         |
+| `fn normalize(s: &str) -> String { s.trim().to_lowercase() }` used once       | Single-use, single expression | Inline + why-comment |
+| Trait with one impl "for testing"                                             | Sugar at type level           | Concrete type        |
+| `macro_rules!` for a pattern used twice                                       | Macro magic                   | Function or inline   |
 
 **When to extract:** reused 3+ times, OR the name documents non-obvious intent, OR the expression obscures the caller.
 
@@ -81,9 +81,9 @@ Rust has no keyword arguments — readability comes from types. Bare `bool`/`Opt
 (`connect(true, None, false)`) → replace with an enum or a builder / options struct
 (`connect(Mode::Tls, Retry::default())`). A function taking >4 parameters gets a params struct.
 
-**Never guess an API.** Read the real signature before calling: rust-analyzer hover, `cargo doc --open -p <crate>`,
-or the source under `~/.cargo/registry/src/`. The compiler catches wrong types, not wrong *semantics* of similarly
-typed parameters (`(width, height)` vs `(height, width)`) — newtypes ([[rust/types]]) close that gap.
+**Never guess an API.** Read the real signature before calling: rust-analyzer hover, `cargo doc --open -p <crate>`, or
+the source under `~/.cargo/registry/src/`. The compiler catches wrong types, not wrong _semantics_ of similarly typed
+parameters (`(width, height)` vs `(height, width)`) — newtypes ([[rust/types]]) close that gap.
 
 ## Comments and docs
 

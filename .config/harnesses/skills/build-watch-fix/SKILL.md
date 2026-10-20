@@ -33,7 +33,7 @@ No table match → full [[debugging]] methodology (hypothesise first, don't gues
 
 ## Orchestration
 
-"orchestrate" → one agent per unique error signature; coordinator aggregates. Each agent owns its signature's full
-debug cycle.
+"orchestrate" → one agent per unique error signature; coordinator aggregates. Each agent owns its signature's full debug
+cycle.
 
 [[python]] [[conda-packaging]]

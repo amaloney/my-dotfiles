@@ -105,20 +105,7 @@ Template vars: `{{ PREFIX }}` `{{ MENU_DIR }}` `{{ PYTHON }}` `{{ BIN_DIR }}`
 
 ## constructor (Installer Building)
 
-**extra_files timing gotcha:** Files can be overwritten by package post-link scripts.
-
-```yaml
-# construct.yaml - copy to PREFIX root, NOT final location
-extra_files:
-  - prompt-menu.json: prompt-menu.json # NOT Menu/anaconda_prompt_menu.json
-```
-
-```batch
-REM post-install.bat - copy AFTER packages installed
-IF EXIST "%PREFIX%\prompt-menu.json" (
-    COPY /Y "%PREFIX%\prompt-menu.json" "%PREFIX%\Menu\anaconda_prompt_menu.json" >NUL 2>&1
-)
-```
+**extra_files gotcha:** copy to PREFIX root (not final location), then move in post-install.bat (after packages).
 
 ## Environment Logging
 

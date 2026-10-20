@@ -5,14 +5,14 @@ groups and individual lints. Use from [[rust]] (Bug Finding), [[bug]] (Rust logi
 
 ## Mapping
 
-| ast-check group | Clippy / rustc lints                                                                                     |
-| --------------- | -------------------------------------------------------------------------------------------------------- |
-| `bugs`          | groups `clippy::correctness`, `clippy::suspicious`; rustc `unused_must_use`, `unreachable_code`; `clippy::let_underscore_must_use`, `clippy::unwrap_in_result`, `clippy::float_cmp` |
-| `security`      | rustc `unsafe_code`; `clippy::undocumented_unsafe_blocks`, `unwrap_used`, `expect_used`, `panic`, `indexing_slicing`, `arithmetic_side_effects`, `cast_possible_truncation`, `string_slice`, `mem_forget` |
+| ast-check group | Clippy / rustc lints                                                                                                                                                                                                         |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `bugs`          | groups `clippy::correctness`, `clippy::suspicious`; rustc `unused_must_use`, `unreachable_code`; `clippy::let_underscore_must_use`, `clippy::unwrap_in_result`, `clippy::float_cmp`                                          |
+| `security`      | rustc `unsafe_code`; `clippy::undocumented_unsafe_blocks`, `unwrap_used`, `expect_used`, `panic`, `indexing_slicing`, `arithmetic_side_effects`, `cast_possible_truncation`, `string_slice`, `mem_forget`                    |
 | `quality`       | groups `clippy::complexity`, `clippy::perf`; `cognitive_complexity`, `too_many_lines`, `too_many_arguments`, `excessive_nesting` (needs `clippy.toml` threshold), `needless_pass_by_value`, `redundant_clone`, `unused_self` |
-| `structure`     | `clippy::items_after_statements`, `items_after_test_module`, `mod_module_files` (bans `mod.rs`) or `self_named_module_files` (bans `foo.rs` + `foo/`) — pick the one matching [[rust/structure]] |
-| `underscore`    | `clippy::used_underscore_binding`, `used_underscore_items` (a `_name` that is actually used)             |
-| `undefined`     | the compiler — unresolved names don't build                                                              |
+| `structure`     | `clippy::items_after_statements`, `items_after_test_module`, `mod_module_files` (bans `mod.rs`) or `self_named_module_files` (bans `foo.rs` + `foo/`) — pick the one matching [[rust/structure]]                             |
+| `underscore`    | `clippy::used_underscore_binding`, `used_underscore_items` (a `_name` that is actually used)                                                                                                                                 |
+| `undefined`     | the compiler — unresolved names don't build                                                                                                                                                                                  |
 
 ## One-shot run (no Cargo.toml edits)
 

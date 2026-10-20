@@ -30,8 +30,7 @@ def as_dot(nodes: set[str], edges: set[tuple[str, str]]) -> str:
 
 
 def as_html(nodes: set[str], edges: set[tuple[str, str]]) -> str:
-    out = ["<!doctype html><meta charset=utf-8><title>Research graph</title>",
-           "<h1>Research graph</h1>"]
+    out = ["<!doctype html><meta charset=utf-8><title>Research graph</title>", "<h1>Research graph</h1>"]
     outlinks = {n: sorted(b for a, b in edges if a == n) for n in sorted(nodes)}
     for n in sorted(nodes):
         out.append(f'<details id="{n}"><summary>{n}</summary><ul>')
@@ -46,8 +45,7 @@ def main(argv: list[str]) -> None:
     out = Path(argv[argv.index("-o") + 1] if "-o" in argv else f"graph.{fmt}")
     nodes, edges = collect(root)
     data = {"nodes": sorted(nodes), "edges": sorted(map(list, edges))}
-    text = {"json": json.dumps(data, indent=2), "dot": as_dot(nodes, edges)}.get(
-        fmt, as_html(nodes, edges))
+    text = {"json": json.dumps(data, indent=2), "dot": as_dot(nodes, edges)}.get(fmt, as_html(nodes, edges))
     out.write_text(text, encoding="utf-8")
     print(f"{len(nodes)} nodes, {len(edges)} edges -> {out}")
 

@@ -11,11 +11,11 @@ Handoff: `next: done`.
 
 ## Registry
 
-| Skill                     | Purpose                    | Triggers                                  |
-| ------------------------- | -------------------------- | ----------------------------------------- |
-| [[conda-packaging]]       | Package building           | recipe, meta.yaml, pinnings, build        |
-| [[conda-internal]]        | Anaconda-internal tooling  | aggregate, PBP, AnacondaRecipes           |
-| [[conda-anaconda-tools]]  | Anaconda enterprise tools  | auth, client, audit, menuinst, constructor |
+| Skill                    | Purpose                   | Triggers                                   |
+| ------------------------ | ------------------------- | ------------------------------------------ |
+| [[conda-packaging]]      | Package building          | recipe, meta.yaml, pinnings, build         |
+| [[conda-internal]]       | Anaconda-internal tooling | aggregate, PBP, AnacondaRecipes            |
+| [[conda-anaconda-tools]] | Anaconda enterprise tools | auth, client, audit, menuinst, constructor |
 
 ## Package Priority
 
@@ -29,40 +29,17 @@ Handoff: `next: done`.
 
 ## Commands
 
-```bash
-# Create env
-conda create -n proj python=3.11
-conda activate proj
-
-# Install
-conda install numpy pandas    # defaults first
-conda install -c conda-forge pkg    # if needed
-
-# Export
-conda env export --from-history > environment.yml
-
-# Lockfile (reproducibility)
-conda-lock -f environment.yml -p linux-64 -p osx-64
-conda-lock install --name proj conda-lock.yml
-
-# Update
-conda env update -f environment.yml --prune
-```
+| Task    | Command                                                   |
+| ------- | --------------------------------------------------------- |
+| Create  | `conda create -n proj python=3.11 && conda activate proj` |
+| Install | `conda install pkg` (defaults) or `-c conda-forge`        |
+| Export  | `conda env export --from-history > environment.yml`       |
+| Lock    | `conda-lock -f environment.yml -p linux-64 -p osx-64`     |
+| Update  | `conda env update -f environment.yml --prune`             |
 
 ## Full Paths Required
 
-**NEVER `python script.py`** — use full path:
-
-```bash
-/opt/miniconda3/envs/proj/bin/python script.py
-$(which python) -m pytest tests/
-```
-
-| ❌ Wrong        | ✅ Correct                       |
-| --------------- | -------------------------------- |
-| `python app.py` | `/path/to/env/bin/python app.py` |
-| `pytest`        | `$(which pytest)`                |
-| `black .`       | `/path/to/env/bin/black .`       |
+**NEVER bare commands** — use `$(which python)` or full path `/path/to/env/bin/python`.
 
 ## environment.yml
 
@@ -82,28 +59,15 @@ dependencies:
 
 ## Mixing Conda + Pip
 
-1. Install ALL conda packages first
-2. Then pip packages
-3. Document pip deps in `pip:` section
-4. **Never** re-run `conda install` after pip
+Conda first → then pip → never `conda install` after pip. Document pip deps in `pip:` section.
 
 ## Policy
 
-**Conda first** — follow the [Package Priority](#package-priority) table. Additionally:
-
-1. **Environments only** — never global
-2. **Lock it** — conda-lock for prod
-3. **Full paths always** — explicit > implicit
-4. **No venv** — conda envs only
-5. **Commit** — environment.yml + lockfiles to git
+Conda first. Environments only. Lock for prod. Full paths. No venv. Commit environment.yml + lockfiles.
 
 ## Virtual Packages
 
-```bash
-conda info    # Shows __glibc, __cuda, __osx, __archspec
-```
-
-Auto-detected system constraints for solver (GPU drivers, glibc version, CPU arch).
+`conda info` shows __glibc, __cuda, __osx, __archspec — auto-detected system constraints for solver.
 
 ## Troubleshooting
 
@@ -116,13 +80,8 @@ Auto-detected system constraints for solver (GPU drivers, glibc version, CPU arc
 
 ## Modern Tools
 
-- **pixi**: Auto-lockfiles, faster. `pixi add pkg`
-- **mamba**: Drop-in faster conda. `mamba install pkg`
-- **libmamba solver**: Default in conda 23.10+
+pixi (auto-lockfiles), mamba (faster), libmamba solver (default 23.10+).
 
 ## Conda in PowerShell
 
-```powershell
-$hook = Join-Path $env:CONDA_PREFIX "shell\condabin\conda-hook.ps1"
-if (Test-Path $hook) { . $hook; conda activate $env:CONDA_PREFIX }
-```
+`. (Join-Path $env:CONDA_PREFIX "shell\condabin\conda-hook.ps1"); conda activate $env:CONDA_PREFIX`

@@ -57,7 +57,8 @@ cat << 'EOF'                       # Here-doc, 'EOF' = no expansion
 
 - Scratch outputs (scripts, fetched pages) → `.scratch/<task>/`; `<task>` = short task name
 - Adhoc code: write to file, then run. Never `python -c` inline
-- Fetched web results → `.scratch/research/`: save as PDF (visual fidelity for human review) + markdown (agent consumption)
+- Fetched web results → `.scratch/research/`: save as PDF (visual fidelity for human review) + markdown (agent
+  consumption)
 - Ensure `.scratch/.gitignore` exists with `**/*`
 
 ## CI/CD Shell
@@ -71,10 +72,10 @@ echo "VAR=value" >> "$GITHUB_ENV"              # Set env for next steps
 
 ## References
 
-| Reference                    | Contents                                 |
-| ---------------------------- | ---------------------------------------- |
-| references/variables.md      | Variables & expansion, arrays, POSIX vs Bash |
-| references/jq.md             | jq JSON patterns                         |
-| references/processes.md      | xargs/parallel, process/signals          |
-| references/text-and-http.md  | curl, awk/sed                            |
-| references/template.md       | Script boilerplate template              |
+| Reference                   | Contents                                     |
+| --------------------------- | -------------------------------------------- |
+| references/variables.md     | Variables & expansion, arrays, POSIX vs Bash |
+| references/jq.md            | jq JSON patterns                             |
+| references/processes.md     | xargs/parallel, process/signals              |
+| references/text-and-http.md | curl, awk/sed                                |
+| references/template.md      | Script boilerplate template                  |

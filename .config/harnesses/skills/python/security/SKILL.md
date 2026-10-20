@@ -62,47 +62,14 @@ rg -n "verify\s*=\s*False|CERT_NONE" --type py
 | Eval/exec          | `eval(user_input)`               | AST parsing or sandboxed eval    |
 | Template injection | `render(user_template)`          | Sandboxed templates              |
 
-## Secrets — VULNERABLE vs SECURE
+## Secrets
 
-**Report when:** Default value feeds signing, encryption, session, or token machinery. **Skip when:** Defaults generated
-per-boot at random, cache keys, correlation ids.
+Report: default feeds signing/encryption/session/token. Skip: per-boot random, cache keys, correlation ids.
+`env.get(X, Y)` runs with default → vulnerable. `env[X]` crashes → secure.
 
-The decisive question: does the app **run** with it? `env.get(X, Y)` runs; `env[X]` crashes.
+## Crypto
 
-```python
-# VULNERABLE — app runs with known secret, attacker can forge tokens
-SECRET_KEY = os.environ.get('SECRET_KEY', 'dev-secret-key-123')
-token = jwt.encode({'user': id}, SECRET_KEY, algorithm='HS256')
-
-# SECURE — fails fast if missing
-SECRET_KEY = os.environ['SECRET_KEY']  # Raises KeyError
-
-# SECURE — explicit validation
-SECRET_KEY = os.getenv("KEY")
-if not SECRET_KEY:
-    raise RuntimeError("KEY required")
-```
-
-## Crypto — VULNERABLE vs SECURE
-
-**Report when:** Broken primitive for password hashing, token generation, encryption. **Skip when:** Checksums, ETags,
-cache keys, dedup hashes, test vectors.
-
-The algorithm alone is never the finding. Trace to the use site before flagging.
-
-```python
-# VULNERABLE — MD5 for password (rainbow tables exist)
-def hash_password(password):
-    return hashlib.md5(password.encode()).hexdigest()
-
-# SECURE — MD5 for cache key (not security-sensitive)
-def cache_key(data):
-    return hashlib.md5(data.encode()).hexdigest()
-
-# SECURE — proper password hashing
-import bcrypt
-def hash_password(password):
-    return bcrypt.hashpw(password.encode(), bcrypt.gensalt())
-```
+Report: broken primitive for passwords/tokens/encryption. Skip: checksums, ETags, cache keys, test vectors. Algorithm
+alone not the finding — trace to use site. MD5 for cache OK; MD5 for password vulnerable.
 
 [[debugging]] [[python/testing]] [[python/violations]]

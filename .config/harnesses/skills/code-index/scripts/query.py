@@ -19,7 +19,9 @@ try:
     import chromadb
     from chromadb.config import Settings
 except ImportError:
-    print("ChromaDB not installed. Install with: pixi add --feature dev chromadb  (code-index SKILL.md has the full env)")
+    print(
+        "ChromaDB not installed. Install with: pixi add --feature dev chromadb  (code-index SKILL.md has the full env)"
+    )
     sys.exit(1)
 
 SCRIPT_DIR = Path(__file__).parent
@@ -32,9 +34,7 @@ def get_collection():
         print("Index not found. Run build_index.py first.")
         sys.exit(1)
 
-    client = chromadb.PersistentClient(
-        path=str(db_dir), settings=Settings(anonymized_telemetry=False)
-    )
+    client = chromadb.PersistentClient(path=str(db_dir), settings=Settings(anonymized_telemetry=False))
     return client.get_collection("code_entities")
 
 
@@ -131,11 +131,7 @@ def list_methods(class_name: str | None = None):
     results = collection.get(where=where_filter, include=["metadatas"])
 
     if not results["ids"]:
-        msg = (
-            f"No methods found for class {class_name}"
-            if class_name
-            else "No methods found"
-        )
+        msg = f"No methods found for class {class_name}" if class_name else "No methods found"
         print(msg)
         return
 
@@ -232,9 +228,7 @@ def similar(name: str, n_results: int = 5):
         else:
             full_name = meta["name"]
         file_name = Path(meta["file"]).name
-        print(
-            f"  {1 - dist:.2f}  {meta['type']:8}  {full_name:40}  [{file_name}:{meta['line']}]"
-        )
+        print(f"  {1 - dist:.2f}  {meta['type']:8}  {full_name:40}  [{file_name}:{meta['line']}]")
         count += 1
         if count >= n_results:
             break

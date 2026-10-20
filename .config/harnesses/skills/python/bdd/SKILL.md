@@ -10,14 +10,7 @@ Handoff: `next: done`.
 
 ## Structure
 
-```
-features/
-├── login.feature           # Gherkin specs
-├── steps/
-│   └── login_steps.py      # Step implementations
-├── environment.py          # Hooks
-└── conftest.py             # Shared fixtures
-```
+`features/` → `*.feature` (specs), `steps/*.py` (impls), `environment.py` (hooks), `conftest.py` (fixtures).
 
 ## Feature File
 
@@ -140,8 +133,6 @@ def step_config(context):
 
 ## Setup
 
-```bash
-pip install behave selenium
-```
+`pip install behave selenium`
 
 [[python/testing]] [[python/mocking]] [[python/conftest]]

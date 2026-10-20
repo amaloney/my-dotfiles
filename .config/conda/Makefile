@@ -1,6 +1,16 @@
-PREFIX := ./.conda
-LOCK := conda-lock.yml
-SPEC := environment.yml
+# Environment name (default, lint, etc.)
+ENV ?= default
+
+# Paths derived from ENV
+PREFIX := ./.conda/$(ENV)
+ifeq ($(ENV),default)
+  LOCK := conda-lock.yml
+  SPEC := environment.yml
+else
+  LOCK := conda-lock-$(ENV).yml
+  SPEC := environment-$(ENV).yml
+endif
+
 export CONDARC := $(CURDIR)/.condarc
 
 .PHONY: help env lock clean
@@ -10,11 +20,18 @@ help:
 	@echo "Requires conda 26.5+ (built-in lockfiles)."
 	@echo ""
 	@echo "Usage:"
-	@echo "  make env    rebuild ./.conda from conda-lock.yml (falls back to environment.yml)"
-	@echo "  make lock   sync ./.conda to environment.yml, then regenerate conda-lock.yml"
-	@echo "  make clean  delete ./.conda"
+	@echo "  make env [ENV=name]    rebuild ./.conda/<name> from lockfile"
+	@echo "  make lock [ENV=name]   sync environment and regenerate lockfile"
+	@echo "  make clean [ENV=name]  delete ./.conda/<name>"
+	@echo ""
+	@echo "Environments: default (Python 3.13), lint (Python 3.10)"
+	@echo ""
+	@echo "Examples:"
+	@echo "  make env               # build default environment"
+	@echo "  make env ENV=lint      # build lint environment"
 
 env:
+	@mkdir -p ./.conda && echo '**/*' > ./.conda/.gitignore
 	rm -rf $(PREFIX)
 	@if [ -f $(LOCK) ]; then \
 		conda create --yes -p $(PREFIX) --file $(LOCK); \

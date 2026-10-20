@@ -10,38 +10,22 @@ keywords: ["python"]
 
 Handoff: `next: done`.
 
-## Session Start (Recon)
+## Session Start
 
-```bash
-# Check profile exists and is fresh (<7 days)
-test -f .harness/code_index/profile.json && \
-  find .harness/code_index/profile.json -mtime -7 | grep -q . && \
-  echo "profile: current" || echo "profile: needs update"
-```
-
-Missing or stale → run [[python/recon]]. Profile consumed by all python skills.
+Profile check: `test -f .harness/code_index/profile.json && find .harness/code_index/profile.json -mtime -7 | grep -q .`
+Missing/stale → [[python/recon]].
 
 ## Pre-Generation
 
-```bash
-# Query profile for context
-cat .harness/code_index/profile.json | jq '.patterns.config_py_path'
-
-# Search indexed code for existing implementations
-python3 .harness/code_index/query.py search "<pattern>"   # If code index exists
-```
-
-Similar exists → extend. Check `profile.patterns.config_py_path` for constants.
+Query profile: `jq '.patterns.config_py_path' .harness/code_index/profile.json` Search:
+`python3 .harness/code_index/query.py search "<pattern>"` Similar exists → extend.
 
 ## Post-Generation
 
-1. `bash ~/.config/harnesses/scripts/style-gates.sh <changed paths>` — all review-time gates (ruff, naming,
-   relative imports, underscore rule, ast structure) in one command; paste clean output as evidence
-2. [[bug]] — audit (logic, edge/IO/security)
-3. [[python/violations]] — ruff + structure
-4. [[python/test-gen]] — if 1–3 pass
+1. `style-gates.sh <paths>` — paste output as evidence
+2. [[bug]] → [[python/violations]] → [[python/test-gen]]
 
-2 fix cycles max → report to user.
+2 fix cycles max.
 
 ## Registry
 
@@ -86,10 +70,7 @@ Test-type skill selection: [[python/test-gen]].
 
 ## Bug Finding
 
-```bash
-python3 ~/.config/harnesses/skills/ast-check/scripts/ast_checker.py src/
-rg -n "\._[a-z][a-z_]+\(" --type py src/               # Fallback
-```
+`ast_checker.py src/` or `rg -n "\._[a-z][a-z_]+\(" --type py src/`
 
 ## Principles
 
@@ -103,27 +84,16 @@ rg -n "\._[a-z][a-z_]+\(" --type py src/               # Fallback
 
 ## Execution
 
-**Prescriptive** — load skill first, spawn sub-agents, no exploring.
+**Prescriptive** — skill first, sub-agents, no exploring.
 
-**Orchestration triggers**: "orchestrate", "fan-out", OR "implement/execute this plan" where the plan has
-≥3 tasks. Plan execution defaults to subagent-per-task with reviewer gates unless the user explicitly
-chose native. Native is the exception for <3-task plans or trivial diffs — state the choice and reason
-before starting.
+**Orchestration**: "orchestrate"/"fan-out" OR plan ≥3 tasks → subagent-per-task with reviewers. <3 tasks or trivial →
+native (state reason).
 
-**Plan-execution precondition** — before executing an approved plan, verify each task names its pipeline
-stage ([[writing-plans]] stage annotations). Stages missing → annotate the plan from the Pipelines table
-first, or hand it back through [[writing-plans]]. Plan approval is never license to skip stages.
+**Plan precondition**: verify tasks have pipeline stage annotations ([[writing-plans]]). Missing → annotate or return.
 
-**Reviewer agents apply the AGENTS.md disprove-first invariant.** Prompt every reviewer with: "Assume
-this change is wrong. Hunt for violations of [[python/structure]] (sugar gate, constants placement),
-[[python/naming]] (underscore misuse, cryptic abbreviations — run the naming grep gate), and [[python/errors]] (exit shape). Run
-`~/.config/harnesses/scripts/style-gates.sh` on the diff and report its output. Report findings with
-file:line." A reviewer that finds nothing must say why each gate was checked and show clean gate output, not just "looks good".
+**Reviewers**: disprove-first. Prompt: "Assume wrong. Hunt [[python/structure]], [[python/naming]], [[python/errors]].
+Run `style-gates.sh`, report file:line." No findings → show gate output.
 
-1. Match task → pipeline
-2. Each step: `Agent({ prompt: "Load [[python/<skill>]]. <task> + <artifact>" })`
-3. **Gate**: violations and bugs must pass before test-gen
-   - violations: `ruff check` returns clean
-   - bugs: agent confirms no issues found
-4. Pass artifacts between agents
-5. Return after final
+1. Task → pipeline → `Agent({ prompt: "[[python/<skill>]] + <artifact>" })`
+2. Gate: violations + bugs clean before test-gen
+3. Pass artifacts, return after final

@@ -370,11 +370,7 @@ class SecurityChecker(ast.NodeVisitor):
             "Popen",
         ):
             for keyword in node.keywords:
-                if (
-                    keyword.arg == "shell"
-                    and isinstance(keyword.value, ast.Constant)
-                    and keyword.value.value is True
-                ):
+                if keyword.arg == "shell" and isinstance(keyword.value, ast.Constant) and keyword.value.value is True:
                     self.issues.append(
                         Issue(
                             file=str(self.filepath),
@@ -451,9 +447,7 @@ class SecurityChecker(ast.NodeVisitor):
     def visit_BinOp(self, node: ast.BinOp) -> None:
         # Check for SQL injection patterns (string concatenation with SQL keywords)
         if isinstance(node.op, ast.Add):
-            sql_pattern = re.compile(
-                r"\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER)\b", re.IGNORECASE
-            )
+            sql_pattern = re.compile(r"\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER)\b", re.IGNORECASE)
             left_str = self._get_string_value(node.left)
 
             if left_str and sql_pattern.search(left_str) and isinstance(node.right, (ast.Name, ast.BinOp)):
@@ -597,23 +591,15 @@ class QualityChecker(ast.NodeVisitor):
                         self._calculate_max_depth(stmt.orelse, current_depth + 1),
                     )
                 elif isinstance(stmt, (ast.For, ast.While, ast.AsyncFor, ast.With, ast.AsyncWith)):
-                    child_depth = self._calculate_max_depth(
-                        stmt.body, current_depth + 1
-                    )
+                    child_depth = self._calculate_max_depth(stmt.body, current_depth + 1)
                 elif isinstance(stmt, ast.Try):
                     depths = [self._calculate_max_depth(stmt.body, current_depth + 1)]
                     for handler in stmt.handlers:
-                        depths.append(
-                            self._calculate_max_depth(handler.body, current_depth + 1)
-                        )
+                        depths.append(self._calculate_max_depth(handler.body, current_depth + 1))
                     if stmt.orelse:
-                        depths.append(
-                            self._calculate_max_depth(stmt.orelse, current_depth + 1)
-                        )
+                        depths.append(self._calculate_max_depth(stmt.orelse, current_depth + 1))
                     if stmt.finalbody:
-                        depths.append(
-                            self._calculate_max_depth(stmt.finalbody, current_depth + 1)
-                        )
+                        depths.append(self._calculate_max_depth(stmt.finalbody, current_depth + 1))
                     child_depth = max(depths)
                 max_depth = max(max_depth, child_depth)
         return max_depth
@@ -651,12 +637,8 @@ class StructureChecker(ast.NodeVisitor):
                 for target in node.targets:
                     if isinstance(target, ast.Name):
                         name = target.id
-                        if name.isupper() or (
-                            name.startswith("_") and name[1:].isupper()
-                        ):
-                            self.module_constants.append(
-                                (name, node.lineno, node.value)
-                            )
+                        if name.isupper() or (name.startswith("_") and name[1:].isupper()):
+                            self.module_constants.append((name, node.lineno, node.value))
 
     def _references_class(self, value: ast.expr | None) -> bool:
         """Check if value references any defined class (e.g., enum values)."""
@@ -713,16 +695,10 @@ class LoggingChecker(ast.NodeVisitor):
         self.issues: list[Issue] = []
 
     def visit_Call(self, node: ast.Call) -> None:
-        if (
-            isinstance(node.func, ast.Attribute)
-            and node.func.attr in self.LOGGER_METHODS
-            and node.args
-        ):
+        if isinstance(node.func, ast.Attribute) and node.func.attr in self.LOGGER_METHODS and node.args:
             # Check for %-formatting in logging
             first_arg = node.args[0]
-            if isinstance(first_arg, ast.BinOp) and isinstance(
-                first_arg.op, ast.Mod
-            ):
+            if isinstance(first_arg, ast.BinOp) and isinstance(first_arg.op, ast.Mod):
                 self.issues.append(
                     Issue(
                         file=str(self.filepath),
@@ -736,8 +712,7 @@ class LoggingChecker(ast.NodeVisitor):
                 )
             # Check for .format() in logging
             elif isinstance(first_arg, ast.Call) and (
-                isinstance(first_arg.func, ast.Attribute)
-                and first_arg.func.attr == "format"
+                isinstance(first_arg.func, ast.Attribute) and first_arg.func.attr == "format"
             ):
                 self.issues.append(
                     Issue(
@@ -910,13 +885,7 @@ def check_undefined_calls(src_dir: Path) -> list[Issue]:
             analyzer = CallAnalyzer(py_file)
             analyzer.visit(tree)
 
-            local_scope = (
-                analyzer.local_defs
-                | analyzer.imports
-                | analyzer.parameters
-                | builtins
-                | all_defs
-            )
+            local_scope = analyzer.local_defs | analyzer.imports | analyzer.parameters | builtins | all_defs
 
             for call_name, lineno, call_type in analyzer.calls:
                 if call_type == "method":
@@ -1020,9 +989,7 @@ def print_issues(issues: list[Issue], verbose: bool = False) -> None:
     warnings = [i for i in issues if i.severity == "warning"]
     infos = [i for i in issues if i.severity == "info"]
 
-    print(
-        f"Found {len(issues)} issue(s): {len(errors)} errors, {len(warnings)} warnings, {len(infos)} info\n"
-    )
+    print(f"Found {len(issues)} issue(s): {len(errors)} errors, {len(warnings)} warnings, {len(infos)} info\n")
 
     current_file = None
     for issue in issues:
@@ -1030,9 +997,7 @@ def print_issues(issues: list[Issue], verbose: bool = False) -> None:
             current_file = issue.file
             print(f"\n{issue.file}:")
 
-        severity_icon = {"error": "✗", "warning": "⚠", "info": "ℹ"}.get(
-            issue.severity, "•"
-        )
+        severity_icon = {"error": "✗", "warning": "⚠", "info": "ℹ"}.get(issue.severity, "•")
         print(f"  L{issue.line}: {severity_icon} [{issue.check}] {issue.message}")
         if issue.suggestion and verbose:
             print(f"         → {issue.suggestion}")

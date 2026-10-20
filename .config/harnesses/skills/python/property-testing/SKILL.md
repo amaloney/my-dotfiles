@@ -23,9 +23,7 @@ Recognize algebraic shapes:
 | Commutativity  | `f(a, b) == f(b, a)`     | Binary and set operations            |
 | Identity       | `f(x, e) == x`           | Operations with neutral element      |
 
-**Strength ordering** (weakest → strongest): `no crash → type preservation → invariant → idempotence → roundtrip/oracle`
-
-Assert the strongest property the code supports. "No crash" alone rarely justifies the dependency.
+**Strength**: no crash → type preservation → invariant → idempotence → roundtrip/oracle. Assert strongest supported.
 
 ## Core Patterns
 
@@ -111,27 +109,14 @@ settings.load_profile(os.getenv("HYPOTHESIS_PROFILE", "dev"))
 
 ## Counterexample Triage
 
-When test fails with shrunk example:
+Shrunk example fails: wrong property? ambiguous spec? real bug? Investigate before fixing.
 
-1. **Wrong property?** Does the property actually hold? Check edge cases
-2. **Ambiguous spec?** Is behavior undefined for this input?
-3. **Real bug?** Code violates the intended property → fix code
+## Property Traps
 
-```python
-# Hypothesis prints minimal failing example
-Falsifying example: test_roundtrip(s='\x00')
-# Investigate: is null byte valid input? Should encode handle it?
-```
-
-## Two Ways a Property Asserts Nothing
-
-| Trap          | Example                     | Fix                                                                         |
-| ------------- | --------------------------- | --------------------------------------------------------------------------- |
-| **Tautology** | `assert add(a, b) == a + b` | Restates implementation — pick property that constrains without recomputing |
-| **Vacuity**   | Heavy `assume()` filtering  | Filters out nearly every input — push constraints into strategy instead     |
-
-Exception: `f(x) == f(x)` is valid determinism property when `f` is not obviously pure (serializers, hashing, clock
-readers).
+| Trap                                 | Fix                            |
+| ------------------------------------ | ------------------------------ |
+| Tautology (`assert add(a,b) == a+b`) | Constrain without recomputing  |
+| Vacuity (heavy `assume()`)           | Push constraints into strategy |
 
 ## Anti-Patterns
 

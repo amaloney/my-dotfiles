@@ -10,15 +10,8 @@ Handoff: `next: verify`.
 
 ## Targeted Testing
 
-**NEVER `pytest tests/`** — scope to changed modules:
-
-```bash
-pytest tests/foo/test_bar.py -x           # specific file
-pytest tests/foo/test_bar.py::test_func   # specific test
-pytest -k "login and not slow"            # keyword match
-```
-
-Mirror: `src/foo/bar.py` → `tests/foo/test_bar.py`
+**Never `pytest tests/`** — scope: `pytest tests/foo/test_bar.py -x` or `::test_func` or `-k "login"`. Mirror:
+`src/foo/bar.py` → `tests/foo/test_bar.py`.
 
 ## Basic Patterns
 
@@ -116,10 +109,6 @@ filterwarnings = ["ignore::DeprecationWarning"]
 
 ## Debug
 
-```python
-breakpoint()                           # drop into debugger
-pytest --pdb                           # enter pdb on failure
-pytest -s                              # show print output
-```
+`breakpoint()`, `pytest --pdb`, `pytest -s`.
 
 [[python/conftest]] [[python/mocking]] [[python/property-testing]] [[python/test-gen]] [[test-driven-development]]

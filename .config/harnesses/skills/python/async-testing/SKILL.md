@@ -10,15 +10,7 @@ Handoff: `next: done`.
 
 ## Setup
 
-```bash
-uv add --group test pytest-asyncio
-```
-
-```toml
-# pyproject.toml
-[tool.pytest.ini_options]
-asyncio_mode = "auto"  # or use @pytest.mark.asyncio per test
-```
+`uv add --group test pytest-asyncio`. Config: `asyncio_mode = "auto"` or `@pytest.mark.asyncio` per test.
 
 ## Basic Patterns
 

@@ -15,7 +15,9 @@ try:
     import chromadb
     from chromadb.config import Settings
 except ImportError:
-    print("ChromaDB not installed. Install with: pixi add --feature dev chromadb  (code-index SKILL.md has the full env)")
+    print(
+        "ChromaDB not installed. Install with: pixi add --feature dev chromadb  (code-index SKILL.md has the full env)"
+    )
     sys.exit(1)
 
 
@@ -58,26 +60,25 @@ class CodeGraphQuery:
 
         where = {"type": entity_type} if entity_type else None
         results = collection.query(
-            query_texts=[query],
-            n_results=n_results,
-            where=where,
-            include=["metadatas", "documents", "distances"]
+            query_texts=[query], n_results=n_results, where=where, include=["metadatas", "documents", "distances"]
         )
 
         entities = []
         for i in range(len(results["documents"][0])):
             meta = results["metadatas"][0][i]
             distance = results["distances"][0][i] if results.get("distances") else None
-            entities.append({
-                "name": meta.get("name"),
-                "type": meta.get("type"),
-                "qualified_name": meta.get("qualified_name"),
-                "file": meta.get("file"),
-                "line": meta.get("line"),
-                "signature": meta.get("signature"),
-                "valid_from": meta.get("valid_from"),
-                "distance": distance,
-            })
+            entities.append(
+                {
+                    "name": meta.get("name"),
+                    "type": meta.get("type"),
+                    "qualified_name": meta.get("qualified_name"),
+                    "file": meta.get("file"),
+                    "line": meta.get("line"),
+                    "signature": meta.get("signature"),
+                    "valid_from": meta.get("valid_from"),
+                    "distance": distance,
+                }
+            )
         return entities
 
     def similar(self, entity_name: str, n_results: int = 5) -> list[dict]:
@@ -85,10 +86,7 @@ class CodeGraphQuery:
         collection = self._get_collection()
 
         # Find the entity first
-        results = collection.get(
-            where={"name": entity_name},
-            include=["documents"]
-        )
+        results = collection.get(where={"name": entity_name}, include=["documents"])
         if not results["documents"]:
             return []
 
@@ -103,31 +101,40 @@ class CodeGraphQuery:
     def entities_at_time(self, timestamp: str) -> list[dict]:
         """Get entities that existed at a specific time."""
         conn = self._get_conn()
-        cursor = conn.execute("""
+        cursor = conn.execute(
+            """
             SELECT * FROM entities
             WHERE valid_from <= ?
               AND (valid_until IS NULL OR valid_until > ?)
             ORDER BY qualified_name
-        """, (timestamp, timestamp))
+        """,
+            (timestamp, timestamp),
+        )
         return [dict(row) for row in cursor.fetchall()]
 
     def changes_since(self, timestamp: str) -> dict:
         """Get entities added/removed since a timestamp."""
         conn = self._get_conn()
 
-        added = conn.execute("""
+        added = conn.execute(
+            """
             SELECT qualified_name, entity_type, file_path, valid_from
             FROM entities
             WHERE valid_from > ?
             ORDER BY valid_from DESC
-        """, (timestamp,)).fetchall()
+        """,
+            (timestamp,),
+        ).fetchall()
 
-        removed = conn.execute("""
+        removed = conn.execute(
+            """
             SELECT qualified_name, entity_type, file_path, valid_until
             FROM entities
             WHERE valid_until IS NOT NULL AND valid_until > ?
             ORDER BY valid_until DESC
-        """, (timestamp,)).fetchall()
+        """,
+            (timestamp,),
+        ).fetchall()
 
         return {
             "added": [dict(row) for row in added],
@@ -137,13 +144,16 @@ class CodeGraphQuery:
     def entity_history(self, name: str) -> list[dict]:
         """Get history of an entity by name."""
         conn = self._get_conn()
-        cursor = conn.execute("""
+        cursor = conn.execute(
+            """
             SELECT e.*, c.message as commit_message
             FROM entities e
             LEFT JOIN commits c ON e.commit_sha_from = c.sha
             WHERE e.name = ? OR e.qualified_name LIKE ?
             ORDER BY e.valid_from DESC
-        """, (name, f"%{name}%"))
+        """,
+            (name, f"%{name}%"),
+        )
         return [dict(row) for row in cursor.fetchall()]
 
     # ═══════════════════════════════════════════════════════════════
@@ -153,7 +163,8 @@ class CodeGraphQuery:
     def callers_of(self, name: str) -> list[dict]:
         """Find all entities that call a given function/method."""
         conn = self._get_conn()
-        cursor = conn.execute("""
+        cursor = conn.execute(
+            """
             SELECT e.name, e.entity_type, e.qualified_name, e.file_path, r.line_number
             FROM relations r
             JOIN entities e ON r.source_id = e.id
@@ -161,13 +172,16 @@ class CodeGraphQuery:
               AND r.target_name LIKE ?
               AND r.valid_until IS NULL
             ORDER BY e.file_path, r.line_number
-        """, (f"%{name}%",))
+        """,
+            (f"%{name}%",),
+        )
         return [dict(row) for row in cursor.fetchall()]
 
     def calls_from(self, name: str) -> list[dict]:
         """Find all functions/methods called by a given entity."""
         conn = self._get_conn()
-        cursor = conn.execute("""
+        cursor = conn.execute(
+            """
             SELECT DISTINCT r.target_name, r.line_number, e.entity_type as source_type
             FROM relations r
             JOIN entities e ON r.source_id = e.id
@@ -175,7 +189,9 @@ class CodeGraphQuery:
               AND (e.name = ? OR e.qualified_name LIKE ?)
               AND r.valid_until IS NULL
             ORDER BY r.line_number
-        """, (name, f"%{name}%"))
+        """,
+            (name, f"%{name}%"),
+        )
         return [dict(row) for row in cursor.fetchall()]
 
     def inheritance_tree(self, class_name: str) -> dict:
@@ -183,24 +199,30 @@ class CodeGraphQuery:
         conn = self._get_conn()
 
         # Get parents (what this class inherits from)
-        parents = conn.execute("""
+        parents = conn.execute(
+            """
             SELECT r.target_name
             FROM relations r
             JOIN entities e ON r.source_id = e.id
             WHERE r.rel_type = 'inherits'
               AND (e.name = ? OR e.qualified_name LIKE ?)
               AND r.valid_until IS NULL
-        """, (class_name, f"%{class_name}%")).fetchall()
+        """,
+            (class_name, f"%{class_name}%"),
+        ).fetchall()
 
         # Get children (what inherits from this class)
-        children = conn.execute("""
+        children = conn.execute(
+            """
             SELECT e.name, e.qualified_name
             FROM relations r
             JOIN entities e ON r.source_id = e.id
             WHERE r.rel_type = 'inherits'
               AND r.target_name LIKE ?
               AND r.valid_until IS NULL
-        """, (f"%{class_name}%",)).fetchall()
+        """,
+            (f"%{class_name}%",),
+        ).fetchall()
 
         return {
             "class": class_name,
@@ -211,7 +233,8 @@ class CodeGraphQuery:
     def dependencies_of(self, name: str) -> dict:
         """Get all dependencies of an entity (calls, imports, uses_type)."""
         conn = self._get_conn()
-        cursor = conn.execute("""
+        cursor = conn.execute(
+            """
             SELECT r.rel_type, r.target_name, COUNT(*) as count
             FROM relations r
             JOIN entities e ON r.source_id = e.id
@@ -219,7 +242,9 @@ class CodeGraphQuery:
               AND r.valid_until IS NULL
             GROUP BY r.rel_type, r.target_name
             ORDER BY r.rel_type, count DESC
-        """, (name, f"%{name}%"))
+        """,
+            (name, f"%{name}%"),
+        )
 
         deps = {"calls": [], "imports": [], "uses_type": [], "inherits": [], "raises": []}
         for row in cursor.fetchall():
@@ -236,24 +261,30 @@ class CodeGraphQuery:
         callers = self.callers_of(name)
 
         # Classes that inherit
-        inheritors = conn.execute("""
+        inheritors = conn.execute(
+            """
             SELECT e.name, e.qualified_name, e.file_path
             FROM relations r
             JOIN entities e ON r.source_id = e.id
             WHERE r.rel_type = 'inherits'
               AND r.target_name LIKE ?
               AND r.valid_until IS NULL
-        """, (f"%{name}%",)).fetchall()
+        """,
+            (f"%{name}%",),
+        ).fetchall()
 
         # Types that reference
-        type_users = conn.execute("""
+        type_users = conn.execute(
+            """
             SELECT e.name, e.qualified_name, e.file_path
             FROM relations r
             JOIN entities e ON r.source_id = e.id
             WHERE (r.rel_type = 'uses_type' OR r.rel_type = 'returns')
               AND r.target_name LIKE ?
               AND r.valid_until IS NULL
-        """, (f"%{name}%",)).fetchall()
+        """,
+            (f"%{name}%",),
+        ).fetchall()
 
         return {
             "entity": name,
@@ -268,52 +299,79 @@ class CodeGraphQuery:
     # FIX LEARNING QUERIES
     # ═══════════════════════════════════════════════════════════════
 
-    def record_fix_attempt(self, package: str, error_type: str, fix_action: str,
-                          error_message: str = "", fix_details: str = "",
-                          file_path: str | None = None, commit_sha: str | None = None) -> int:
+    def record_fix_attempt(
+        self,
+        package: str,
+        error_type: str,
+        fix_action: str,
+        error_message: str = "",
+        fix_details: str = "",
+        file_path: str | None = None,
+        commit_sha: str | None = None,
+    ) -> int:
         """Record a fix attempt for learning."""
         conn = self._get_conn()
-        cursor = conn.execute("""
+        cursor = conn.execute(
+            """
             INSERT INTO fix_attempts
             (package, error_type, error_message, fix_action, fix_details, file_path,
              attempted_at, commit_sha, outcome)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending')
-        """, (package, error_type, error_message, fix_action, fix_details, file_path,
-              datetime.now().isoformat(), commit_sha))
+        """,
+            (
+                package,
+                error_type,
+                error_message,
+                fix_action,
+                fix_details,
+                file_path,
+                datetime.now().isoformat(),
+                commit_sha,
+            ),
+        )
         conn.commit()
         return cursor.lastrowid
 
     def update_fix_outcome(self, fix_id: int, outcome: str, notes: str = ""):
         """Update the outcome of a fix attempt."""
         conn = self._get_conn()
-        conn.execute("""
+        conn.execute(
+            """
             UPDATE fix_attempts
             SET outcome = ?, notes = ?, completed_at = ?
             WHERE id = ?
-        """, (outcome, notes, datetime.now().isoformat(), fix_id))
+        """,
+            (outcome, notes, datetime.now().isoformat(), fix_id),
+        )
         conn.commit()
 
     def successful_fixes_for(self, error_type: str) -> list[dict]:
         """Get successful fixes for an error type."""
         conn = self._get_conn()
-        cursor = conn.execute("""
+        cursor = conn.execute(
+            """
             SELECT fix_action, COUNT(*) as count,
                    GROUP_CONCAT(DISTINCT package) as packages
             FROM fix_attempts
             WHERE error_type = ? AND outcome = 'success'
             GROUP BY fix_action
             ORDER BY count DESC
-        """, (error_type,))
+        """,
+            (error_type,),
+        )
         return [dict(row) for row in cursor.fetchall()]
 
     def fix_history_for_package(self, package: str) -> list[dict]:
         """Get fix attempt history for a package."""
         conn = self._get_conn()
-        cursor = conn.execute("""
+        cursor = conn.execute(
+            """
             SELECT * FROM fix_attempts
             WHERE package = ?
             ORDER BY attempted_at DESC
-        """, (package,))
+        """,
+            (package,),
+        )
         return [dict(row) for row in cursor.fetchall()]
 
     def fix_success_rates(self) -> list[dict]:
@@ -348,13 +406,16 @@ class CodeGraphQuery:
         """List methods, optionally filtered by class."""
         conn = self._get_conn()
         if class_name:
-            cursor = conn.execute("""
+            cursor = conn.execute(
+                """
                 SELECT e.name, e.qualified_name, e.signature, e.file_path, e.line_start
                 FROM current_entities e
                 WHERE e.entity_type = 'method'
                   AND e.qualified_name LIKE ?
                 ORDER BY e.line_start
-            """, (f"%.{class_name}.%",))
+            """,
+                (f"%.{class_name}.%",),
+            )
         else:
             cursor = conn.execute("""
                 SELECT name, qualified_name, signature, file_path, line_start
@@ -378,12 +439,15 @@ class CodeGraphQuery:
     def show(self, name: str) -> dict | None:
         """Show detailed info about an entity."""
         conn = self._get_conn()
-        cursor = conn.execute("""
+        cursor = conn.execute(
+            """
             SELECT * FROM entities
             WHERE name = ? OR qualified_name LIKE ?
             ORDER BY valid_from DESC
             LIMIT 1
-        """, (name, f"%{name}%"))
+        """,
+            (name, f"%{name}%"),
+        )
         row = cursor.fetchone()
         if row:
             entity = dict(row)
@@ -395,10 +459,7 @@ class CodeGraphQuery:
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        prog="query_temporal",
-        description="Query bi-temporal code knowledge graph"
-    )
+    parser = argparse.ArgumentParser(prog="query_temporal", description="Query bi-temporal code knowledge graph")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     # Search
@@ -467,9 +528,9 @@ def main():
         if args.command == "search":
             results = query.search(args.query, args.results, args.type)
             for r in results:
-                dist = f" (dist: {r['distance']:.3f})" if r.get('distance') else ""
+                dist = f" (dist: {r['distance']:.3f})" if r.get("distance") else ""
                 print(f"{r['type']:8} {r['qualified_name']}{dist}")
-                if r['signature']:
+                if r["signature"]:
                     print(f"         {r['signature']}")
 
         elif args.command == "similar":
@@ -492,11 +553,11 @@ def main():
         elif args.command == "inheritance":
             tree = query.inheritance_tree(args.class_name)
             print(f"Inheritance tree for '{tree['class']}':")
-            if tree['inherits_from']:
+            if tree["inherits_from"]:
                 print(f"  Inherits from: {', '.join(tree['inherits_from'])}")
-            if tree['inherited_by']:
+            if tree["inherited_by"]:
                 print("  Inherited by:")
-                for c in tree['inherited_by']:
+                for c in tree["inherited_by"]:
                     print(f"    - {c['qualified_name']}")
 
         elif args.command == "deps":
@@ -513,47 +574,48 @@ def main():
             print(f"Impact analysis for '{args.name}':")
             print(f"  Total impact: {impact['total_impact']} entities")
             print(f"  Direct callers: {impact['direct_callers']}")
-            if impact['inheritors']:
+            if impact["inheritors"]:
                 print(f"  Inheritors: {len(impact['inheritors'])}")
-            if impact['type_users']:
+            if impact["type_users"]:
                 print(f"  Type users: {len(impact['type_users'])}")
 
         elif args.command == "changes":
             since = args.since
             if since.endswith("d"):
                 from datetime import timedelta
+
                 days = int(since[:-1])
                 since = (datetime.now() - timedelta(days=days)).isoformat()
 
             changes = query.changes_since(since)
             print(f"Changes since {since}:")
-            if changes['added']:
+            if changes["added"]:
                 print(f"  Added ({len(changes['added'])}):")
-                for e in changes['added'][:10]:
+                for e in changes["added"][:10]:
                     print(f"    + {e['qualified_name']}")
-            if changes['removed']:
+            if changes["removed"]:
                 print(f"  Removed ({len(changes['removed'])}):")
-                for e in changes['removed'][:10]:
+                for e in changes["removed"][:10]:
                     print(f"    - {e['qualified_name']}")
 
         elif args.command == "history":
             history = query.entity_history(args.name)
             print(f"History for '{args.name}':")
             for h in history:
-                status = "removed" if h.get('valid_until') else "current"
+                status = "removed" if h.get("valid_until") else "current"
                 print(f"  {h['valid_from'][:10]} [{status}] {h['qualified_name']}")
 
         elif args.command == "list-classes":
             classes = query.list_classes()
             current_file = None
             for c in classes:
-                if c['file_path'] != current_file:
-                    current_file = c['file_path']
+                if c["file_path"] != current_file:
+                    current_file = c["file_path"]
                     print(f"\n{current_file}:")
                 print(f"  {c['name']} (line {c['line_start']})")
 
         elif args.command == "list-methods":
-            methods = query.list_methods(getattr(args, 'class_name', None))
+            methods = query.list_methods(getattr(args, "class_name", None))
             for m in methods:
                 print(f"{m['qualified_name']}")
 

@@ -26,7 +26,8 @@ project/
     _meta/YYYY-MM-DD.md  # daily search logs
 ```
 
-Schemas (node frontmatter, search log, BibTeX annote, decision matrix): [references/schema.md](references/schema.md) | Script templates: [scripts/](scripts/) (`build_graph.py`, `snapshot_source.py`)
+Schemas (node frontmatter, search log, BibTeX annote, decision matrix): [references/schema.md](references/schema.md) |
+Script templates: [scripts/](scripts/) (`build_graph.py`, `snapshot_source.py`)
 
 ## Requirements vs Constraints
 

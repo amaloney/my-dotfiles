@@ -26,10 +26,10 @@ Group by the first column (lint name, e.g. `clippy::needless_borrow`, `unused_im
 
 ## Execution Mode
 
-| Request                                  | Action                                                       |
-| ---------------------------------------- | ------------------------------------------------------------ |
-| "orchestrate"/"fan-out"/"parallel"       | Spawn agents per lint — no `clippy --fix` shortcut           |
-| "fix violations" (no approach specified) | <5 distinct lints → `cargo clippy --fix`; else agents        |
+| Request                                  | Action                                                |
+| ---------------------------------------- | ----------------------------------------------------- |
+| "orchestrate"/"fan-out"/"parallel"       | Spawn agents per lint — no `clippy --fix` shortcut    |
+| "fix violations" (no approach specified) | <5 distinct lints → `cargo clippy --fix`; else agents |
 
 ## Protocol
 
@@ -39,8 +39,8 @@ Group by the first column (lint name, e.g. `clippy::needless_borrow`, `unused_im
    ```
    Agent({ prompt: "Load [[rust/style]]. Fix ONLY <lint> findings. Re-read before edit. <findings>" })
    ```
-4. **Auto-fix machine-applicable lints**: `cargo clippy --fix --allow-dirty --all-targets` (only if user didn't
-   request agents)
+4. **Auto-fix machine-applicable lints**: `cargo clippy --fix --allow-dirty --all-targets` (only if user didn't request
+   agents)
 5. **Verify**: `cargo fmt --check && cargo clippy --all-targets --all-features -- -D warnings` — must be clean
 
 Sequential fixes by lint prevent overwrite conflicts. `#[allow(clippy::...)]` is a fix only with a same-line comment
@@ -48,14 +48,14 @@ saying why the lint is wrong here; prefer `#[expect(...)]` (1.81+) so the suppre
 
 ## Common Lints
 
-| Lint                             | Issue                                         |
-| -------------------------------- | --------------------------------------------- |
-| `unused_*` / `dead_code`         | rustc: unused imports, vars, items            |
-| `clippy::needless_borrow`        | `&` on something already a reference          |
-| `clippy::redundant_clone`        | clone of a value never used again             |
-| `clippy::unwrap_used`            | panic path outside tests ([[rust/errors]])    |
-| `clippy::too_many_arguments`     | >7 params → params struct ([[rust/structure]]) |
-| `clippy::needless_pass_by_value` | owned param only borrowed ([[rust/types]])    |
-| `clippy::module_name_repetitions` | `config::ConfigError` stutter (pedantic)     |
+| Lint                              | Issue                                          |
+| --------------------------------- | ---------------------------------------------- |
+| `unused_*` / `dead_code`          | rustc: unused imports, vars, items             |
+| `clippy::needless_borrow`         | `&` on something already a reference           |
+| `clippy::redundant_clone`         | clone of a value never used again              |
+| `clippy::unwrap_used`             | panic path outside tests ([[rust/errors]])     |
+| `clippy::too_many_arguments`      | >7 params → params struct ([[rust/structure]]) |
+| `clippy::needless_pass_by_value`  | owned param only borrowed ([[rust/types]])     |
+| `clippy::module_name_repetitions` | `config::ConfigError` stutter (pedantic)       |
 
 [[rust/style]] [[debugging]]

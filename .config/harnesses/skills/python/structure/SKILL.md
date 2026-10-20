@@ -25,13 +25,12 @@ computation). Multiple returns for simple conditionals add cognitive load; conso
 
 ## Imports
 
-**Absolute imports always.** Never `from .` / `from ..` — relative imports break when a file is exec'd as a
-script (`panel serve`, `python file.py`), hide the package boundary from grep, and turn moves/renames into
-silent breakage. Applies to packages too: `from xray.report import build_workbook`, never
-`from .report import build_workbook`.
+**Absolute imports always.** Never `from .` / `from ..` — relative imports break when a file is exec'd as a script
+(`panel serve`, `python file.py`), hide the package boundary from grep, and turn moves/renames into silent breakage.
+Applies to packages too: `from xray.report import build_workbook`, never `from .report import build_workbook`.
 
-Enforcement gap — tooling does not catch this. Ruff/isort sort relative imports happily; flagging them is a
-mandatory review-time gate, run on every file you create or edit:
+Enforcement gap — tooling does not catch this. Ruff/isort sort relative imports happily; flagging them is a mandatory
+review-time gate, run on every file you create or edit:
 
 ```bash
 grep -nE '^\s*from \.' <file>    # clean output = pass
@@ -45,9 +44,9 @@ Enforced by `~/.config/harnesses/scripts/style-gates.sh` (relative-import gate i
 **Syntactic sugar adds complexity.** A one-liner helper that just wraps an expression doesn't reduce complexity — it
 adds indirection. Inline it.
 
-**Gate before creating any function:** ask "is this more than one expression, used more than once?" No to either →
-do not create it. `normalize_name()` wrapping one regex, called once, is the canonical violation — it forces the
-reader to jump away to learn it is just `re.sub(...).lower()`.
+**Gate before creating any function:** ask "is this more than one expression, used more than once?" No to either → do
+not create it. `normalize_name()` wrapping one regex, called once, is the canonical violation — it forces the reader to
+jump away to learn it is just `re.sub(...).lower()`.
 
 | Pattern                                     | Problem                       | Fix                               |
 | ------------------------------------------- | ----------------------------- | --------------------------------- |
@@ -58,21 +57,21 @@ reader to jump away to learn it is just `re.sub(...).lower()`.
 **When to extract:** Logic is reused 3+ times, OR name documents non-obvious intent, OR expression is complex enough to
 obscure the calling code. Docstrings do not rescue sugar — a 13-line docstring on a 1-line function is the smell.
 
-**Same gate applies to dataclass docstrings.** An `Attributes:` section that restates field names with type
-rephrasings is sugar — the field declarations already say it. Delete it; keep one line stating what the record IS.
-Property one-liners earn their place only when semantics are non-obvious (threshold, clamp, computed unit) — and the
-doc must name the non-obvious part, not rephrase the name.
+**Same gate applies to dataclass docstrings.** An `Attributes:` section that restates field names with type rephrasings
+is sugar — the field declarations already say it. Delete it; keep one line stating what the record IS. Property
+one-liners earn their place only when semantics are non-obvious (threshold, clamp, computed unit) — and the doc must
+name the non-obvious part, not rephrase the name.
 
 ## Call Sites
 
 Prefer `keyword=value` for value arguments — constructors and function calls alike. Positional is fine for a
-self-evident resource path (`login, package_name, version`); values (summaries, flags, sentinels like `None`
-or `[]`) take keywords so the call reads without consulting the signature. Omit arguments equal to the default
-unless the choice is deliberate and worth documenting (`public=True`).
+self-evident resource path (`login, package_name, version`); values (summaries, flags, sentinels like `None` or `[]`)
+take keywords so the call reads without consulting the signature. Omit arguments equal to the default unless the choice
+is deliberate and worth documenting (`public=True`).
 
-**Never guess parameter names.** The local variable name is not the parameter name (`stream` vs `file`,
-`version` vs `release`). When keywording a call, read the real signature from the installed library, then prove
-the full keyword set binds:
+**Never guess parameter names.** The local variable name is not the parameter name (`stream` vs `file`, `version` vs
+`release`). When keywording a call, read the real signature from the installed library, then prove the full keyword set
+binds:
 
 ```python
 import inspect
@@ -81,8 +80,8 @@ print(inspect.signature(SomeClass.method))
 inspect.signature(SomeClass.method).bind(None, login=..., file=..., ...)  # raises TypeError on a wrong name
 ```
 
-A wrong keyword name is a runtime `TypeError` that lint and mocked tests do not catch — the `bind()` check is
-the gate. Applies when writing fresh calls too, not only conversions.
+A wrong keyword name is a runtime `TypeError` that lint and mocked tests do not catch — the `bind()` check is the gate.
+Applies when writing fresh calls too, not only conversions.
 
 ## Comments
 

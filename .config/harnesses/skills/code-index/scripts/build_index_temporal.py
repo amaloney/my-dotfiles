@@ -20,7 +20,9 @@ try:
     import chromadb
     from chromadb.config import Settings
 except ImportError:
-    print("ChromaDB not installed. Install with: pixi add --feature dev chromadb  (code-index SKILL.md has the full env)")
+    print(
+        "ChromaDB not installed. Install with: pixi add --feature dev chromadb  (code-index SKILL.md has the full env)"
+    )
     sys.exit(1)
 
 from extract_rust import CARGO_MANIFEST, EXCLUDE_DIRS_RUST, RUST_AVAILABLE, RUST_INSTALL_HINT, extract_rust
@@ -29,6 +31,7 @@ from extract_rust import CARGO_MANIFEST, EXCLUDE_DIRS_RUST, RUST_AVAILABLE, RUST
 @dataclass
 class CodeEntity:
     """Code entity with bi-temporal tracking."""
+
     name: str
     entity_type: str
     qualified_name: str
@@ -70,6 +73,7 @@ class CodeEntity:
 @dataclass
 class CodeRelation:
     """Relationship between code entities."""
+
     source_id: str
     target_id: str | None
     target_name: str
@@ -91,64 +95,74 @@ class RelationExtractor(ast.NodeVisitor):
 
     def visit_Import(self, node: ast.Import):
         for alias in node.names:
-            self.relations.append(CodeRelation(
-                source_id=self.source_id,
-                target_id=None,
-                target_name=alias.name,
-                rel_type="imports",
-                line_number=node.lineno,
-            ))
+            self.relations.append(
+                CodeRelation(
+                    source_id=self.source_id,
+                    target_id=None,
+                    target_name=alias.name,
+                    rel_type="imports",
+                    line_number=node.lineno,
+                )
+            )
         self.generic_visit(node)
 
     def visit_ImportFrom(self, node: ast.ImportFrom):
         module = node.module or ""
         for alias in node.names:
             name = f"{module}.{alias.name}" if module else alias.name
-            self.relations.append(CodeRelation(
-                source_id=self.source_id,
-                target_id=None,
-                target_name=name,
-                rel_type="imports",
-                line_number=node.lineno,
-            ))
+            self.relations.append(
+                CodeRelation(
+                    source_id=self.source_id,
+                    target_id=None,
+                    target_name=name,
+                    rel_type="imports",
+                    line_number=node.lineno,
+                )
+            )
         self.generic_visit(node)
 
     def visit_Call(self, node: ast.Call):
         target = self._get_call_name(node.func)
         if target:
-            self.relations.append(CodeRelation(
-                source_id=self.source_id,
-                target_id=None,
-                target_name=target,
-                rel_type="calls",
-                line_number=node.lineno,
-            ))
+            self.relations.append(
+                CodeRelation(
+                    source_id=self.source_id,
+                    target_id=None,
+                    target_name=target,
+                    rel_type="calls",
+                    line_number=node.lineno,
+                )
+            )
         self.generic_visit(node)
 
     def visit_ClassDef(self, node: ast.ClassDef):
         for base in node.bases:
             base_name = self._get_name(base)
             if base_name:
-                self.relations.append(CodeRelation(
-                    source_id=self.source_id,
-                    target_id=None,
-                    target_name=base_name,
-                    rel_type="inherits",
-                    line_number=node.lineno,
-                ))
+                self.relations.append(
+                    CodeRelation(
+                        source_id=self.source_id,
+                        target_id=None,
+                        target_name=base_name,
+                        rel_type="inherits",
+                        line_number=node.lineno,
+                    )
+                )
         self.generic_visit(node)
 
     def visit_Raise(self, node: ast.Raise):
         if node.exc:
             exc_name = self._get_name(node.exc)
             if exc_name:
-                self.relations.append(CodeRelation(
-                    source_id=self.source_id,
-                    target_id=None,
-                    target_name=exc_name,
-                    rel_type="raises",
-                    line_number=node.lineno,
-                ))
+                self.relations.append(
+                    CodeRelation(
+                        source_id=self.source_id,
+                        target_id=None,
+                        target_name=exc_name,
+                        rel_type="raises",
+                        line_number=node.lineno,
+                    )
+                )
         self.generic_visit(node)
 
     def visit_FunctionDef(self, node: ast.FunctionDef):
@@ -165,26 +179,30 @@ class RelationExtractor(ast.NodeVisitor):
         if node.returns:
             ret_type = self._get_name(node.returns)
             if ret_type and not ret_type.startswith(("str", "int", "float", "bool", "None")):
-                self.relations.append(CodeRelation(
-                    source_id=self.source_id,
-                    target_id=None,
-                    target_name=ret_type,
-                    rel_type="returns",
-                    line_number=node.lineno,
-                ))
+                self.relations.append(
+                    CodeRelation(
+                        source_id=self.source_id,
+                        target_id=None,
+                        target_name=ret_type,
+                        rel_type="returns",
+                        line_number=node.lineno,
+                    )
+                )
 
     def _extract_arg_types(self, node):
         for arg in node.args.args:
             if arg.annotation:
                 type_name = self._get_name(arg.annotation)
                 if type_name and not type_name.startswith(("str", "int", "float", "bool", "None", "Any")):
-                    self.relations.append(CodeRelation(
-                        source_id=self.source_id,
-                        target_id=None,
-                        target_name=type_name,
-                        rel_type="uses_type",
-                        line_number=node.lineno,
-                    ))
+                    self.relations.append(
+                        CodeRelation(
+                            source_id=self.source_id,
+                            target_id=None,
+                            target_name=type_name,
+                            rel_type="uses_type",
+                            line_number=node.lineno,
+                        )
+                    )
 
     def _get_call_name(self, node) -> str | None:
         if isinstance(node, ast.Name):
@@ -235,7 +253,7 @@ class CodeExtractor(ast.NodeVisitor):
             return ast.get_source_segment("\n".join(self.source_lines), node) or ""
         except Exception:
             if hasattr(node, "lineno") and hasattr(node, "end_lineno"):
-                return "\n".join(self.source_lines[node.lineno - 1:node.end_lineno])
+                return "\n".join(self.source_lines[node.lineno - 1 : node.end_lineno])
             return ""
 
     def get_decorators(self, node) -> list[str]:
@@ -292,13 +310,15 @@ class CodeExtractor(ast.NodeVisitor):
         for base in node.bases:
             base_name = extractor._get_name(base)
             if base_name:
-                self.relations.append(CodeRelation(
-                    source_id=entity.get_id(),
-                    target_id=None,
-                    target_name=base_name,
-                    rel_type="inherits",
-                    line_number=node.lineno,
-                ))
+                self.relations.append(
+                    CodeRelation(
+                        source_id=entity.get_id(),
+                        target_id=None,
+                        target_name=base_name,
+                        rel_type="inherits",
+                        line_number=node.lineno,
+                    )
+                )
 
         old_class = self.current_class
         self.current_class = node.name
@@ -344,12 +364,10 @@ def get_git_info(repo_path: Path) -> tuple[str, str]:
     """Get current commit SHA and timestamp."""
     try:
         sha = subprocess.check_output(
-            ["git", "rev-parse", "HEAD"],
-            cwd=repo_path, text=True, stderr=subprocess.DEVNULL
+            ["git", "rev-parse", "HEAD"], cwd=repo_path, text=True, stderr=subprocess.DEVNULL
         ).strip()
         timestamp = subprocess.check_output(
-            ["git", "log", "-1", "--format=%cI"],
-            cwd=repo_path, text=True, stderr=subprocess.DEVNULL
+            ["git", "log", "-1", "--format=%cI"], cwd=repo_path, text=True, stderr=subprocess.DEVNULL
         ).strip()
         return sha, timestamp
     except Exception:
@@ -363,7 +381,9 @@ def get_file_first_commit(file_path: Path, repo_path: Path) -> tuple[str, str]:
         rel_path = file_path.relative_to(repo_path)
         result = subprocess.check_output(
             ["git", "log", "--follow", "--format=%H %cI", "--diff-filter=A", "--", str(rel_path)],
-            cwd=repo_path, text=True, stderr=subprocess.DEVNULL
+            cwd=repo_path,
+            text=True,
+            stderr=subprocess.DEVNULL,
         ).strip()
         if result:
             lines = result.strip().split("\n")
@@ -485,18 +505,35 @@ def init_database(db_path: Path):
 def store_entities(conn: sqlite3.Connection, entities: list[CodeEntity]):
     """Store entities in SQLite."""
     for e in entities:
-        conn.execute("""
+        conn.execute(
+            """
             INSERT OR REPLACE INTO entities
             (id, name, entity_type, qualified_name, file_path, line_start, line_end,
              signature, docstring, parent_id, valid_from, valid_until, commit_sha_from,
              commit_sha_until, indexed_at, decorators, is_async, is_property)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (
-            e.get_id(), e.name, e.entity_type, e.qualified_name, e.file_path,
-            e.line_start, e.line_end, e.signature, e.docstring, e.parent_id,
-            e.valid_from, e.valid_until, e.commit_sha_from, e.commit_sha_until,
-            e.indexed_at, json.dumps(e.decorators), e.is_async, e.is_property
-        ))
+        """,
+            (
+                e.get_id(),
+                e.name,
+                e.entity_type,
+                e.qualified_name,
+                e.file_path,
+                e.line_start,
+                e.line_end,
+                e.signature,
+                e.docstring,
+                e.parent_id,
+                e.valid_from,
+                e.valid_until,
+                e.commit_sha_from,
+                e.commit_sha_until,
+                e.indexed_at,
+                json.dumps(e.decorators),
+                e.is_async,
+                e.is_property,
+            ),
+        )
     conn.commit()
 
 
@@ -504,15 +541,24 @@ def store_relations(conn: sqlite3.Connection, relations: list[CodeRelation]):
     """Store relations in SQLite."""
     for r in relations:
         with contextlib.suppress(sqlite3.IntegrityError):  # Duplicate relation
-            conn.execute("""
+            conn.execute(
+                """
                 INSERT OR IGNORE INTO relations
                 (source_id, target_id, target_name, rel_type, valid_from, valid_until,
                  commit_sha_from, line_number)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
-                r.source_id, r.target_id, r.target_name, r.rel_type,
-                r.valid_from, r.valid_until, r.commit_sha_from, r.line_number
-            ))
+            """,
+                (
+                    r.source_id,
+                    r.target_id,
+                    r.target_name,
+                    r.rel_type,
+                    r.valid_from,
+                    r.valid_until,
+                    r.commit_sha_from,
+                    r.line_number,
+                ),
+            )
     conn.commit()
 
 
@@ -533,20 +579,23 @@ def store_in_chromadb(db_dir: Path, entities: list[CodeEntity]):
 
     batch_size = 100
     for i in range(0, len(entities), batch_size):
-        batch = entities[i:i + batch_size]
+        batch = entities[i : i + batch_size]
         collection.add(
             ids=[e.get_id() for e in batch],
             documents=[e.to_searchable_text() for e in batch],
-            metadatas=[{
-                "name": e.name,
-                "type": e.entity_type,
-                "qualified_name": e.qualified_name,
-                "file": e.file_path,
-                "line": e.line_start,
-                "signature": e.signature or "",
-                "valid_from": e.valid_from,
-                "decorators": ",".join(e.decorators),
-            } for e in batch]
+            metadatas=[
+                {
+                    "name": e.name,
+                    "type": e.entity_type,
+                    "qualified_name": e.qualified_name,
+                    "file": e.file_path,
+                    "line": e.line_start,
+                    "signature": e.signature or "",
+                    "valid_from": e.valid_from,
+                    "decorators": ",".join(e.decorators),
+                }
+                for e in batch
+            ],
         )
 
 
@@ -564,21 +613,20 @@ def build_index(source_dir: Path, db_dir: Path, repo_path: Path):
     print(f"Current commit: {current_sha[:8]} ({current_time})")
 
     # Store commit
-    conn.execute(
-        "INSERT OR REPLACE INTO commits (sha, timestamp) VALUES (?, ?)",
-        (current_sha, current_time)
-    )
+    conn.execute("INSERT OR REPLACE INTO commits (sha, timestamp) VALUES (?, ?)", (current_sha, current_time))
 
     # Extract from all files
     all_entities: list[CodeEntity] = []
     all_relations: list[CodeRelation] = []
     # Relative parts: an absolute check would drop everything when the repo itself sits under a dot-dir
     py_files = [
-        python_file for python_file in source_dir.rglob("*.py")
+        python_file
+        for python_file in source_dir.rglob("*.py")
         if not any(part.startswith((".", "_")) for part in python_file.relative_to(source_dir).parts)
     ]
     rs_files = [
-        rust_file for rust_file in source_dir.rglob("*.rs")
+        rust_file
+        for rust_file in source_dir.rglob("*.rs")
         if not any(part.startswith((".", "_")) for part in rust_file.relative_to(source_dir).parts)
         and not EXCLUDE_DIRS_RUST.intersection(rust_file.relative_to(source_dir).parts)
     ]
@@ -631,10 +679,13 @@ def build_index(source_dir: Path, db_dir: Path, repo_path: Path):
 
     # Record build history
     duration = (datetime.now() - start_time).total_seconds()
-    conn.execute("""
+    conn.execute(
+        """
         INSERT INTO index_history (rebuilt_at, commit_sha, entity_count, relation_count, duration_seconds)
         VALUES (?, ?, ?, ?, ?)
-    """, (datetime.now().isoformat(), current_sha, len(all_entities), len(all_relations), duration))
+    """,
+        (datetime.now().isoformat(), current_sha, len(all_entities), len(all_relations), duration),
+    )
     conn.commit()
 
     # Print stats
@@ -659,9 +710,9 @@ def build_index(source_dir: Path, db_dir: Path, repo_path: Path):
 
     (db_dir / "stats.json").write_text(json.dumps(stats, indent=2))
 
-    print(f"\n{'='*50}")
+    print(f"\n{'=' * 50}")
     print("Bi-temporal code index built successfully!")
-    print(f"{'='*50}")
+    print(f"{'=' * 50}")
     print(f"  Entities: {stats['total_entities']}")
     print(f"    - Classes: {stats['classes']}")
     print(f"    - Methods: {stats['methods']}")

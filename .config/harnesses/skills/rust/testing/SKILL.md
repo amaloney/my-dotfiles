@@ -23,11 +23,11 @@ Add `-- --nocapture` (cargo test) / `--no-capture` (nextest) to see `println!`/`
 
 ## Where tests live
 
-| Kind        | Location                                  | Sees                    |
-| ----------- | ----------------------------------------- | ----------------------- |
-| Unit        | `#[cfg(test)] mod tests` at end of the file | private items (`use super::*;`) |
-| Integration | `tests/<area>.rs` (shared helpers: `tests/common/mod.rs`) | public API only |
-| Doc         | `///` examples on `pub` items             | public API; doubles as docs |
+| Kind        | Location                                                  | Sees                            |
+| ----------- | --------------------------------------------------------- | ------------------------------- |
+| Unit        | `#[cfg(test)] mod tests` at end of the file               | private items (`use super::*;`) |
+| Integration | `tests/<area>.rs` (shared helpers: `tests/common/mod.rs`) | public API only                 |
+| Doc         | `///` examples on `pub` items                             | public API; doubles as docs     |
 
 Binaries: logic lives in `lib.rs` so integration tests can reach it ([[rust/org]]).
 
@@ -60,13 +60,13 @@ mod tests {
 
 ## Assertions
 
-| Need                    | Use                                              |
-| ----------------------- | ------------------------------------------------ |
-| Equality (shows diff)   | `assert_eq!(actual, expected)` — `pretty_assertions` for big structs |
-| Enum variant / shape    | `assert!(matches!(value, Pattern { .. }))`       |
-| Float                   | `assert!((actual - expected).abs() < 1e-9)`      |
-| Panic expected          | `#[should_panic(expected = "index out of range")]` — prefer testing a `Result` |
-| Large output            | `insta::assert_snapshot!` / `assert_debug_snapshot!` |
+| Need                  | Use                                                                            |
+| --------------------- | ------------------------------------------------------------------------------ |
+| Equality (shows diff) | `assert_eq!(actual, expected)` — `pretty_assertions` for big structs           |
+| Enum variant / shape  | `assert!(matches!(value, Pattern { .. }))`                                     |
+| Float                 | `assert!((actual - expected).abs() < 1e-9)`                                    |
+| Panic expected        | `#[should_panic(expected = "index out of range")]` — prefer testing a `Result` |
+| Large output          | `insta::assert_snapshot!` / `assert_debug_snapshot!`                           |
 
 Always pass a message on bare `assert!` so failures say what was observed.
 
@@ -88,8 +88,8 @@ fn parses_versions(registry: Registry, #[case] input: &str, #[case] expected: u3
 }
 ```
 
-Filesystem: `tempfile::TempDir` (dropped = deleted), never a fixed path under `/tmp`. Env vars: don't mutate
-`std::env` in tests (process-global, races under the parallel runner) — inject config instead.
+Filesystem: `tempfile::TempDir` (dropped = deleted), never a fixed path under `/tmp`. Env vars: don't mutate `std::env`
+in tests (process-global, races under the parallel runner) — inject config instead.
 
 ## Not yet covered
 

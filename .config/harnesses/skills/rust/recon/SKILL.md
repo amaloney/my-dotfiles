@@ -24,9 +24,9 @@ From the repo root (needs `cargo` + `jq`):
 ~/.config/harnesses/skills/rust/recon/scripts/profile.sh
 ```
 
-The script reads `cargo metadata` and populates project identity, workspace members, targets, features, and
-toolchain fields. Then review/fill `structure`, `patterns`, `testing`, and `linting` from the scan
-(shape: `scripts/profile.schema.json`).
+The script reads `cargo metadata` and populates project identity, workspace members, targets, features, and toolchain
+fields. Then review/fill `structure`, `patterns`, `testing`, and `linting` from the scan (shape:
+`scripts/profile.schema.json`).
 
 ## Validation
 

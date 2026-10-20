@@ -11,8 +11,8 @@ Bootstrap harness integration for a Rust repo: repo-level instructions + `.harne
 
 ## When
 
-User asks to set up / onboard / initialize a Rust project for harness-assisted work, or a Rust repo lacks
-`AGENTS.md` / `.harness/code_index/profile.json`.
+User asks to set up / onboard / initialize a Rust project for harness-assisted work, or a Rust repo lacks `AGENTS.md` /
+`.harness/code_index/profile.json`.
 
 ## Steps
 
@@ -56,14 +56,14 @@ jq '.project.type, .project.rust_version' .harness/code_index/profile.json
 
 ## Rust Workflow
 
-| Task            | Load                                              |
-| --------------- | ------------------------------------------------- |
-| New code        | rust/style → rust/violations → debugging          |
-| Tests           | rust/testing                                      |
-| Property tests  | rust/property-testing                             |
-| Bug fix         | debugging → verify with test                      |
-| Security        | rust/security                                     |
-| Refresh profile | rust/recon                                        |
+| Task            | Load                                     |
+| --------------- | ---------------------------------------- |
+| New code        | rust/style → rust/violations → debugging |
+| Tests           | rust/testing                             |
+| Property tests  | rust/property-testing                    |
+| Bug fix         | debugging → verify with test             |
+| Security        | rust/security                            |
+| Refresh profile | rust/recon                               |
 
 ## Rules (from profile)
 

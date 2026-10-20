@@ -10,16 +10,16 @@ Handoff: `next: done`.
 
 ## Crate shape
 
-Binaries: logic in `src/lib.rs` (+ modules), `src/main.rs` only parses args, sets up logging, calls into the lib,
-and maps errors to an exit code. This makes the logic testable from `tests/` without spawning the binary.
+Binaries: logic in `src/lib.rs` (+ modules), `src/main.rs` only parses args, sets up logging, calls into the lib, and
+maps errors to an exit code. This makes the logic testable from `tests/` without spawning the binary.
 
 ## Constants
 
-| Scope                                          | Location                             |
-| ---------------------------------------------- | ------------------------------------ |
-| Shared by 2+ modules, or project-wide setting  | `src/config.rs` (`pub(crate) const`) |
-| Used by exactly one module                     | Top of that module (after `use`)     |
-| Inside a function body                         | **NEVER** — unless truly local to that fn |
+| Scope                                         | Location                                  |
+| --------------------------------------------- | ----------------------------------------- |
+| Shared by 2+ modules, or project-wide setting | `src/config.rs` (`pub(crate) const`)      |
+| Used by exactly one module                    | Top of that module (after `use`)          |
+| Inside a function body                        | **NEVER** — unless truly local to that fn |
 
 `config.rs` holds only constants, statics, and settings types with cross-module reach — not a dumping ground. Shared
 helper functions go in a named module for their concept, not `utils.rs`.
@@ -46,7 +46,7 @@ Fetchers take `cache_dir: Option<&Path>`; `None` maps to a source-specific defau
 
 ## Colors
 
-Theme colors (e.g. Gruvbox) are named constants in `config.rs` (`const GRUVBOX_RED: Color = Color::Rgb(...)`). No
-hex literals at use sites.
+Theme colors (e.g. Gruvbox) are named constants in `config.rs` (`const GRUVBOX_RED: Color = Color::Rgb(...)`). No hex
+literals at use sites.
 
 [[rust/structure]] [[rust/naming]]

@@ -38,8 +38,13 @@ def main(argv: list[str]) -> None:
     outdir.mkdir(parents=True, exist_ok=True)
     snapshot = outdir / f"{hashlib.sha256(data).hexdigest()[:12]}.md"
     snapshot.write_bytes(data)
-    log_row(Path(flag(argv, "--log", "_meta")), url, snapshot,
-            flag(argv, "--topic", "misc"), flag(argv, "--note", "snapshot"))
+    log_row(
+        Path(flag(argv, "--log", "_meta")),
+        url,
+        snapshot,
+        flag(argv, "--topic", "misc"),
+        flag(argv, "--note", "snapshot"),
+    )
     print(snapshot)
 
 

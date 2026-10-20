@@ -42,17 +42,7 @@ def test_with_context():
 
 ## Patch Targets
 
-Patch where used, not where defined:
-
-```python
-# myapp/service.py
-from myapp.client import api_client  # imported here
-
-# tests/test_service.py
-@patch("myapp.service.api_client")  # patch in service, not client
-def test_service(mock_client):
-    ...
-```
+Patch where used, not defined: `@patch("myapp.service.api_client")` not `myapp.client.api_client`.
 
 ## MagicMock vs Mock
 

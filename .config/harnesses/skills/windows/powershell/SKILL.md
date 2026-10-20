@@ -41,20 +41,7 @@ $env:VAR = $null                                         # Remove
 
 ## File Deletion
 
-**Prefer PowerShell over batch** — `RMDIR /Q /S` fails silently on permission/attribute issues:
-
-```powershell
-# Robust deletion with error tracking
-$Survivors = @()
-Get-ChildItem -Path $Target -Recurse -Force -ErrorAction SilentlyContinue | ForEach-Object {
-    try {
-        Remove-Item -Path $_.FullName -Force -Recurse -ErrorAction Stop
-    } catch {
-        $Survivors += $_.FullName
-    }
-}
-if ($Survivors) { Write-Warning "Failed to delete: $($Survivors -join ', ')" }
-```
+Prefer PowerShell over batch (`RMDIR /Q /S` fails silently). Track survivors with try/catch per-item.
 
 ## JSON & Paths
 
@@ -138,12 +125,5 @@ Get-ScheduledTask | Where TaskName -like "*Backup*"
 
 ## Template
 
-```powershell
-#Requires -Version 5.1
-param([string]$Param = "default")
-$ErrorActionPreference = "Stop"
-if ($env:_SCRIPT_RUNNING) { exit 0 }
-$env:_SCRIPT_RUNNING = "1"
-try { <# main #> } catch { Write-Error "Failed: $_"; exit 1 } finally { $env:_SCRIPT_RUNNING = $null }
-exit 0
-```
+`#Requires -Version 5.1`, param block, `$ErrorActionPreference = "Stop"`, re-entry guard, try/catch/finally, explicit
+exit.

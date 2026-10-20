@@ -30,10 +30,10 @@ ANTI_PATTERN_THRESHOLD = -5
 CORRECTABLE_THRESHOLD = 2
 
 # Probabilistic hyperparameters
-PRIOR_ALPHA = 1.0      # Beta prior α₀ (uniform)
-PRIOR_BETA = 1.0       # Beta prior β₀ (uniform)
-KAPPA = 10.0           # Concentration: how tightly skills cluster around class mean
-TAU = 0.7              # Promotion threshold: P(success) > τ
+PRIOR_ALPHA = 1.0  # Beta prior α₀ (uniform)
+PRIOR_BETA = 1.0  # Beta prior β₀ (uniform)
+KAPPA = 10.0  # Concentration: how tightly skills cluster around class mean
+TAU = 0.7  # Promotion threshold: P(success) > τ
 CONFIDENCE_THRESHOLD = 0.9  # Require 90% confidence for promotion
 
 
@@ -70,6 +70,7 @@ def prob_above_threshold(alpha: float, beta: float, threshold: float = TAU) -> f
 @dataclass
 class Skill:
     """A learned pattern that works or doesn't."""
+
     id: int
     name: str
     description: str | None
@@ -130,6 +131,7 @@ class Skill:
 @dataclass
 class MetaKnowledge:
     """Class-level success rate (hierarchical prior)."""
+
     error_class: str
     fix_class: str
     alpha: float
@@ -148,6 +150,7 @@ class MetaKnowledge:
 @dataclass
 class Episode:
     """A record of what happened during a task."""
+
     id: int
     task_description: str
     packages: list[str]
@@ -163,6 +166,7 @@ class Episode:
 @dataclass
 class SkillRecommendation:
     """A skill recommendation for a task."""
+
     skill: Skill | None
     confidence: str  # "high" (proven), "medium" (correctable), "low" (noise), "class-level"
     reason: str
@@ -259,7 +263,7 @@ class Flywheel:
             "SELECT ec.name FROM error_class_membership ecm "
             "JOIN error_classes ec ON ecm.error_class_id = ec.id "
             "WHERE ecm.error_type = ?",
-            (error_type,)
+            (error_type,),
         ).fetchone()
         if row:
             return row["name"]
@@ -286,7 +290,7 @@ class Flywheel:
             "SELECT fc.name FROM fix_class_membership fcm "
             "JOIN fix_classes fc ON fcm.fix_class_id = fc.id "
             "WHERE fcm.fix_action = ?",
-            (fix_action,)
+            (fix_action,),
         ).fetchone()
         if row:
             return row["name"]
@@ -308,10 +312,13 @@ class Flywheel:
         """Cache error type to class mapping."""
         conn = self._get_conn()
         try:
-            conn.execute("""
+            conn.execute(
+                """
                 INSERT OR IGNORE INTO error_class_membership (error_type, error_class_id, assigned_at)
                 SELECT ?, id, ? FROM error_classes WHERE name = ?
-            """, (error_type, datetime.now().isoformat(), class_name))
+            """,
+                (error_type, datetime.now().isoformat(), class_name),
+            )
             conn.commit()
         except sqlite3.Error:
             pass
@@ -320,10 +327,13 @@ class Flywheel:
         """Cache fix action to class mapping."""
         conn = self._get_conn()
         try:
-            conn.execute("""
+            conn.execute(
+                """
                 INSERT OR IGNORE INTO fix_class_membership (fix_action, fix_class_id, assigned_at)
                 SELECT ?, id, ? FROM fix_classes WHERE name = ?
-            """, (fix_action, datetime.now().isoformat(), class_name))
+            """,
+                (fix_action, datetime.now().isoformat(), class_name),
+            )
             conn.commit()
         except sqlite3.Error:
             pass
@@ -331,14 +341,17 @@ class Flywheel:
     def get_meta_knowledge(self, error_class: str, fix_class: str) -> MetaKnowledge | None:
         """Get class-level prior for (error_class, fix_class)."""
         conn = self._get_conn()
-        row = conn.execute("""
+        row = conn.execute(
+            """
             SELECT ec.name as error_class, fc.name as fix_class,
                    mk.alpha, mk.beta, mk.observation_count
             FROM meta_knowledge mk
             JOIN error_classes ec ON mk.error_class_id = ec.id
             JOIN fix_classes fc ON mk.fix_class_id = fc.id
             WHERE ec.name = ? AND fc.name = ?
-        """, (error_class, fix_class)).fetchone()
+        """,
+            (error_class, fix_class),
+        ).fetchone()
 
         if row:
             return MetaKnowledge(
@@ -346,7 +359,7 @@ class Flywheel:
                 fix_class=row["fix_class"],
                 alpha=row["alpha"],
                 beta=row["beta"],
-                observation_count=row["observation_count"]
+                observation_count=row["observation_count"],
             )
         return None
 
@@ -355,32 +368,41 @@ class Flywheel:
         conn = self._get_conn()
 
         # Ensure meta_knowledge row exists
-        conn.execute("""
+        conn.execute(
+            """
             INSERT OR IGNORE INTO meta_knowledge (error_class_id, fix_class_id, created_at)
             SELECT ec.id, fc.id, ?
             FROM error_classes ec, fix_classes fc
             WHERE ec.name = ? AND fc.name = ?
-        """, (datetime.now().isoformat(), error_class, fix_class))
+        """,
+            (datetime.now().isoformat(), error_class, fix_class),
+        )
 
         # Update counts
         if success:
-            conn.execute("""
+            conn.execute(
+                """
                 UPDATE meta_knowledge SET
                     alpha = alpha + 1,
                     observation_count = observation_count + 1,
                     updated_at = ?
                 WHERE error_class_id = (SELECT id FROM error_classes WHERE name = ?)
                   AND fix_class_id = (SELECT id FROM fix_classes WHERE name = ?)
-            """, (datetime.now().isoformat(), error_class, fix_class))
+            """,
+                (datetime.now().isoformat(), error_class, fix_class),
+            )
         else:
-            conn.execute("""
+            conn.execute(
+                """
                 UPDATE meta_knowledge SET
                     beta = beta + 1,
                     observation_count = observation_count + 1,
                     updated_at = ?
                 WHERE error_class_id = (SELECT id FROM error_classes WHERE name = ?)
                   AND fix_class_id = (SELECT id FROM fix_classes WHERE name = ?)
-            """, (datetime.now().isoformat(), error_class, fix_class))
+            """,
+                (datetime.now().isoformat(), error_class, fix_class),
+            )
 
         conn.commit()
 
@@ -403,8 +425,7 @@ class Flywheel:
     # SKILL MANAGEMENT
     # ═══════════════════════════════════════════════════════════════
 
-    def get_or_create_skill(self, name: str, error_type: str | None = None,
-                           description: str | None = None) -> int:
+    def get_or_create_skill(self, name: str, error_type: str | None = None, description: str | None = None) -> int:
         """Get existing skill or create new one.
 
         New skills inherit prior from class-level meta-knowledge.
@@ -412,30 +433,27 @@ class Flywheel:
         conn = self._get_conn()
 
         # Check if exists
-        row = conn.execute(
-            "SELECT id FROM skills WHERE name = ?", (name,)
-        ).fetchone()
+        row = conn.execute("SELECT id FROM skills WHERE name = ?", (name,)).fetchone()
 
         if row:
             return row[0]
 
         # Get inherited prior from meta-knowledge
         fix_action = name.split("-for-")[0] if "-for-" in name else name
-        prior_alpha, prior_beta = self.get_inherited_prior(
-            error_type or "",
-            fix_action
-        )
+        prior_alpha, prior_beta = self.get_inherited_prior(error_type or "", fix_action)
 
         # Create new skill with inherited prior
-        cursor = conn.execute("""
+        cursor = conn.execute(
+            """
             INSERT INTO skills (name, error_type, description, alpha, beta, created_at)
             VALUES (?, ?, ?, ?, ?, ?)
-        """, (name, error_type, description, prior_alpha, prior_beta, datetime.now().isoformat()))
+        """,
+            (name, error_type, description, prior_alpha, prior_beta, datetime.now().isoformat()),
+        )
         conn.commit()
         return cursor.lastrowid
 
-    def record_skill_evidence(self, skill_id: int, fix_attempt_id: int,
-                             outcome: str) -> None:
+    def record_skill_evidence(self, skill_id: int, fix_attempt_id: int, outcome: str) -> None:
         """Record evidence for a skill from a fix attempt.
 
         Updates both legacy score and Bayesian (α, β) parameters.
@@ -456,16 +474,20 @@ class Flywheel:
 
         # Record evidence
         try:
-            conn.execute("""
+            conn.execute(
+                """
                 INSERT INTO skill_evidence (skill_id, fix_attempt_id, outcome, score_delta, recorded_at)
                 VALUES (?, ?, ?, ?, ?)
-            """, (skill_id, fix_attempt_id, outcome, score_delta, datetime.now().isoformat()))
+            """,
+                (skill_id, fix_attempt_id, outcome, score_delta, datetime.now().isoformat()),
+            )
         except sqlite3.IntegrityError:
             return  # Already recorded
 
         # Update skill: legacy score + Bayesian parameters
         if success is True:
-            conn.execute("""
+            conn.execute(
+                """
                 UPDATE skills SET
                     score = MAX(?, MIN(?, score + ?)),
                     alpha = alpha + 1,
@@ -473,9 +495,12 @@ class Flywheel:
                     success_count = success_count + 1,
                     last_used_at = ?
                 WHERE id = ?
-            """, (MIN_SCORE, MAX_SCORE, score_delta, datetime.now().isoformat(), skill_id))
+            """,
+                (MIN_SCORE, MAX_SCORE, score_delta, datetime.now().isoformat(), skill_id),
+            )
         elif success is False:
-            conn.execute("""
+            conn.execute(
+                """
                 UPDATE skills SET
                     score = MAX(?, MIN(?, score + ?)),
                     beta = beta + 1,
@@ -483,14 +508,19 @@ class Flywheel:
                     failure_count = failure_count + 1,
                     last_used_at = ?
                 WHERE id = ?
-            """, (MIN_SCORE, MAX_SCORE, score_delta, datetime.now().isoformat(), skill_id))
+            """,
+                (MIN_SCORE, MAX_SCORE, score_delta, datetime.now().isoformat(), skill_id),
+            )
         else:
-            conn.execute("""
+            conn.execute(
+                """
                 UPDATE skills SET
                     evidence_count = evidence_count + 1,
                     last_used_at = ?
                 WHERE id = ?
-            """, (datetime.now().isoformat(), skill_id))
+            """,
+                (datetime.now().isoformat(), skill_id),
+            )
 
         conn.commit()
 
@@ -512,10 +542,7 @@ class Flywheel:
     def _update_skill_class(self, skill_id: int) -> None:
         """Update skill class based on current score."""
         conn = self._get_conn()
-        skill = conn.execute(
-            "SELECT score, class, evidence_count FROM skills WHERE id = ?",
-            (skill_id,)
-        ).fetchone()
+        skill = conn.execute("SELECT score, class, evidence_count FROM skills WHERE id = ?", (skill_id,)).fetchone()
 
         if not skill:
             return
@@ -535,10 +562,13 @@ class Flywheel:
 
         # Update if changed
         if new_class != current_class:
-            conn.execute("""
+            conn.execute(
+                """
                 UPDATE skills SET class = ?, promoted_at = ?
                 WHERE id = ?
-            """, (new_class, datetime.now().isoformat(), skill_id))
+            """,
+                (new_class, datetime.now().isoformat(), skill_id),
+            )
             conn.commit()
 
     def get_skill(self, skill_id: int) -> Skill | None:
@@ -583,30 +613,32 @@ class Flywheel:
         """Get proven skills, optionally filtered by error type."""
         conn = self._get_conn()
         if error_type:
-            rows = conn.execute("""
+            rows = conn.execute(
+                """
                 SELECT * FROM skills
                 WHERE class = 'proven' AND (error_type = ? OR error_type IS NULL)
                 ORDER BY score DESC
-            """, (error_type,)).fetchall()
-        else:
-            rows = conn.execute(
-                "SELECT * FROM proven_skills"
+            """,
+                (error_type,),
             ).fetchall()
+        else:
+            rows = conn.execute("SELECT * FROM proven_skills").fetchall()
         return [self._row_to_skill(row) for row in rows]
 
     def get_anti_patterns(self, error_type: str | None = None) -> list[Skill]:
         """Get anti-patterns to avoid."""
         conn = self._get_conn()
         if error_type:
-            rows = conn.execute("""
+            rows = conn.execute(
+                """
                 SELECT * FROM skills
                 WHERE class = 'anti-pattern' AND (error_type = ? OR error_type IS NULL)
                 ORDER BY score ASC
-            """, (error_type,)).fetchall()
-        else:
-            rows = conn.execute(
-                "SELECT * FROM anti_patterns"
+            """,
+                (error_type,),
             ).fetchall()
+        else:
+            rows = conn.execute("SELECT * FROM anti_patterns").fetchall()
         return [self._row_to_skill(row) for row in rows]
 
     def get_recommendations(self, error_type: str) -> list[SkillRecommendation]:
@@ -616,35 +648,42 @@ class Flywheel:
         # Get proven skills (high confidence) - now using Bayesian criteria
         for skill in self.get_proven_skills(error_type):
             ci_low, ci_high = skill.confidence_interval
-            recommendations.append(SkillRecommendation(
-                skill=skill,
-                confidence="high",
-                reason=f"Proven: {skill.mean:.0%} ± {skill.stddev:.0%} (P(effective)={skill.prob_effective:.0%})",
-                mean=skill.mean,
-                stddev=skill.stddev,
-                prob_effective=skill.prob_effective,
-                source="skill"
-            ))
+            recommendations.append(
+                SkillRecommendation(
+                    skill=skill,
+                    confidence="high",
+                    reason=f"Proven: {skill.mean:.0%} ± {skill.stddev:.0%} (P(effective)={skill.prob_effective:.0%})",
+                    mean=skill.mean,
+                    stddev=skill.stddev,
+                    prob_effective=skill.prob_effective,
+                    source="skill",
+                )
+            )
 
         # Get correctable skills (medium confidence)
         conn = self._get_conn()
-        rows = conn.execute("""
+        rows = conn.execute(
+            """
             SELECT * FROM skills
             WHERE class = 'correctable' AND (error_type = ? OR error_type IS NULL)
             ORDER BY alpha / (alpha + beta) DESC LIMIT 3
-        """, (error_type,)).fetchall()
+        """,
+            (error_type,),
+        ).fetchall()
 
         for row in rows:
             skill = self._row_to_skill(row)
-            recommendations.append(SkillRecommendation(
-                skill=skill,
-                confidence="medium",
-                reason=f"Promising: {skill.mean:.0%} ± {skill.stddev:.0%} ({skill.evidence_count} observations)",
-                mean=skill.mean,
-                stddev=skill.stddev,
-                prob_effective=skill.prob_effective,
-                source="skill"
-            ))
+            recommendations.append(
+                SkillRecommendation(
+                    skill=skill,
+                    confidence="medium",
+                    reason=f"Promising: {skill.mean:.0%} ± {skill.stddev:.0%} ({skill.evidence_count} observations)",
+                    mean=skill.mean,
+                    stddev=skill.stddev,
+                    prob_effective=skill.prob_effective,
+                    source="skill",
+                )
+            )
 
         # If no skill-level recommendations, try meta-knowledge
         if not recommendations:
@@ -662,7 +701,8 @@ class Flywheel:
             return recommendations
 
         conn = self._get_conn()
-        rows = conn.execute("""
+        rows = conn.execute(
+            """
             SELECT fc.name as fix_class, mk.alpha, mk.beta, mk.observation_count
             FROM meta_knowledge mk
             JOIN error_classes ec ON mk.error_class_id = ec.id
@@ -670,7 +710,9 @@ class Flywheel:
             WHERE ec.name = ? AND mk.observation_count > 0
             ORDER BY mk.alpha / (mk.alpha + mk.beta) DESC
             LIMIT 3
-        """, (error_class,)).fetchall()
+        """,
+            (error_class,),
+        ).fetchall()
 
         for row in rows:
             meta = MetaKnowledge(
@@ -678,20 +720,22 @@ class Flywheel:
                 fix_class=row["fix_class"],
                 alpha=row["alpha"],
                 beta=row["beta"],
-                observation_count=row["observation_count"]
+                observation_count=row["observation_count"],
             )
-            recommendations.append(SkillRecommendation(
-                skill=None,
-                confidence="class-level",
-                reason=(
-                    f"Meta: {meta.fix_class} fixes work {meta.mean:.0%} ± {meta.stddev:.0%} "
-                    f"for {error_class} errors ({meta.observation_count} obs)"
-                ),
-                mean=meta.mean,
-                stddev=meta.stddev,
-                prob_effective=prob_above_threshold(meta.alpha, meta.beta, TAU),
-                source="meta"
-            ))
+            recommendations.append(
+                SkillRecommendation(
+                    skill=None,
+                    confidence="class-level",
+                    reason=(
+                        f"Meta: {meta.fix_class} fixes work {meta.mean:.0%} ± {meta.stddev:.0%} "
+                        f"for {error_class} errors ({meta.observation_count} obs)"
+                    ),
+                    mean=meta.mean,
+                    stddev=meta.stddev,
+                    prob_effective=prob_above_threshold(meta.alpha, meta.beta, TAU),
+                    source="meta",
+                )
+            )
 
         return recommendations
 
@@ -701,12 +745,15 @@ class Flywheel:
 
         # Check if action matches any anti-pattern
         conn = self._get_conn()
-        rows = conn.execute("""
+        rows = conn.execute(
+            """
             SELECT * FROM skills
             WHERE class = 'anti-pattern'
               AND (error_type = ? OR error_type IS NULL)
               AND name LIKE ?
-        """, (error_type, f"%{proposed_action}%")).fetchall()
+        """,
+            (error_type, f"%{proposed_action}%"),
+        ).fetchall()
 
         for row in rows:
             skill = self._row_to_skill(row)
@@ -721,40 +768,40 @@ class Flywheel:
     # EPISODE MANAGEMENT
     # ═══════════════════════════════════════════════════════════════
 
-    def start_episode(self, task_description: str, packages: list[str] = None,
-                     session_id: str | None = None) -> int:
+    def start_episode(self, task_description: str, packages: list[str] = None, session_id: str | None = None) -> int:
         """Start a new episode."""
         conn = self._get_conn()
-        cursor = conn.execute("""
+        cursor = conn.execute(
+            """
             INSERT INTO episodes (task_description, packages, session_id, started_at)
             VALUES (?, ?, ?, ?)
-        """, (
-            task_description,
-            json.dumps(packages or []),
-            session_id,
-            datetime.now().isoformat()
-        ))
+        """,
+            (task_description, json.dumps(packages or []), session_id, datetime.now().isoformat()),
+        )
         conn.commit()
         return cursor.lastrowid
 
-    def complete_episode(self, episode_id: int, outcome: str,
-                        approach: str | None = None,
-                        lessons: list[str] = None,
-                        skills_applied: list[int] = None,
-                        skills_discovered: list[int] = None,
-                        fix_attempts: list[int] = None) -> None:
+    def complete_episode(
+        self,
+        episode_id: int,
+        outcome: str,
+        approach: str | None = None,
+        lessons: list[str] = None,
+        skills_applied: list[int] = None,
+        skills_discovered: list[int] = None,
+        fix_attempts: list[int] = None,
+    ) -> None:
         """Complete an episode with outcome."""
         conn = self._get_conn()
-        started = conn.execute(
-            "SELECT started_at FROM episodes WHERE id = ?", (episode_id,)
-        ).fetchone()
+        started = conn.execute("SELECT started_at FROM episodes WHERE id = ?", (episode_id,)).fetchone()
 
         duration = None
         if started:
             start_time = datetime.fromisoformat(started["started_at"])
             duration = (datetime.now() - start_time).total_seconds()
 
-        conn.execute("""
+        conn.execute(
+            """
             UPDATE episodes SET
                 outcome = ?,
                 approach = ?,
@@ -765,17 +812,19 @@ class Flywheel:
                 completed_at = ?,
                 duration_seconds = ?
             WHERE id = ?
-        """, (
-            outcome,
-            approach,
-            json.dumps(lessons or []),
-            json.dumps(skills_applied or []),
-            json.dumps(skills_discovered or []),
-            json.dumps(fix_attempts or []),
-            datetime.now().isoformat(),
-            duration,
-            episode_id
-        ))
+        """,
+            (
+                outcome,
+                approach,
+                json.dumps(lessons or []),
+                json.dumps(skills_applied or []),
+                json.dumps(skills_discovered or []),
+                json.dumps(fix_attempts or []),
+                datetime.now().isoformat(),
+                duration,
+                episode_id,
+            ),
+        )
         conn.commit()
 
     def get_similar_episodes(self, task_description: str, limit: int = 5) -> list[Episode]:
@@ -786,12 +835,15 @@ class Flywheel:
         conditions = " OR ".join(["task_description LIKE ?" for _ in words])
         params = [f"%{w}%" for w in words]
 
-        rows = conn.execute(f"""
+        rows = conn.execute(
+            f"""
             SELECT * FROM episodes
             WHERE outcome IS NOT NULL AND ({conditions})
             ORDER BY completed_at DESC
             LIMIT ?
-        """, params + [limit]).fetchall()
+        """,
+            params + [limit],
+        ).fetchall()
 
         return [self._row_to_episode(row) for row in rows]
 
@@ -813,63 +865,78 @@ class Flywheel:
     # DECISION TRACKING
     # ═══════════════════════════════════════════════════════════════
 
-    def record_decision(self, question: str, choice: str,
-                       rationale: str | None = None,
-                       alternatives: list[str] = None,
-                       episode_id: int | None = None,
-                       error_type: str | None = None,
-                       package: str | None = None) -> int:
+    def record_decision(
+        self,
+        question: str,
+        choice: str,
+        rationale: str | None = None,
+        alternatives: list[str] = None,
+        episode_id: int | None = None,
+        error_type: str | None = None,
+        package: str | None = None,
+    ) -> int:
         """Record a decision for future reference."""
         conn = self._get_conn()
-        cursor = conn.execute("""
+        cursor = conn.execute(
+            """
             INSERT INTO decisions
             (question, choice, alternatives, rationale, episode_id, error_type, package, made_at)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        """, (
-            question, choice,
-            json.dumps(alternatives or []),
-            rationale, episode_id, error_type, package,
-            datetime.now().isoformat()
-        ))
+        """,
+            (
+                question,
+                choice,
+                json.dumps(alternatives or []),
+                rationale,
+                episode_id,
+                error_type,
+                package,
+                datetime.now().isoformat(),
+            ),
+        )
         conn.commit()
         return cursor.lastrowid
 
     def validate_decision(self, decision_id: int, outcome: str, notes: str | None = None) -> None:
         """Update decision outcome after validation."""
         conn = self._get_conn()
-        conn.execute("""
+        conn.execute(
+            """
             UPDATE decisions SET outcome = ?, outcome_notes = ?, validated_at = ?
             WHERE id = ?
-        """, (outcome, notes, datetime.now().isoformat(), decision_id))
+        """,
+            (outcome, notes, datetime.now().isoformat(), decision_id),
+        )
         conn.commit()
 
     def get_similar_decisions(self, error_type: str, limit: int = 5) -> list[dict[str, Any]]:
         """Find similar past decisions."""
         conn = self._get_conn()
-        rows = conn.execute("""
+        rows = conn.execute(
+            """
             SELECT * FROM decisions
             WHERE error_type = ? AND outcome = 'validated'
             ORDER BY validated_at DESC
             LIMIT ?
-        """, (error_type, limit)).fetchall()
+        """,
+            (error_type, limit),
+        ).fetchall()
         return [dict(row) for row in rows]
 
     # ═══════════════════════════════════════════════════════════════
     # FLYWHEEL LEARNING
     # ═══════════════════════════════════════════════════════════════
 
-    def learn_from_fix_attempt(self, fix_attempt_id: int, error_type: str,
-                               fix_action: str, outcome: str,
-                               package: str | None = None) -> int | None:
+    def learn_from_fix_attempt(
+        self, fix_attempt_id: int, error_type: str, fix_action: str, outcome: str, package: str | None = None
+    ) -> int | None:
         """Learn from a fix attempt, potentially creating or updating a skill."""
         # Generate skill name from error type and action
         skill_name = f"{fix_action}-for-{error_type}".lower().replace("_", "-")
 
         # Get or create skill
         skill_id = self.get_or_create_skill(
-            name=skill_name,
-            error_type=error_type,
-            description=f"Use {fix_action} to fix {error_type} errors"
+            name=skill_name, error_type=error_type, description=f"Use {fix_action} to fix {error_type} errors"
         )
 
         # Record evidence
@@ -890,7 +957,7 @@ class Flywheel:
             skills_by_class[row["class"]] = {
                 "count": row["count"],
                 "avg_score": round(row["avg_score"] or 0, 1),
-                "avg_mean": round(row["avg_mean"] or 0.5, 3)
+                "avg_mean": round(row["avg_mean"] or 0.5, 3),
             }
 
         episodes = conn.execute("""
@@ -899,9 +966,7 @@ class Flywheel:
         """).fetchall()
 
         total_episodes = sum(row["count"] for row in episodes)
-        success_episodes = next(
-            (row["count"] for row in episodes if row["outcome"] == "success"), 0
-        )
+        success_episodes = next((row["count"] for row in episodes if row["outcome"] == "success"), 0)
 
         # Meta-knowledge stats
         meta_stats = conn.execute("""
@@ -924,18 +989,16 @@ class Flywheel:
             "meta_knowledge": {
                 "class_pairs": meta_stats["pairs"] or 0,
                 "total_observations": meta_stats["total_obs"] or 0,
-                "avg_class_success_rate": round(meta_stats["avg_class_mean"] or 0.5, 3)
+                "avg_class_success_rate": round(meta_stats["avg_class_mean"] or 0.5, 3),
             },
-            "promotion_candidates": conn.execute(
-                "SELECT COUNT(*) FROM promotion_candidates"
-            ).fetchone()[0],
+            "promotion_candidates": conn.execute("SELECT COUNT(*) FROM promotion_candidates").fetchone()[0],
             "hyperparameters": {
                 "prior_alpha": PRIOR_ALPHA,
                 "prior_beta": PRIOR_BETA,
                 "kappa": KAPPA,
                 "tau": TAU,
-                "confidence_threshold": CONFIDENCE_THRESHOLD
-            }
+                "confidence_threshold": CONFIDENCE_THRESHOLD,
+            },
         }
 
 
@@ -1003,13 +1066,17 @@ def main():
                 skill = flywheel._row_to_skill(row)
                 if args.bayesian:
                     print(f"[{skill.bayesian_class:12}] {skill.name}")
-                    print(f"    α={skill.alpha:.1f} β={skill.beta:.1f} | "
-                          f"μ={skill.mean:.2f} σ={skill.stddev:.2f} | "
-                          f"P(eff)={skill.prob_effective:.0%} | n={skill.evidence_count}")
+                    print(
+                        f"    α={skill.alpha:.1f} β={skill.beta:.1f} | "
+                        f"μ={skill.mean:.2f} σ={skill.stddev:.2f} | "
+                        f"P(eff)={skill.prob_effective:.0%} | n={skill.evidence_count}"
+                    )
                 else:
-                    print(f"[{skill.skill_class:12}] {skill.name} "
-                          f"(μ={skill.mean:.0%} ± {skill.stddev:.0%}, "
-                          f"P(eff)={skill.prob_effective:.0%}, n={skill.evidence_count})")
+                    print(
+                        f"[{skill.skill_class:12}] {skill.name} "
+                        f"(μ={skill.mean:.0%} ± {skill.stddev:.0%}, "
+                        f"P(eff)={skill.prob_effective:.0%}, n={skill.evidence_count})"
+                    )
 
         elif args.command == "recommend":
             recs = flywheel.get_recommendations(args.error_type)
@@ -1050,12 +1117,14 @@ def main():
                     fix_class=row["fix_class"],
                     alpha=row["alpha"],
                     beta=row["beta"],
-                    observation_count=row["observation_count"]
+                    observation_count=row["observation_count"],
                 )
-                print(f"{meta.error_class:<15} {meta.fix_class:<20} "
-                      f"{meta.alpha:>6.1f} {meta.beta:>6.1f} "
-                      f"{meta.mean:>6.1%} {meta.stddev:>6.1%} "
-                      f"{meta.observation_count:>4}")
+                print(
+                    f"{meta.error_class:<15} {meta.fix_class:<20} "
+                    f"{meta.alpha:>6.1f} {meta.beta:>6.1f} "
+                    f"{meta.mean:>6.1%} {meta.stddev:>6.1%} "
+                    f"{meta.observation_count:>4}"
+                )
 
         elif args.command == "classify":
             if args.type == "error":
@@ -1067,12 +1136,15 @@ def main():
 
         elif args.command == "episodes":
             conn = flywheel._get_conn()
-            for row in conn.execute("""
+            for row in conn.execute(
+                """
                 SELECT * FROM episodes
                 WHERE outcome IS NOT NULL
                 ORDER BY completed_at DESC
                 LIMIT ?
-            """, (args.limit,)).fetchall():
+            """,
+                (args.limit,),
+            ).fetchall():
                 ep = flywheel._row_to_episode(row)
                 print(f"[{ep.outcome:8}] {ep.task_description[:60]}")
                 if ep.lessons:

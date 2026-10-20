@@ -22,14 +22,14 @@ Handoff: `next: done`.
 
 ## Banned Phrases
 
-| Banned | Instead |
-| --- | --- |
-| "I'll explore..." | (explore silently) |
-| "I see the issue" | "Issue: X" |
-| "Let me check..." | `checking...` |
-| "Now I understand" | (act on it) |
-| "I'll refactor to..." | "Refactoring..." |
-| "Now let's fix X" | "Fixing X" |
+| Banned                | Instead            |
+| --------------------- | ------------------ |
+| "I'll explore..."     | (explore silently) |
+| "I see the issue"     | "Issue: X"         |
+| "Let me check..."     | `checking...`      |
+| "Now I understand"    | (act on it)        |
+| "I'll refactor to..." | "Refactoring..."   |
+| "Now let's fix X"     | "Fixing X"         |
 
 ## Discouraged Prose
 
@@ -41,18 +41,19 @@ Rhetorical templates that score well in RLHF but carry no information.
 
 ### Structural Patterns
 
-| Pattern | Example | Fix |
-| --- | --- | --- |
-| Escalation | "not just X but Y" | State the second half only |
-| Summary restatement | "That confirms X" | Delete |
-| Triplet adjectives | "fast, flexible, powerful" | Keep only what you can back up |
-| Announcements | "Here's the thing", "Let's dive in", "The key insight is" | Delete opener, keep content |
-| Tidy closers | "Ultimately, it's about...", "And that changes everything" | Delete if it restates or adds empty emphasis |
-| Vague authority | "experts argue", "many believe" | Name the source or own the claim |
-| Over-formatting | Bold labels on every bullet, headers over two paragraphs | Remove decoration |
-| Short choppy sentences | Rapid-fire for false decisiveness | Join with connectives |
+| Pattern                | Example                                                    | Fix                                          |
+| ---------------------- | ---------------------------------------------------------- | -------------------------------------------- |
+| Escalation             | "not just X but Y"                                         | State the second half only                   |
+| Summary restatement    | "That confirms X"                                          | Delete                                       |
+| Triplet adjectives     | "fast, flexible, powerful"                                 | Keep only what you can back up               |
+| Announcements          | "Here's the thing", "Let's dive in", "The key insight is"  | Delete opener, keep content                  |
+| Tidy closers           | "Ultimately, it's about...", "And that changes everything" | Delete if it restates or adds empty emphasis |
+| Vague authority        | "experts argue", "many believe"                            | Name the source or own the claim             |
+| Over-formatting        | Bold labels on every bullet, headers over two paragraphs   | Remove decoration                            |
+| Short choppy sentences | Rapid-fire for false decisiveness                          | Join with connectives                        |
 
-**Instead**: Plain declarative sentences. No rhetorical contrasts. No summary restatements. No flattery. Delete everything that isn't information.
+**Instead**: Plain declarative sentences. No rhetorical contrasts. No summary restatements. No flattery. Delete
+everything that isn't information.
 
 ## Compression
 
@@ -89,48 +90,17 @@ Target: 50-70% reduction, <5% quality loss
 
 ## Structured Summaries
 
-```markdown
-## Intent
-
-[Task goal]
-
-## Files Modified
-
-- path/file.py: what changed
-
-## Decisions
-
-- Key choice and why
-
-## Next
-
-1. Immediate action
-```
+`## Intent` [goal] `## Files` path: change `## Decisions` choice + why `## Next` action
 
 ## KV-Cache Optimization
 
-Order prompts for cache stability:
-
-1. System prompt (immutable)
-2. Tool definitions (stable)
-3. Templates/few-shot (reusable)
-4. History (grows but shares prefix)
-5. Current query (dynamic, always last)
-
-**Gotcha**: Single whitespace change invalidates entire downstream cache
+Order: system prompt → tool defs → templates → history → current query. Whitespace change invalidates downstream cache.
 
 ## Measure
 
-Track **tokens-per-task** not tokens-per-request. If agent re-reads files it already processed → compression too
-aggressive.
-
-| Signal              | Problem            |
-| ------------------- | ------------------ |
-| Re-fetching         | Lost critical info |
-| Repetition          | Attention degraded |
-| Missed instructions | Context too full   |
+Track tokens-per-task. Re-reading = compression too aggressive. Re-fetching = lost info. Repetition = attention
+degraded.
 
 ## Partitioning
 
-When task > 60% window: split to sub-agents with isolated contexts. Break-even requires 3+ subtasks (coordination
-overhead is real).
+Task > 60% → sub-agents. Break-even: 3+ subtasks (coordination overhead).

@@ -58,14 +58,14 @@ cat .harness/code_index/profile.json | jq '.patterns.config_py_path'
 
 ## Python Workflow
 
-| Task            | Load                                                        |
-| --------------- | ----------------------------------------------------------- |
-| New code        | python/style → python/violations → debugging                |
-| Tests           | python/testing + python/conftest + python/mocking           |
-| Property tests  | python/property-testing                                     |
-| Bug fix         | debugging → verify with test                                |
-| Security        | python/security                                             |
-| Refresh profile | python/recon                                                |
+| Task            | Load                                              |
+| --------------- | ------------------------------------------------- |
+| New code        | python/style → python/violations → debugging      |
+| Tests           | python/testing + python/conftest + python/mocking |
+| Property tests  | python/property-testing                           |
+| Bug fix         | debugging → verify with test                      |
+| Security        | python/security                                   |
+| Refresh profile | python/recon                                      |
 
 ## Rules (from profile)
 

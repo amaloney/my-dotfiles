@@ -8,14 +8,14 @@ invocation: auto
 
 Handoff: `next: bug`.
 
-| Concern   | Skill               | Triggers                                       |
-| --------- | ------------------- | ---------------------------------------------- |
+| Concern   | Skill               | Triggers                                        |
+| --------- | ------------------- | ----------------------------------------------- |
 | Types     | [[rust/types]]      | signatures, borrowing, clone, newtype, generics |
-| Naming    | [[rust/naming]]     | variables, constants, conversions, getters     |
-| Structure | [[rust/structure]]  | mod, use, pub, layout, line length             |
-| Errors    | [[rust/errors]]     | Result, ?, unwrap, panic, thiserror, anyhow    |
-| Files     | [[rust/org]]        | config.rs, lib.rs/main.rs, where to put        |
-| Lint      | [[rust/violations]] | clippy, rustfmt, lint                          |
+| Naming    | [[rust/naming]]     | variables, constants, conversions, getters      |
+| Structure | [[rust/structure]]  | mod, use, pub, layout, line length              |
+| Errors    | [[rust/errors]]     | Result, ?, unwrap, panic, thiserror, anyhow     |
+| Files     | [[rust/org]]        | config.rs, lib.rs/main.rs, where to put         |
+| Lint      | [[rust/violations]] | clippy, rustfmt, lint                           |
 
 Load specific leaf for focused task. Load all for full review.
 

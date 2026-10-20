@@ -19,7 +19,9 @@ try:
     import chromadb
     from chromadb.config import Settings
 except ImportError:
-    print("ChromaDB not installed. Install with: pixi add --feature dev chromadb  (code-index SKILL.md has the full env)")
+    print(
+        "ChromaDB not installed. Install with: pixi add --feature dev chromadb  (code-index SKILL.md has the full env)"
+    )
     sys.exit(1)
 
 from extract_rust import EXCLUDE_DIRS_RUST, RUST_AVAILABLE, RUST_INSTALL_HINT, extract_rust

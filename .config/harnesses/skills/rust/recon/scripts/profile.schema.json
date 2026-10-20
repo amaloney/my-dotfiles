@@ -56,7 +56,11 @@
       "description": "Repo layout map (agent-filled).",
       "properties": {
         "src_dirs": { "type": "array", "items": { "type": "string" } },
-        "test_dirs": { "type": "array", "items": { "type": "string" }, "description": "Integration test dirs (tests/)." },
+        "test_dirs": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Integration test dirs (tests/)."
+        },
         "bench_dirs": { "type": "array", "items": { "type": "string" } },
         "example_dirs": { "type": "array", "items": { "type": "string" } },
         "entry_points": { "type": "array", "items": { "type": "string" }, "description": "main.rs / src/bin/*.rs." }

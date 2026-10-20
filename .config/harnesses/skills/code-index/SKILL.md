@@ -56,13 +56,13 @@ changes.
 
 Run from the repo root (scripts live at `.harness/code_index/`):
 
-| Command                                                             | Purpose                              |
-| ------------------------------------------------------------------- | ------------------------------------ |
-| `python3 .harness/code_index/query_temporal.py search "<intent>"`   | Semantic search for similar entities |
-| `python3 .harness/code_index/query_temporal.py callers <name>`      | Who calls this entity                |
-| `python3 .harness/code_index/query_temporal.py calls <name>`        | What this entity calls               |
-| `python3 .harness/code_index/query_temporal.py impact <name>`       | Change impact analysis               |
-| `python3 .harness/code_index/query_temporal.py changes 7d`          | What changed recently                |
+| Command                                                           | Purpose                              |
+| ----------------------------------------------------------------- | ------------------------------------ |
+| `python3 .harness/code_index/query_temporal.py search "<intent>"` | Semantic search for similar entities |
+| `python3 .harness/code_index/query_temporal.py callers <name>`    | Who calls this entity                |
+| `python3 .harness/code_index/query_temporal.py calls <name>`      | What this entity calls               |
+| `python3 .harness/code_index/query_temporal.py impact <name>`     | Change impact analysis               |
+| `python3 .harness/code_index/query_temporal.py changes 7d`        | What changed recently                |
 
 ## Verdict protocol (output contract)
 

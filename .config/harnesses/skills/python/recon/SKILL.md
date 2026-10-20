@@ -24,9 +24,8 @@ From the repo root:
 ~/.config/harnesses/skills/python/recon/scripts/profile.sh
 ```
 
-Then review/fill `.harness/code_index/profile.json`: the script populates
-version, generated, and project fields; fill structure, patterns, testing, and
-linting from the scan results (structure shape: `scripts/profile.schema.json`).
+Then review/fill `.harness/code_index/profile.json`: the script populates version, generated, and project fields; fill
+structure, patterns, testing, and linting from the scan results (structure shape: `scripts/profile.schema.json`).
 
 ## Validation
 
@@ -44,8 +43,7 @@ find .harness/code_index/profile.json -mtime +7 2>/dev/null && echo "stale"
 
 ## Usage by Other Skills
 
-Skills read profile.json instead of rescanning: constants should be in
-`{profile.patterns.config_py_path}`, currently scattered in
-`{profile.patterns.scattered_constants}`.
+Skills read profile.json instead of rescanning: constants should be in `{profile.patterns.config_py_path}`, currently
+scattered in `{profile.patterns.scattered_constants}`.
 
 [[python]] [[python/structure]] [[python/org]]

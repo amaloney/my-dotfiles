@@ -4,25 +4,22 @@ Rules for multi-agent pipelines. The main agent is an orchestrator only.
 
 ## Main agent
 
-- Never reads, writes, or pastes code. Zero implementation in main context.
+- Never reads, writes, or pastes code.
 - Every delegation is a Task call whose prompt contains ONLY: artifact path(s) + stage spec.
-- Routes strictly by stage verdicts (`next: <stage>`); never re-enters a completed stage.
+- Routes strictly by stage verdicts (`next: <stage>`).
 
 ## Subagents
 
-- Do one thing, and only one thing, then hand off.
+- Do one thing, then hand off.
 - Input contract: file path + stage spec. Hydrate from disc — never from prompt-embedded code.
 - Output contract: exactly one short result — status + artifact path + `next: <stage>`.
-- Gate evidence: create/audit/hygiene stages run `~/.config/harnesses/scripts/style-gates.sh` on their output and paste
-  the command output into the artifact ledger. A stage result without gate evidence is invalid — "ruff passed" alone is
-  not gate evidence.
+- Gate evidence: create/audit/hygiene stages run `style-gates.sh`, paste output to ledger; no output = invalid.
 - Recall own skill's pattern memory (GOOD/BAD examples) at start; save new patterns on novel fixes.
-- Fan-out containment: sub-subagents are owned by the subagent that spawned them and are invisible to main; only
-  aggregated results return.
+- Fan-out: sub-subagents invisible to main; only aggregates return.
 
 ## Artifacts
 
-- The file on disc is the message bus. All state travels via artifacts, not context.
+- The file on disc is the message bus.
 - Cross-stage references are `file:symbol` pointers, never inlined code.
 
 ## Termination
@@ -41,26 +38,17 @@ Handoff edges (`next:`) form a DAG. Reference links (`[[...]]`) transfer no cont
 
 Rules:
 
-1. **Ranks** — `next:` is valid iff `rank(target) > rank(source)` or target is `done`. Skipping ranks is allowed. Only
-   main may start a fresh pipeline (new artifact, fresh budget); skills never hand backward.
-2. **Hop budget** — artifacts carry `hops: 6` in the header; each handoff decrements. At 0 the stage emits
-   `next: done` + partial state. Longest known pipeline (route→create→audit→hygiene→test→verify) fits in 6.
-3. **Visited ledger** — artifacts record `visited: [<stages>]`. A stage finding itself listed refuses and emits
-   `next: done` + conflict note. Mechanically enforces "never re-enters a completed stage".
-4. **No-revert** — a successor preserves the predecessor's accepted work. Finding earlier-stage output wrong → emit
-   `next: done` + regression note; main decides whether to launch a fresh pipeline.
-5. **`next: done`** — explicit terminal verdict. `verify` and `git-commit` are universal sinks any rank may terminate
-   into.
+1. **Ranks** — `next:` valid iff `rank(target) > rank(source)` or `done`. Only main starts fresh pipelines.
+2. **Hop budget** — artifacts carry `hops: 6`; each handoff decrements; at 0 emit `next: done` + partial.
+3. **Visited ledger** — artifacts record `visited: [<stages>]`. Stage in list → refuse, emit `next: done` + conflict.
+4. **No-revert** — preserve predecessor's work. Wrong earlier output → `next: done` + regression note.
+5. **`next: done`** — terminal. `verify` and `git-commit` are universal sinks.
 
 ## Hooks
 
-- Format/lint (ruff, isort, rusfmt) and code re-indexing fire on edit/write events — orthogonal gate, never a delegated
-  stage.
-- Harnesses without edit/write hook facilities (e.g. Kilo's `kilo.jsonc` has none) have no event-driven lint gate; there
-  the agent-invoked gate is `~/.config/harnesses/scripts/style-gates.sh`, required by the stage output contract above.
+Format/lint + re-indexing fire on edit/write (orthogonal, not a stage). Hookless harnesses use `style-gates.sh`.
 
 ## Energy barrier
 
-- No new code without a code-index verdict: similarity >= threshold hands `file:symbol` refs to refactor-python; below
-  threshold (or no match) hands the spec to python (`.py`) or rust (`.rs`).
-- Greenfield creation requires an explicit "no match" verdict; it is the fallback, never the default.
+No new code without code-index verdict. High similarity → refactor refs; low/none → create spec. Greenfield requires
+explicit "no match".

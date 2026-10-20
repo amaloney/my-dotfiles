@@ -10,14 +10,8 @@ Handoff: `next: done`.
 
 ## Scope Hierarchy
 
-```
-conftest.py          # root - available everywhere
-tests/conftest.py    # test root
-tests/unit/conftest.py      # unit only
-tests/integration/conftest.py  # integration only
-```
-
-Fixtures in parent conftest available to children. No imports needed.
+`conftest.py` (root) → `tests/conftest.py` → `tests/unit/` | `tests/integration/`. Parent fixtures available to
+children.
 
 ## Fixture Scopes
 

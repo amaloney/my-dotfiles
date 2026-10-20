@@ -17,34 +17,13 @@
 - `source`: url/git_url/path + sha256 checksum
 - `extra`: maintainers, lint skips
 
-### Build Section Rules
+### Build Section
 
-```yaml
-build:
-  number: 0 # required, increment for rebuilds of same version
-  script: pip install . --no-deps --no-build-isolation -vv # if no build.sh/bld.bat
-  # noarch: python  # only pure-python, no compiled extensions, no platform selectors
-```
+`number: 0` required. pip flags: `--no-deps` (conda manages), `--no-build-isolation` (PEP 518 deps in host).
 
-**pip install flags**:
+### noarch
 
-- `--no-deps`: conda manages deps, not pip
-- `--no-build-isolation`: PEP 518 deps already in host
-
-### noarch Packages
-
-```yaml
-build:
-  noarch: python # pure Python, any Python version
-  # OR
-  noarch: generic # static assets, source archives
-```
-
-**noarch: python requirements**:
-
-- No compiled extensions (C/C++/Rust)
-- No platform selectors in recipe
-- Works across all Python versions
+`noarch: python` (pure Python) or `noarch: generic` (static). No compiled extensions, no platform selectors.
 
 ### Multi-Output Recipes
 
@@ -103,9 +82,6 @@ requirements:
 ```
 <!-- prettier-ignore-end -->
 
-### Host Section Pinnings
+### Host Pinnings
 
-- Exact versions preferred, no comparison operators
-- Exception: packages in `conda_build_config.yaml` (implicit pinning)
-- Python build tools required for pip install: `setuptools`, `wheel`, `pip`, or modern (`hatchling`, `flit-core`,
-  `meson-python`, etc.)
+Exact versions preferred. Exception: cbc.yaml implicit pins. Build tools: `setuptools`/`wheel`/`pip` or modern.

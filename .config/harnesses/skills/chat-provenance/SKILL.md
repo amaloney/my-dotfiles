@@ -10,26 +10,11 @@ invocation: auto
 
 Handoff: `next: done`.
 
-Records **verbatim** user input, agent output (including subagents), tool actions, decisions, and session summaries into
-an append-only, per-repo daily log at `.harness/chat-provenance/YYYY-MM-DD.md`, and captures fetched web resources into
-`.harness/research/YYYY-MM-DD/<slug>.md`. Grounded in library and information science: ISO 15489 recordkeeping (records
-fixed at creation, corrections are new entries), archival finding aids (descriptions derived from records, never the
-reverse), Dublin Core bibliographic control (capture frontmatter + research `index.md`), and PROV-inspired relational
-metadata (entry = content, `agent:`/`attr:` = attribution, `seq`/`prev` = ordering and fixity).
+Verbatim append-only daily log: `.harness/chat-provenance/YYYY-MM-DD.md`. Web captures:
+`.harness/research/YYYY-MM-DD/<slug>.md`. ISO 15489: records fixed at creation, corrections are new entries.
+Descriptions (manifests, index) regenerable from log.
 
-## Records vs descriptions (design rule)
-
-The daily log is the **record** — verbatim, append-only, hash-chained. Everything else is a **description** and must be
-regenerable from the log: session manifests (`sessions/`), `index.md`, rendered narratives. Session summaries are the
-exception that proves the rule: a summary written at session end contains information the log cannot regenerate, so the
-summary itself is appended to the log as a `## summary` record with `basis: context-window | log-replay` and
-`derived_from:` metadata.
-
-**Fonds boundary (documented dissent)**: state is repo-local by decision. Archival theory says the fonds belongs to the
-creator — the user, whose activity spans repos; per-repo logs fragment it. Repo-local was chosen to match the existing
-`.harness/` custody architecture. Consequence accepted: a multi-repo session leaves one linked slice per repo, joined
-only by a shared `--session` id if the caller supplies one. A future global registry (`~/.harness/provenance/`) would be
-the archivally correct fix.
+**Design**: repo-local state (matches `.harness/` architecture). Multi-repo sessions linked by `--session` id.
 
 ## Entry kinds
 
@@ -109,22 +94,10 @@ queue, never interleave or clobber.
 
 ## Failure modes
 
-- Outside a git repo → scripts exit 1 with a clear message; **skip logging, never crash the session**.
-- Empty stdin → exit 2; do not retry with fabricated content.
-- Fetch error/timeout (`save_source.py --url`) → exit 1, no partial writes; note it and continue.
-- Lock contention → flock blocks; writers queue.
-- Git state capture (`at:`) fails (no commits, detached, slow) → field omitted, entry still written.
+No git repo → exit 1, skip logging. Empty stdin → exit 2. Fetch error → exit 1. Lock → queue. Git fails → field omitted.
 
 ## Rules
 
-- Verbatim means verbatim: no summarizing, truncating, or "cleaning up" logged text.
-- One entry per event — do not batch multiple turns into one call.
-- Redaction patterns live in `scripts/shared.py` (`SECRET_PATTERNS`); extend there, not inline.
-- `basis:` honesty: only label a summary `context-window` if the agent wrote it from live context.
-- Legacy entries (no `seq`/`prev`) are tolerated by `verify.py`/`render.py`; the chain starts at the
-  first v2 entry in each file.
-- PDF/paper workflows belong to the `research` skill (`snapshot_source.py`); `save_source.py` is
-  session-scoped capture — different intent, no overlap.
-
-Tests: `pixi run -e dev pytest` (suite in `tests/`, wired via pyproject `testpaths`).
+Verbatim = verbatim. One entry per event. Redaction in `scripts/shared.py`. `basis:` honest. Legacy entries tolerated.
+PDF/papers → `research` skill. Tests: `pixi run -e dev pytest`.
 ```

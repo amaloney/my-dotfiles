@@ -17,25 +17,27 @@ await waitFor(() => getResult() !== undefined, "result available");
 Generic poller — 10ms interval, always a timeout with a clear message:
 
 ```typescript
-async function waitFor<T>(condition: () => T | undefined | null | false,
-                          description: string, timeoutMs = 5000): Promise<T> {
+async function waitFor<T>(
+  condition: () => T | undefined | null | false,
+  description: string,
+  timeoutMs = 5000,
+): Promise<T> {
   const start = Date.now();
   while (true) {
-    const result = condition();           // fresh data every iteration
+    const result = condition(); // fresh data every iteration
     if (result) return result;
-    if (Date.now() - start > timeoutMs)
-      throw new Error(`Timeout waiting for ${description} after ${timeoutMs}ms`);
+    if (Date.now() - start > timeoutMs) throw new Error(`Timeout waiting for ${description} after ${timeoutMs}ms`);
     await new Promise((r) => setTimeout(r, 10));
   }
 }
 ```
 
-| Scenario | Pattern |
-| --- | --- |
-| Event | `waitFor(() => events.find(e => e.type === 'DONE'), "DONE event")` |
-| State | `waitFor(() => machine.state === 'ready', "ready state")` |
-| Count | `waitFor(() => items.length >= 5, "5 items")` |
-| File | `waitFor(() => fs.existsSync(path), "file exists")` |
+| Scenario | Pattern                                                            |
+| -------- | ------------------------------------------------------------------ |
+| Event    | `waitFor(() => events.find(e => e.type === 'DONE'), "DONE event")` |
+| State    | `waitFor(() => machine.state === 'ready', "ready state")`          |
+| Count    | `waitFor(() => items.length >= 5, "5 items")`                      |
+| File     | `waitFor(() => fs.existsSync(path), "file exists")`                |
 
 ## Mistakes
 
