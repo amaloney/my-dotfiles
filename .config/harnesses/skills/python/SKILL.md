@@ -10,6 +10,21 @@ keywords: ["python"]
 
 Handoff: `next: done`.
 
+## MANDATORY: Post-Generation Pipeline
+
+**NEVER skip this after ANY code creation.** Skipping is a skill violation.
+
+After writing Python code, you MUST:
+
+1. Run: `style-gates.sh <modified-files>` — paste output as evidence
+2. Launch subagent for [[bug]] stage (fan-out to audit sub-subagents)
+3. Launch subagent for [[python/violations]] stage (lint/fix enforcement)
+4. Launch subagent for [[python/test-gen]] stage (if tests needed)
+
+Max 2 fix cycles. Gate must pass before test-gen.
+
+---
+
 ## Session Start
 
 Profile check: `test -f .harness/code_index/profile.json && find .harness/code_index/profile.json -mtime -7 | grep -q .`

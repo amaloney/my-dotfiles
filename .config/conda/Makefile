@@ -35,6 +35,7 @@ env:
 	rm -rf $(PREFIX)
 	@if [ -f $(LOCK) ]; then \
 		conda create --yes -p $(PREFIX) --file $(LOCK); \
+		conda pypi install --editable .
 	else \
 		echo "No $(LOCK) yet; solving from $(SPEC). Run 'make lock' and commit it."; \
 		conda env create --yes -p $(PREFIX) -f $(SPEC); \

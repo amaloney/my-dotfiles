@@ -99,6 +99,32 @@
             "timeout": 120
           }
         ]
+      },
+      {
+        "matcher": {
+          "tool": "Edit",
+          "file_path": "**/*.py"
+        },
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '[Python Skill Reminder] Run style-gates.sh and launch bug/violations subagents'",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": {
+          "tool": "Write",
+          "file_path": "**/*.py"
+        },
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '[Python Skill Reminder] Run style-gates.sh and launch bug/violations subagents'",
+            "timeout": 5
+          }
+        ]
       }
     ],
     "MessageDisplay": [

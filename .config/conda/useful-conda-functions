@@ -20,3 +20,19 @@ function which_conda_channel() {
         fi
     fi
 }
+
+function conda-switch() {
+    local env="${1:-default}"
+    local prefix=".conda/${env}"
+
+    if [[ ! -d "${prefix}/conda-meta" ]]; then
+        echo "Environment '${env}' not found. Run: make env ENV=${env}"
+        return 1
+    fi
+
+    # Deactivate current if active
+    [[ -n "${CONDA_PREFIX}" ]] && conda deactivate
+
+    conda activate "${prefix}"
+    echo "Activated: ${env}"
+}
