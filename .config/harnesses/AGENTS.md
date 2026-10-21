@@ -19,10 +19,8 @@ Multi-agent pipeline rules (handoff contract): @~/.config/harnesses/handoff-cont
 - Never start a bash command with a comment
 - Comments: short "why" only, never "what"; no comment is the default
 - Scripts handed to the user: complete files, never fragments or diffs
-- Ad-hoc code: write it to `.harness/scripts/<task>.py` with the Write tool, then run the file; never inline
-  (`python -c`)
-- Fetched web resources (webpages, articles, docs): capture via chat-provenance `save_source.py` into
-  `.harness/research/` before relying on the content
+- Ad-hoc code: write it to `.harness/scripts/<task>.py` with the Write tool, then run the file; never inline (`python -c`)
+- Fetched web resources (webpages, articles, docs): capture via chat-provenance `save_source.py` into `.harness/research/` before relying on the content
 - Verification (reviews, tests, plans): assume wrong, hunt; approval is failure. Not for research/generation.
 - Code for humans — meaningful names, "why" comments, intentional structure
 
@@ -55,17 +53,14 @@ Legend: O = orchestrator, L = leaf, S = stage
 | Code hygiene    | `code-hygiene`            | S    | after bug, before pytest             |
 | AI code smells  | `discouraged-patterns`    | S    | RLHF noise, single-use abstractions  |
 
-**Artifact routing**: skills declare `extensions:` + `keywords:` in SKILL.md frontmatter. Before write/edit, load
-matching skill if not loaded. No match → proceed. New domains → author skill, never grow this file. Handoff:
-`handoff-contract.md`.
+**Artifact routing**: skills declare `extensions:` + `keywords:` in SKILL.md frontmatter. Before write/edit, load matching skill if not loaded. No match → proceed. New domains → author skill, never grow this file. Handoff: `handoff-contract.md`.
 
 ## Session Start
 
 1. **Skills before exploring** — task matches Skill Routing → load skill first.
 2. Check local dirs first.
 3. Repo config: load the repo's own instruction file if present (see Harness Specifics).
-4. Git repos: check `.harness/` — load `.harness/AGENTS.md` if present. Code index tri-state: missing → offer
-   `code-index/scripts/harness-refresh.sh`; stale → refresh; current → proceed.
+4. Git repos: check `.harness/` — load `.harness/AGENTS.md` if present. Code-index gates only query an existing populated index. Missing, empty, or unreadable index → `unavailable`; main may refresh it outside the gate. Subagents never install, build, or refresh indexes.
 
 **Anti-pattern**: "I'll explore to understand..." → load skill first.
 
@@ -88,5 +83,4 @@ Architecture: `.config/harnesses/README.md`. OpenCode prefs not linked — Kilo 
 | Kilo        | `~/.config/kilo/AGENTS.md`          | `AGENTS.md`           | `kilo.json` / `kilo.jsonc`                       |
 | OpenCode    | `opencode.jsonc` instructions field | `AGENTS.md`           | `harnesses/opencode/opencode.jsonc` (not linked) |
 
-Global files symlink to `.config/harnesses/AGENTS.md`; OpenCode uses `instructions` field. All harnesses read repo-level
-`AGENTS.md` → `.harness/AGENTS.md`.
+Global files symlink to `.config/harnesses/AGENTS.md`; OpenCode uses `instructions` field. All harnesses read repo-level `AGENTS.md` → `.harness/AGENTS.md`.

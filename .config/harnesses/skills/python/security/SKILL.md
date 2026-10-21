@@ -1,6 +1,6 @@
 ---
 name: python/security
-description: Python security patterns - insecure defaults, sharp edges, common vulns
+description: Python security review and fixes
 invocation: auto
 ---
 

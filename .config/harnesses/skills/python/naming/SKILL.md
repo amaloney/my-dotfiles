@@ -1,6 +1,6 @@
 ---
 name: python/naming
-description: Naming conventions - variables, constants, underscore rules
+description: Python naming and underscore conventions
 invocation: auto
 ---
 

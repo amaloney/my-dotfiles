@@ -1,6 +1,6 @@
 ---
 name: python/repo-init
-description: Bootstrap repo-level AGENTS.md + .harness profile for a Python project
+description: Bootstrap Python repo instructions and profile
 ---
 
 # Python Repo Init

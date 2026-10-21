@@ -1,6 +1,6 @@
 ---
 name: python/recon
-description: Profile Python project - outputs .harness/code_index/profile.json
+description: Profile Python project structure
 invocation: manual
 ---
 

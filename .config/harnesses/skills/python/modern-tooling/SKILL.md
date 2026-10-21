@@ -1,6 +1,6 @@
 ---
 name: python/modern-tooling
-description: Modern Python tooling - uv, ruff, ty (replaces pip, black/flake8, mypy)
+description: uv, Ruff, and ty Python tooling
 invocation: auto
 ---
 

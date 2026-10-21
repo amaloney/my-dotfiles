@@ -1,6 +1,6 @@
 ---
 name: python/errors
-description: Exception handling patterns
+description: Python exception handling
 invocation: auto
 ---
 

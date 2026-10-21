@@ -1,6 +1,6 @@
 ---
 name: python/org
-description: File organization - config.py, utils.py patterns
+description: Python module and file organization
 invocation: auto
 ---
 

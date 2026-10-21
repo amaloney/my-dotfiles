@@ -1,6 +1,6 @@
 ---
 name: python/test-gen
-description: Fan-out generate unit/integration/regression tests
+description: Generate Python unit, integration, and regression tests
 invocation: manual
 ---
 

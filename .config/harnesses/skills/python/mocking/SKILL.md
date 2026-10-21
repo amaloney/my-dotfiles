@@ -1,6 +1,6 @@
 ---
 name: python/mocking
-description: Mock patterns - patch, MagicMock, pytest-mock, monkeypatch
+description: pytest-mock, patching, and test doubles
 invocation: auto
 ---
 

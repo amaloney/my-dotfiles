@@ -1,6 +1,6 @@
 ---
 name: python/bdd
-description: BDD testing with Behave - Gherkin features, step definitions, hooks
+description: Behave and Gherkin BDD tests
 invocation: auto
 ---
 

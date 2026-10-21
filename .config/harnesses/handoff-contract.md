@@ -13,8 +13,8 @@ Rules for multi-agent pipelines. The main agent is an orchestrator only.
 - Do one thing, then hand off.
 - Input contract: file path + stage spec. Hydrate from disc — never from prompt-embedded code.
 - Output contract: exactly one short result — status + artifact path + `next: <stage>`.
-- Gate evidence: create/audit/hygiene stages run `style-gates.sh`, paste output to ledger; no output = invalid.
-- Recall own skill's pattern memory (GOOD/BAD examples) at start; save new patterns on novel fixes.
+- Full-scope create/audit/hygiene stages run `style-gates.sh` and report command + pass/fail; do not paste full successful output. Focused scope runs one targeted check.
+- Read own pattern memory only when relevant; save novel patterns only.
 - Fan-out: sub-subagents invisible to main; only aggregates return.
 
 ## Artifacts
@@ -50,15 +50,13 @@ Format/lint + re-indexing fire on edit/write (orthogonal, not a stage). Hookless
 
 ## Energy barrier
 
-No new code without code-index verdict. High similarity → refactor refs; low/none → create spec. Greenfield requires
-explicit "no match".
+No new code without code-index verdict. High similarity → refactor refs; low/none → create spec. An unavailable index is not a no-match; main may proceed on the explicit user request without rebuilding it.
 
 ## Python File Edits
 
 Main agent NEVER directly edits `.py` files. All Python edits are delegated:
 
-- Trivial fix (1-3 lines, single file): `Agent({subagent_type: "code-hygiene", ...})`
-- Feature/refactor: `Agent({subagent_type: "bug", ...})` for full pipeline
+- Focused no-behavior change (1–3 lines, single file): `code-hygiene`, `scope: focused`; targeted check, then done.
+- Feature/refactor/behavior change: full create → bug → hygiene → test → verify pipeline.
 
-The subagent's instructions include the mandatory pipeline steps. Main agent is orchestrator only when Python skill is
-loaded.
+Focused scope skips audit fan-out, full lint, and test generation. Full scope retains the mandatory pipeline.

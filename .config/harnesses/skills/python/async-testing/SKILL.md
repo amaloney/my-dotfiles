@@ -1,6 +1,6 @@
 ---
 name: python/async-testing
-description: Async testing with pytest-asyncio - fixtures, clients, concurrent tests
+description: pytest-asyncio fixtures and concurrent async tests
 invocation: auto
 ---
 

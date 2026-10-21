@@ -1,6 +1,6 @@
 ---
 name: python/style
-description: Style router - routes to types, naming, structure, errors, org
+description: Route Python types, names, structure, and errors
 invocation: auto
 ---
 

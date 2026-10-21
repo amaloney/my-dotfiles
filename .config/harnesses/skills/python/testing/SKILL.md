@@ -1,6 +1,6 @@
 ---
 name: python/testing
-description: Pytest core - assertions, markers, commands, config
+description: Pytest patterns and commands
 invocation: auto
 ---
 

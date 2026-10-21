@@ -1,6 +1,6 @@
 ---
 name: python/types
-description: Type annotation rules - parameters, returns, optionals, callables
+description: Python parameter and return annotations
 invocation: auto
 ---
 

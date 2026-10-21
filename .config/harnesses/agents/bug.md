@@ -1,8 +1,6 @@
 ---
 name: bug
-description:
-  Bug audit + fix stage. Fans out to logic and edge/IO/security audit sub-subagents, aggregates findings, applies fixes.
-  Use via Task tool after code creation or refactor.
+description: Audit logic and IO/security defects after code changes
 mode: subagent
 steps: 25
 permission:

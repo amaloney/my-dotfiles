@@ -1,6 +1,6 @@
 ---
 name: python/property-testing
-description: Hypothesis property-based testing - strategies, shapes, shrinking
+description: Hypothesis property-based tests
 invocation: auto
 ---
 

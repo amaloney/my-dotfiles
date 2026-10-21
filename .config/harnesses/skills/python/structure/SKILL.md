@@ -1,6 +1,6 @@
 ---
 name: python/structure
-description: File structure - line length, imports, layout, comments
+description: Python imports, layout, and line length
 invocation: auto
 ---
 

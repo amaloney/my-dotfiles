@@ -1,6 +1,6 @@
 ---
 name: python/conftest
-description: Pytest shared fixtures - conftest.py patterns, scoping, factories
+description: Pytest shared fixtures and scope
 invocation: auto
 ---
 

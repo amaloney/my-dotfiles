@@ -23,3 +23,17 @@ raise NotImplementedError(msg)
 msg = "To be implemnted by the inheriting class."  # sic — ported contract
 raise NotImplementedError(msg)
 ```
+
+```python
+# BAD — exact placeholder match silently no-ops once the template gets formatted
+html = template.read_text().replace("/*__GRAPH_DATA__*/null", payload)
+
+# GOOD — whitespace-tolerant match, exactly-one assertion, callable sub so backslashes
+# in the JSON payload stay literal instead of being read as regex escapes
+placeholder = re.compile(r"/\*__GRAPH_DATA__\*/\s*null")
+count = len(placeholder.findall(template_text))
+if count != 1:
+    raise SystemExit(f"expected exactly one graph placeholder in {template_path}, found {count}")
+html = placeholder.sub(lambda _: payload, template_text)
+```
+

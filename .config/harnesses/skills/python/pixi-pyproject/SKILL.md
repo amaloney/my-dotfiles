@@ -1,6 +1,6 @@
 ---
 name: python/pixi-pyproject
-description: Creating pyproject.toml with pixi package manager
+description: Pixi-based Python pyproject setup
 invocation: auto
 keywords: ["pixi", "pyproject.toml", "pixi.toml"]
 ---

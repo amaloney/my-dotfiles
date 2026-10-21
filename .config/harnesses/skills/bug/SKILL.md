@@ -1,9 +1,6 @@
 ---
 name: bug
-description:
-  Bug audit and fix stage. Fans out to audit sub-subagents (logic, edge/IO/security), aggregates findings, applies
-  fixes. Runs after code creation/refactor, before code-hygiene. Ported from python/bugs + python/security; Rust via
-  rust/security.
+description: Audit and fix code bugs by logic and IO/security
 ---
 
 # Bug Skill
@@ -27,10 +24,10 @@ the edit permission.
 
 Pick by the artifact's file extension:
 
-| Language     | A — logic                                                    | B — security                                         |
-| ------------ | ------------------------------------------------------------ | ---------------------------------------------------- |
-| `.py`        | `~/.config/harnesses/skills/debugging/references/python.md`  | `~/.config/harnesses/skills/python/security/SKILL.md` |
-| `.rs`        | `~/.config/harnesses/skills/debugging/references/rust.md`    | `~/.config/harnesses/skills/rust/security/SKILL.md`  |
+| Language | A — logic                                                   | B — security                                          |
+| -------- | ----------------------------------------------------------- | ----------------------------------------------------- |
+| `.py`    | `~/.config/harnesses/skills/debugging/references/python.md` | `~/.config/harnesses/skills/python/security/SKILL.md` |
+| `.rs`    | `~/.config/harnesses/skills/debugging/references/rust.md`   | `~/.config/harnesses/skills/rust/security/SKILL.md`   |
 
 Rust sub-sub A also runs `cargo clippy --all-targets -- -W clippy::correctness -W clippy::suspicious` as its static
 pass ([[ast-check]] mapping). Mixed-language artifacts → each sub-subagent gets both rows.

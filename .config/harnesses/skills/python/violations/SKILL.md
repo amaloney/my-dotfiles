@@ -1,6 +1,6 @@
 ---
 name: python/violations
-description: Fan-out detect/fix Python violations using ruff + pyproject.toml rules
+description: Find and fix Python lint violations with Ruff
 invocation: manual
 ---
 
