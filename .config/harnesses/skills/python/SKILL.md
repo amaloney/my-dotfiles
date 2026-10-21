@@ -23,6 +23,22 @@ After writing Python code, you MUST:
 
 Max 2 fix cycles. Gate must pass before test-gen.
 
+## ENFORCEMENT: No Main-Thread Python Edits
+
+If you are the **main agent** (not a subagent), you MUST NOT directly Edit/Write `.py` files.
+
+Instead, delegate to a subagent:
+```
+Agent({
+    subagent_type: "code-hygiene",  # trivial fix (1-3 lines)
+    # OR
+    subagent_type: "bug",           # feature/refactor (full pipeline)
+    prompt: "Apply this change to <file>: <description>",
+})
+```
+
+The subagent runs the pipeline before returning. Main agent is orchestrator only.
+
 ---
 
 ## Session Start

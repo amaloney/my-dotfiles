@@ -13,7 +13,7 @@ endif
 
 export CONDARC := $(CURDIR)/.condarc
 
-.PHONY: help env lock clean
+.PHONY: help env lock clean viz
 .DEFAULT_GOAL := help
 
 help:
@@ -23,6 +23,7 @@ help:
 	@echo "  make env [ENV=name]    rebuild ./.conda/<name> from lockfile"
 	@echo "  make lock [ENV=name]   sync environment and regenerate lockfile"
 	@echo "  make clean [ENV=name]  delete ./.conda/<name>"
+	@echo "  make viz               export code graph to .harness/code_index/viz/"
 	@echo ""
 	@echo "Environments: default (Python 3.14)"
 	@echo ""
@@ -51,4 +52,7 @@ lock:
 
 clean:
 	rm -rf $(PREFIX)
+
+viz:
+	python3 .harness/code_index/export_graph.py
 

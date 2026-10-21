@@ -108,7 +108,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "echo '[Python Skill Reminder] Run style-gates.sh and launch bug/violations subagents'",
+            "command": "$HOME/.config/harnesses/scripts/python-edit-blocker.sh",
             "timeout": 5
           }
         ]
@@ -121,7 +121,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "echo '[Python Skill Reminder] Run style-gates.sh and launch bug/violations subagents'",
+            "command": "$HOME/.config/harnesses/scripts/python-edit-blocker.sh",
             "timeout": 5
           }
         ]

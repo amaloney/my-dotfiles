@@ -52,3 +52,13 @@ Format/lint + re-indexing fire on edit/write (orthogonal, not a stage). Hookless
 
 No new code without code-index verdict. High similarity → refactor refs; low/none → create spec. Greenfield requires
 explicit "no match".
+
+## Python File Edits
+
+Main agent NEVER directly edits `.py` files. All Python edits are delegated:
+
+- Trivial fix (1-3 lines, single file): `Agent({subagent_type: "code-hygiene", ...})`
+- Feature/refactor: `Agent({subagent_type: "bug", ...})` for full pipeline
+
+The subagent's instructions include the mandatory pipeline steps. Main agent is orchestrator only when Python skill is
+loaded.
