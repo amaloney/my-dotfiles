@@ -1,0 +1,719 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Code graph explorer</title>
+<style>
+  :root { color-scheme: light dark; --bg: #fafafa; --fg: #1a1a1a; --muted: #808080; --panel: rgba(255, 255, 255, 0.94); }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #111; --fg: #eee; --muted: #8a8a8a; --panel: rgba(28, 28, 28, 0.94); }
+  }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: var(--bg); color: var(--fg); font: 13px system-ui, sans-serif; }
+  canvas { display: block; width: 100%; height: 100%; cursor: grab; }
+  #controls { position: fixed; top: 12px; left: 12px; display: flex; gap: 8px; align-items: center; padding: 8px; border-radius: 8px; background: var(--panel); }
+  #search { width: 240px; }
+  #object-filter { position: fixed; top: 62px; left: 12px; width: 320px; max-height: 45vh; display: flex; flex-direction: column; gap: 6px; padding: 10px; border-radius: 8px; background: var(--panel); }
+  #object-filter[hidden] { display: none; }
+  #filter-head { display: flex; gap: 8px; align-items: center; }
+  #filter-head strong { flex: 1; }
+  #filter-count, #filter-note { color: var(--muted); }
+  #filter-search { width: 100%; box-sizing: border-box; }
+  #filter-list { overflow: auto; max-height: 30vh; display: flex; flex-direction: column; gap: 2px; }
+  #filter-list label { display: flex; gap: 6px; align-items: baseline; cursor: pointer; }
+  #filter-list .meta { color: var(--muted); margin-left: auto; }
+  #details { position: fixed; top: 12px; right: 12px; width: 340px; max-height: 80vh; overflow: auto; padding: 12px; border-radius: 8px; background: var(--panel); display: none; }
+  #details code { word-break: break-all; }
+  #details ul { margin: 4px 0 10px; padding-left: 16px; }
+  #details li button { all: unset; cursor: pointer; text-decoration: underline; }
+  #hint, #count { color: var(--muted); }
+  #hint { position: fixed; bottom: 8px; left: 12px; }
+</style>
+</head>
+<body>
+<div id="controls">
+  <select id="view" aria-label="View">
+    <option value="module">Module</option>
+    <option value="objects">Objects</option>
+    <option value="hypergraph">Hypergraph</option>
+  </select>
+  <input id="search" type="search" placeholder="Search name or path (/)" autocomplete="off" aria-label="Search">
+  <button id="fit" type="button">Fit</button>
+  <span id="count"></span>
+</div>
+<div id="object-filter" hidden>
+  <div id="filter-head">
+    <strong>Object filter</strong>
+    <span id="filter-count">0 selected</span>
+    <button id="filter-clear" type="button">Clear</button>
+  </div>
+  <input id="filter-search" type="search" placeholder="Find objects" autocomplete="off" aria-label="Filter objects">
+  <div id="filter-list" role="group" aria-label="Objects"></div>
+  <div id="filter-note"></div>
+</div>
+<div id="details" role="region" aria-label="Node details"></div>
+<div id="hint">Drag background: pan | Wheel: zoom | Drag node: move | Click: details | Esc: reset</div>
+<canvas id="canvas" aria-label="Code graph"></canvas>
+<script>
+"use strict";
+const GRAPH = /*__GRAPH_DATA__*/null;
+
+(function () {
+  const canvas = document.getElementById("canvas");
+  const ctx = canvas.getContext("2d");
+  const detailsEl = document.getElementById("details");
+  const searchEl = document.getElementById("search");
+  const viewEl = document.getElementById("view");
+  const countEl = document.getElementById("count");
+  const filterPanel = document.getElementById("object-filter");
+  const filterSearchEl = document.getElementById("filter-search");
+  const filterListEl = document.getElementById("filter-list");
+  const filterCountEl = document.getElementById("filter-count");
+  const filterNoteEl = document.getElementById("filter-note");
+
+  const state = {
+    view: "module", nodes: [], edges: [], byId: new Map(),
+    hyperedges: [], selectedHyper: null, objectFilter: new Set(),
+    filterQuery: "", hyperRects: [], activeModuleIds: null,
+    scale: 1, offsetX: 0, offsetY: 0, width: 0, height: 0,
+    alpha: 1, needsFit: false, query: "", selected: null, focus: null,
+    hover: null, dragNode: null, dragPan: null, downAt: null, moved: false,
+  };
+  let dpr = window.devicePixelRatio || 1;
+
+  function hueFor(text) {
+    let hash = 0;
+    for (const ch of text) hash = (hash * 31 + ch.charCodeAt(0)) % 360;
+    return hash;
+  }
+
+  function colorFor(node) {
+    return `hsl(${hueFor(node.group || "")}, 65%, 55%)`;
+  }
+
+  function radiusFor(node) {
+    if (state.view === "objects") return node.kind === "class" ? 6 : 4;
+    return 4 + Math.min(12, Math.sqrt(node.objects || 1) * 1.5);
+  }
+
+  function resize() {
+    dpr = window.devicePixelRatio || 1;
+    state.width = canvas.clientWidth;
+    state.height = canvas.clientHeight;
+    canvas.width = Math.round(state.width * dpr);
+    canvas.height = Math.round(state.height * dpr);
+  }
+
+  function loadView(name) {
+    const view = name === "hypergraph" ? GRAPH_DATA.module : GRAPH_DATA[name];
+    const previous = new Map(state.nodes.map(n => [n.id, n]));
+    const count = Math.max(1, view.nodes.length);
+    const ring = 40 + Math.sqrt(count) * 12;
+    state.view = name;
+    state.nodes = view.nodes.map((raw, i) => {
+      const old = previous.get(raw.id);
+      const angle = (i / count) * Math.PI * 2;
+      return Object.assign({}, raw, {
+        x: old ? old.x : Math.cos(angle) * ring,
+        y: old ? old.y : Math.sin(angle) * ring,
+        vx: 0, vy: 0,
+      });
+    });
+    state.byId = new Map(state.nodes.map(n => [n.id, n]));
+    state.edges = view.edges
+      .map(e => ({ source: state.byId.get(e.source), target: state.byId.get(e.target), kind: e.kind, weight: e.weight }))
+      .filter(e => e.source && e.target);
+    state.hyperedges = name === "hypergraph"
+      ? GRAPH_DATA.hyperedges
+          .map(h => Object.assign({}, h, { moduleNodes: h.modules.map(id => state.byId.get(id)).filter(Boolean) }))
+          .filter(h => h.moduleNodes.length > 0)
+      : [];
+    state.selectedHyper = null;
+    state.activeModuleIds = null;
+    state.hyperRects = [];
+    refreshActiveModules();
+    filterPanel.hidden = name !== "hypergraph";
+    if (name === "hypergraph") renderFilterList();
+    state.alpha = 1;
+    state.needsFit = true;
+    select(null);
+    countEl.textContent = name === "hypergraph"
+      ? `${state.nodes.length} modules, ${state.hyperedges.length} hyperedges`
+      : `${state.nodes.length} nodes, ${state.edges.length} edges`;
+  }
+
+  function step() {
+    const nodes = state.nodes;
+    const repel = 900 * state.alpha;
+    for (let i = 0; i < nodes.length; i++) {
+      const a = nodes[i];
+      for (let j = i + 1; j < nodes.length; j++) {
+        const b = nodes[j];
+        const dx = a.x - b.x, dy = a.y - b.y;
+        const d2 = dx * dx + dy * dy + 0.01;
+        const d = Math.sqrt(d2);
+        const f = repel / d2;
+        const fx = (dx / d) * f, fy = (dy / d) * f;
+        a.vx += fx; a.vy += fy;
+        b.vx -= fx; b.vy -= fy;
+      }
+    }
+    for (const e of state.edges) {
+      const dx = e.target.x - e.source.x, dy = e.target.y - e.source.y;
+      const d = Math.sqrt(dx * dx + dy * dy) || 0.01;
+      const f = (d - 70) * 0.02 * state.alpha;
+      const fx = (dx / d) * f, fy = (dy / d) * f;
+      e.source.vx += fx; e.source.vy += fy;
+      e.target.vx -= fx; e.target.vy -= fy;
+    }
+    for (const n of nodes) {
+      n.vx -= n.x * 0.01 * state.alpha;
+      n.vy -= n.y * 0.01 * state.alpha;
+      if (n === state.dragNode) { n.vx = 0; n.vy = 0; continue; }
+      n.vx *= 0.6; n.vy *= 0.6;
+      n.x += n.vx; n.y += n.vy;
+    }
+    state.alpha = Math.max(0.01, state.alpha * 0.99);
+  }
+
+  const GRAPH_DATA = {
+    module: GRAPH.module || { nodes: [], edges: [] },
+    objects: GRAPH.objects || { nodes: [], edges: [] },
+    hyperedges: GRAPH.hyperedges || [],
+  };
+
+  function matches(node) {
+    if (!state.query) return true;
+    return node.label.toLowerCase().includes(state.query) || (node.path || "").toLowerCase().includes(state.query);
+  }
+
+  function hyperMatches(h) {
+    if (state.objectFilter.size > 0 && !state.objectFilter.has(h.id)) return false;
+    if (!state.query) return true;
+    return h.label.toLowerCase().includes(state.query)
+      || h.defined_in.toLowerCase().includes(state.query)
+      || h.moduleNodes.some(n => matches(n));
+  }
+
+  function refreshActiveModules() {
+    if (state.view !== "hypergraph" || (state.objectFilter.size === 0 && !state.query)) {
+      state.activeModuleIds = null;
+      return;
+    }
+    const ids = new Set();
+    for (const h of state.hyperedges) {
+      if (!hyperMatches(h)) continue;
+      for (const n of h.moduleNodes) ids.add(n.id);
+    }
+    state.activeModuleIds = ids;
+  }
+
+  function isActive(node) {
+    if (state.activeModuleIds && !state.activeModuleIds.has(node.id)) return false;
+    if (state.focus && !state.focus.has(node)) return false;
+    return matches(node);
+  }
+
+  function centroidOf(nodes) {
+    let x = 0, y = 0;
+    for (const n of nodes) { x += n.x; y += n.y; }
+    return { x: x / Math.max(1, nodes.length), y: y / Math.max(1, nodes.length) };
+  }
+
+  function convexHull(nodes) {
+    const points = nodes.map(n => ({ x: n.x, y: n.y })).sort((a, b) => a.x - b.x || a.y - b.y);
+    if (points.length <= 2) return points;
+    const cross = (o, a, b) => (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x);
+    const lower = [];
+    for (const p of points) {
+      while (lower.length >= 2 && cross(lower[lower.length - 2], lower[lower.length - 1], p) <= 0) lower.pop();
+      lower.push(p);
+    }
+    const upper = [];
+    for (let i = points.length - 1; i >= 0; i--) {
+      const p = points[i];
+      while (upper.length >= 2 && cross(upper[upper.length - 2], upper[upper.length - 1], p) <= 0) upper.pop();
+      upper.push(p);
+    }
+    lower.pop();
+    upper.pop();
+    return lower.concat(upper);
+  }
+
+  function hyperOutline(members, pad) {
+    const center = centroidOf(members);
+    if (members.length === 1) {
+      return { circle: true, center, radius: radiusFor(members[0]) / state.scale + pad };
+    }
+    if (members.length === 2) {
+      const [a, b] = members;
+      const dx = b.x - a.x, dy = b.y - a.y;
+      const length = Math.hypot(dx, dy) || 1;
+      const nx = (-dy / length) * pad, ny = (dx / length) * pad;
+      return {
+        circle: false,
+        points: [
+          { x: a.x + nx, y: a.y + ny }, { x: b.x + nx, y: b.y + ny },
+          { x: b.x - nx, y: b.y - ny }, { x: a.x - nx, y: a.y - ny },
+        ],
+      };
+    }
+    const points = convexHull(members).map(p => {
+      const dx = p.x - center.x, dy = p.y - center.y;
+      const length = Math.hypot(dx, dy) || 1;
+      return { x: p.x + (dx / length) * pad, y: p.y + (dy / length) * pad };
+    });
+    return { circle: false, points };
+  }
+
+  function traceOutline(outline) {
+    ctx.beginPath();
+    if (outline.circle) {
+      ctx.arc(outline.center.x, outline.center.y, outline.radius, 0, Math.PI * 2);
+      return;
+    }
+    const points = outline.points;
+    if (points.length < 3) return;
+    if (points.length <= 4) {
+      ctx.moveTo(points[0].x, points[0].y);
+      for (const p of points.slice(1)) ctx.lineTo(p.x, p.y);
+      ctx.closePath();
+      return;
+    }
+    const midpoint = (a, b) => ({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
+    const start = midpoint(points[points.length - 1], points[0]);
+    ctx.moveTo(start.x, start.y);
+    for (let i = 0; i < points.length; i++) {
+      const current = points[i];
+      const next = points[(i + 1) % points.length];
+      const mid = midpoint(current, next);
+      ctx.quadraticCurveTo(current.x, current.y, mid.x, mid.y);
+    }
+    ctx.closePath();
+  }
+
+  function hyperVisible(h) {
+    if (h === state.selectedHyper) return true;
+    if (state.objectFilter.size > 0) return state.objectFilter.has(h.id);
+    if (state.query) return hyperMatches(h);
+    return h.moduleNodes.length > 1;
+  }
+
+  function drawHyperedges() {
+    state.hyperRects = [];
+    if (state.view !== "hypergraph") return;
+    const visible = state.hyperedges.filter(hyperVisible).slice(0, 400);
+    const selected = state.objectFilter.size > 0 || Boolean(state.query);
+    const labelColor = getComputedStyle(document.body).color;
+    ctx.lineWidth = 1 / state.scale;
+    for (const h of visible) {
+      const active = h === state.selectedHyper || state.objectFilter.has(h.id) || (state.query && hyperMatches(h));
+      const outline = hyperOutline(h.moduleNodes, 14 / state.scale + 10);
+      traceOutline(outline);
+      const color = `hsl(${hueFor(h.defined_in || h.label)}, 65%, 55%)`;
+      ctx.globalAlpha = active ? 0.16 : selected ? 0.05 : 0.04;
+      ctx.fillStyle = color;
+      ctx.fill();
+      ctx.globalAlpha = active ? 0.85 : 0.16;
+      ctx.strokeStyle = color;
+      ctx.stroke();
+
+      const showLabel = active || state.hyperedges.length <= 120;
+      if (showLabel) {
+        const center = centroidOf(h.moduleNodes);
+        ctx.globalAlpha = active ? 1 : 0.4;
+        ctx.fillStyle = labelColor;
+        ctx.font = `${11 / state.scale}px system-ui, sans-serif`;
+        const width = ctx.measureText(h.label).width;
+        ctx.fillText(h.label, center.x - width / 2, center.y + 3 / state.scale);
+        state.hyperRects.push({
+          hyper: h,
+          x: center.x - width / 2,
+          y: center.y - 9 / state.scale,
+          w: width,
+          h: 18 / state.scale,
+        });
+      }
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  function hyperAt(clientX, clientY) {
+    const p = toWorld(clientX, clientY);
+    for (let i = state.hyperRects.length - 1; i >= 0; i--) {
+      const r = state.hyperRects[i];
+      if (p.x >= r.x && p.x <= r.x + r.w && p.y >= r.y && p.y <= r.y + r.h) return r.hyper;
+    }
+    return null;
+  }
+
+  function toWorld(clientX, clientY) {
+    const rect = canvas.getBoundingClientRect();
+    return {
+      x: (clientX - rect.left - state.width / 2 - state.offsetX) / state.scale,
+      y: (clientY - rect.top - state.height / 2 - state.offsetY) / state.scale,
+    };
+  }
+
+  function nodeAt(clientX, clientY) {
+    const p = toWorld(clientX, clientY);
+    let best = null, bestD = Infinity;
+    for (const n of state.nodes) {
+      const dx = n.x - p.x, dy = n.y - p.y;
+      const d = dx * dx + dy * dy;
+      const r = (radiusFor(n) + 4) / state.scale;
+      if (d < r * r && d < bestD) { best = n; bestD = d; }
+    }
+    return best;
+  }
+
+  function drawArrow(source, target) {
+    const dx = target.x - source.x, dy = target.y - source.y;
+    const distance = Math.hypot(dx, dy);
+    if (distance === 0) return;
+    const ux = dx / distance, uy = dy / distance;
+    const sourceRadius = radiusFor(source) / state.scale;
+    const targetRadius = radiusFor(target) / state.scale;
+    const tipX = target.x - ux * targetRadius;
+    const tipY = target.y - uy * targetRadius;
+    const startX = source.x + ux * sourceRadius;
+    const startY = source.y + uy * sourceRadius;
+    const arrowLength = Math.min(8 / state.scale, distance / 3);
+    const arrowWidth = arrowLength * 0.55;
+    const baseX = tipX - ux * arrowLength;
+    const baseY = tipY - uy * arrowLength;
+
+    ctx.beginPath();
+    ctx.moveTo(startX, startY);
+    ctx.lineTo(tipX, tipY);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(tipX, tipY);
+    ctx.lineTo(baseX - uy * arrowWidth, baseY + ux * arrowWidth);
+    ctx.lineTo(baseX + uy * arrowWidth, baseY - ux * arrowWidth);
+    ctx.closePath();
+    ctx.fillStyle = ctx.strokeStyle;
+    ctx.fill();
+  }
+
+  function draw() {
+    ctx.setTransform(dpr * state.scale, 0, 0, dpr * state.scale,
+      dpr * (state.offsetX + state.width / 2), dpr * (state.offsetY + state.height / 2));
+    ctx.clearRect(-1e6, -1e6, 2e6, 2e6);
+    ctx.lineWidth = 1 / state.scale;
+
+    drawHyperedges();
+
+    for (const e of state.edges) {
+      const on = isActive(e.source) && isActive(e.target);
+      ctx.strokeStyle = on ? "rgba(128,128,128,0.55)" : "rgba(128,128,128,0.08)";
+      drawArrow(e.source, e.target);
+    }
+
+    for (const n of state.nodes) {
+      const on = isActive(n);
+      const r = radiusFor(n) / state.scale;
+      ctx.globalAlpha = on ? 1 : 0.15;
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, r, 0, Math.PI * 2);
+      ctx.fillStyle = colorFor(n);
+      ctx.fill();
+      if (n === state.selected) {
+        ctx.lineWidth = 2 / state.scale;
+        ctx.strokeStyle = "#ffffff";
+        ctx.stroke();
+        ctx.lineWidth = 1 / state.scale;
+      }
+      if (on && (state.scale > 0.9 || n === state.selected || n === state.hover || state.query || state.objectFilter.size)) {
+        ctx.fillStyle = getComputedStyle(document.body).color;
+        ctx.font = `${11 / state.scale}px system-ui, sans-serif`;
+        ctx.fillText(n.label, n.x + r + 2 / state.scale, n.y + 3 / state.scale);
+      }
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  function frame() {
+    if (state.alpha > 0.0100001) step();
+    if (state.needsFit && state.alpha < 0.2) { fit(); state.needsFit = false; }
+    draw();
+    requestAnimationFrame(frame);
+  }
+
+  function fit() {
+    if (state.nodes.length === 0) return;
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (const n of state.nodes) {
+      minX = Math.min(minX, n.x); minY = Math.min(minY, n.y);
+      maxX = Math.max(maxX, n.x); maxY = Math.max(maxY, n.y);
+    }
+    const bw = Math.max(1, maxX - minX) + 80, bh = Math.max(1, maxY - minY) + 80;
+    state.scale = Math.min(4, Math.max(0.1, Math.min(state.width / bw, state.height / bh)));
+    state.offsetX = -((minX + maxX) / 2) * state.scale;
+    state.offsetY = -((minY + maxY) / 2) * state.scale;
+  }
+
+  function centerOnPoint(point) {
+    state.offsetX = -point.x * state.scale;
+    state.offsetY = -point.y * state.scale;
+  }
+
+  function centerOn(node) {
+    centerOnPoint(node);
+  }
+
+  function neighborsOf(node) {
+    const set = new Set([node]);
+    for (const e of state.edges) {
+      if (e.source === node) set.add(e.target);
+      if (e.target === node) set.add(e.source);
+    }
+    return set;
+  }
+
+  function setObjectFilter(ids, rerender) {
+    state.objectFilter = new Set(ids);
+    filterCountEl.textContent = `${state.objectFilter.size} selected`;
+    refreshActiveModules();
+    state.alpha = Math.max(state.alpha, 0.25);
+    if (rerender) renderFilterList();
+  }
+
+  function focusObject(hyper) {
+    state.selected = null;
+    state.selectedHyper = hyper;
+    state.focus = null;
+    setObjectFilter([hyper.id], true);
+    centerOnPoint(centroidOf(hyper.moduleNodes));
+    showDetails(null);
+  }
+
+  function select(node) {
+    state.selected = node;
+    state.selectedHyper = null;
+    state.focus = node ? neighborsOf(node) : null;
+    showDetails(node);
+  }
+
+  function selectHyper(hyper) {
+    state.selected = null;
+    state.selectedHyper = hyper;
+    state.focus = null;
+    showDetails(null);
+  }
+
+  function makeList(title, nodes) {
+    const heading = document.createElement("div");
+    heading.textContent = `${title} (${nodes.length})`;
+    const list = document.createElement("ul");
+    for (const n of nodes.slice(0, 30)) {
+      const item = document.createElement("li");
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = n.label;
+      button.title = n.path;
+      button.addEventListener("click", () => { select(n); centerOn(n); });
+      item.append(button);
+      list.append(item);
+    }
+    return [heading, list];
+  }
+
+  function makeHyperList(title, hypers) {
+    const heading = document.createElement("div");
+    heading.textContent = `${title} (${hypers.length})`;
+    const list = document.createElement("ul");
+    for (const h of hypers.slice(0, 30)) {
+      const item = document.createElement("li");
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = h.label;
+      button.title = h.defined_in;
+      button.addEventListener("click", () => { focusObject(h); });
+      item.append(button);
+      list.append(item);
+    }
+    return [heading, list];
+  }
+
+  function showHyperDetails(hyper) {
+    const title = document.createElement("strong");
+    title.textContent = hyper.label;
+    const kind = document.createElement("div");
+    kind.textContent = `Object: ${hyper.kind}`;
+    const location = document.createElement("code");
+    location.textContent = hyper.defined_in;
+    detailsEl.append(title, kind, location);
+
+    const modules = hyper.modules.map(id => state.byId.get(id)).filter(Boolean);
+    detailsEl.append(...makeList("Modules defining or using this object", modules));
+
+    const filterButton = document.createElement("button");
+    filterButton.type = "button";
+    filterButton.textContent = "Filter to this object";
+    filterButton.addEventListener("click", () => { setObjectFilter([hyper.id], true); });
+    detailsEl.append(filterButton);
+  }
+
+  function showDetails(node) {
+    detailsEl.replaceChildren();
+    if (state.selectedHyper) {
+      showHyperDetails(state.selectedHyper);
+      detailsEl.style.display = "block";
+      return;
+    }
+    if (!node) { detailsEl.style.display = "none"; return; }
+    const title = document.createElement("strong");
+    title.textContent = node.label;
+    const kind = document.createElement("div");
+    kind.textContent = `Kind: ${node.kind}`;
+    const location = document.createElement("code");
+    location.textContent = node.line ? `${node.path}:${node.line}` : node.path;
+    detailsEl.append(title, kind, location);
+    if (node.signature) {
+      const signature = document.createElement("pre");
+      signature.textContent = node.signature;
+      detailsEl.append(signature);
+    }
+    if (state.view === "hypergraph") {
+      const defined = state.hyperedges.filter(h => h.defined_in === node.id);
+      const used = state.hyperedges.filter(h => h.used_in.includes(node.id));
+      detailsEl.append(...makeHyperList("Objects defined here", defined));
+      detailsEl.append(...makeHyperList("Objects used here", used));
+    }
+    const outgoing = new Set(state.edges.filter(e => e.source === node).map(e => e.target));
+    const incoming = new Set(state.edges.filter(e => e.target === node).map(e => e.source));
+    detailsEl.append(...makeList("Depends on", [...outgoing]));
+    detailsEl.append(...makeList("Used by", [...incoming]));
+    detailsEl.style.display = "block";
+  }
+
+  function renderFilterList() {
+    filterListEl.replaceChildren();
+    const term = state.filterQuery.trim().toLowerCase();
+    const candidates = GRAPH_DATA.hyperedges.filter(h => !term
+      || h.label.toLowerCase().includes(term)
+      || h.defined_in.toLowerCase().includes(term)
+      || h.used_in.some(path => path.toLowerCase().includes(term)))
+      .sort((a, b) => a.label.localeCompare(b.label));
+    for (const h of candidates.slice(0, 200)) {
+      const label = document.createElement("label");
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.checked = state.objectFilter.has(h.id);
+      checkbox.addEventListener("change", () => {
+        if (checkbox.checked) state.objectFilter.add(h.id);
+        else state.objectFilter.delete(h.id);
+        setObjectFilter([...state.objectFilter], false);
+        select(null);
+      });
+      const name = document.createElement("span");
+      name.textContent = h.label;
+      const meta = document.createElement("span");
+      meta.className = "meta";
+      meta.textContent = `${h.modules.length} module${h.modules.length === 1 ? "" : "s"}`;
+      label.append(checkbox, name, meta);
+      filterListEl.append(label);
+    }
+    filterNoteEl.textContent = candidates.length > 200 ? `Showing 200 of ${candidates.length} objects` : "";
+    filterCountEl.textContent = `${state.objectFilter.size} selected`;
+  }
+
+  canvas.addEventListener("pointerdown", (ev) => {
+    canvas.setPointerCapture(ev.pointerId);
+    state.downAt = { x: ev.clientX, y: ev.clientY };
+    state.moved = false;
+    const hit = nodeAt(ev.clientX, ev.clientY);
+    if (hit) {
+      state.dragNode = hit;
+      state.alpha = Math.max(state.alpha, 0.3);
+    } else {
+      state.dragPan = { x: ev.clientX, y: ev.clientY, ox: state.offsetX, oy: state.offsetY };
+    }
+  });
+
+  canvas.addEventListener("pointermove", (ev) => {
+    if (state.downAt && Math.hypot(ev.clientX - state.downAt.x, ev.clientY - state.downAt.y) > 4) {
+      state.moved = true;
+    }
+    if (state.dragNode) {
+      const p = toWorld(ev.clientX, ev.clientY);
+      state.dragNode.x = p.x;
+      state.dragNode.y = p.y;
+      state.alpha = Math.max(state.alpha, 0.1);
+    } else if (state.dragPan) {
+      state.offsetX = state.dragPan.ox + (ev.clientX - state.dragPan.x);
+      state.offsetY = state.dragPan.oy + (ev.clientY - state.dragPan.y);
+    } else {
+      const hover = nodeAt(ev.clientX, ev.clientY);
+      const overHyper = !hover && state.view === "hypergraph" && hyperAt(ev.clientX, ev.clientY);
+      state.hover = hover;
+      canvas.style.cursor = hover || overHyper ? "pointer" : "grab";
+    }
+  });
+
+  canvas.addEventListener("pointerup", (ev) => {
+    if (!state.moved) {
+      const hit = nodeAt(ev.clientX, ev.clientY);
+      const hyper = hit ? null : hyperAt(ev.clientX, ev.clientY);
+      if (hyper) selectHyper(hyper);
+      else select(hit && hit !== state.selected ? hit : null);
+    }
+    state.dragNode = null;
+    state.dragPan = null;
+    state.downAt = null;
+  });
+
+  canvas.addEventListener("wheel", (ev) => {
+    ev.preventDefault();
+    const rect = canvas.getBoundingClientRect();
+    const sx = ev.clientX - rect.left, sy = ev.clientY - rect.top;
+    const before = toWorld(ev.clientX, ev.clientY);
+    state.scale = Math.min(6, Math.max(0.1, state.scale * Math.exp(-ev.deltaY * 0.001)));
+    state.offsetX = sx - state.width / 2 - before.x * state.scale;
+    state.offsetY = sy - state.height / 2 - before.y * state.scale;
+  }, { passive: false });
+
+  searchEl.addEventListener("input", () => {
+    state.query = searchEl.value.trim().toLowerCase();
+    refreshActiveModules();
+  });
+
+  filterSearchEl.addEventListener("input", () => {
+    state.filterQuery = filterSearchEl.value;
+    renderFilterList();
+  });
+
+  document.getElementById("filter-clear").addEventListener("click", () => {
+    state.filterQuery = "";
+    filterSearchEl.value = "";
+    setObjectFilter([], true);
+    select(null);
+  });
+
+  document.addEventListener("keydown", (ev) => {
+    if (ev.key === "/" && document.activeElement !== searchEl) {
+      ev.preventDefault();
+      searchEl.focus();
+    } else if (ev.key === "Escape") {
+      searchEl.value = "";
+      state.query = "";
+      state.filterQuery = "";
+      filterSearchEl.value = "";
+      setObjectFilter([], state.view === "hypergraph");
+      select(null);
+      searchEl.blur();
+    }
+  });
+
+  viewEl.addEventListener("change", () => loadView(viewEl.value));
+  document.getElementById("fit").addEventListener("click", fit);
+  window.addEventListener("resize", () => { resize(); });
+
+  resize();
+  loadView(state.view);
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

@@ -50,8 +50,11 @@ docstrings) even where they do nothing.
 | New helper when equivalent exists  | Use existing, fix if needed |
 | Same regex/logic in multiple files | Extract to single source    |
 | Parsing logic repeated             | Consolidate                 |
+| Parallel aggregation classes       | Keep one, delete others     |
+| Constants in multiple files        | Move all to constants.py    |
+| TypedDict + dataclass for same     | Pick one representation     |
 
-**Rule**: Fix the one helper; don't keep two.
+**Rule**: Fix the one helper; don't keep two. Query code-index `find_duplicates()` before creating new entities.
 
 ## Symptom vs Root Cause
 

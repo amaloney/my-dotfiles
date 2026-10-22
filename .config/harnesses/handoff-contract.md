@@ -50,7 +50,15 @@ Format/lint + re-indexing fire on edit/write (orthogonal, not a stage). Hookless
 
 ## Energy barrier
 
-No new code without code-index verdict. High similarity → refactor refs; low/none → create spec. An unavailable index is not a no-match; main may proceed on the explicit user request without rebuilding it.
+No new code without code-index verdict:
+
+1. **Duplicate check**: Run `find_duplicates()` for exact name matches. Existing name → refactor or reuse.
+2. **Similarity check**: Search for similar functionality. High similarity (≥0.8) → refactor refs.
+3. **No match**: Create spec only after both checks pass.
+
+An unavailable index is not a no-match; main may proceed on explicit user request without rebuilding it.
+
+**TYPE_CHECKING imports are exempt from "unused import" cleanup.** They exist to prevent circular imports.
 
 ## Python File Edits
 

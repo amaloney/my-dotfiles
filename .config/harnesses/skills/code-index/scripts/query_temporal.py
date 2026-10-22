@@ -436,6 +436,26 @@ class CodeGraphQuery:
         """)
         return [dict(row) for row in cursor.fetchall()]
 
+    def find_duplicates(self) -> list[dict]:
+        """Find entities with the same name in different files (potential code clones).
+
+        Returns functions/methods that share a name but live in different files.
+        These are candidates for consolidation or indicate copy-paste duplication.
+        """
+        conn = self._get_conn()
+        cursor = conn.execute(r"""
+            SELECT e1.name, e1.entity_type as type1, e2.entity_type as type2,
+                   e1.file_path as file1, e1.line_start as line1, e1.signature as sig1,
+                   e2.file_path as file2, e2.line_start as line2, e2.signature as sig2
+            FROM current_entities e1
+            JOIN current_entities e2 ON e1.name = e2.name AND e1.file_path < e2.file_path
+            WHERE e1.entity_type IN ('function', 'method')
+              AND e2.entity_type IN ('function', 'method')
+              AND e1.name NOT LIKE '\_%' ESCAPE '\'
+            ORDER BY e1.name, e1.file_path
+        """)
+        return [dict(row) for row in cursor.fetchall()]
+
     def show(self, name: str) -> dict | None:
         """Show detailed info about an entity."""
         conn = self._get_conn()
@@ -506,6 +526,9 @@ def main():
     p = subparsers.add_parser("list-methods", help="List methods")
     p.add_argument("class_name", nargs="?", help="Filter by class")
     subparsers.add_parser("list-functions", help="List all functions")
+
+    # Duplicates
+    subparsers.add_parser("duplicates", help="Find functions/methods with same name in different files")
 
     # Show
     p = subparsers.add_parser("show", help="Show entity details")
@@ -623,6 +646,20 @@ def main():
             functions = query.list_functions()
             for f in functions:
                 print(f"{f['qualified_name']}")
+
+        elif args.command == "duplicates":
+            dups = query.find_duplicates()
+            if not dups:
+                print("No duplicate function/method names found across files.")
+            else:
+                print(f"Found {len(dups)} potential duplicates:\n")
+                for d in dups:
+                    print(f"{d['name']} ({d['type1']}/{d['type2']})")
+                    print(f"  1. {d['file1']}:{d['line1']}")
+                    print(f"     {d['sig1'] or '(no signature)'}")
+                    print(f"  2. {d['file2']}:{d['line2']}")
+                    print(f"     {d['sig2'] or '(no signature)'}")
+                    print()
 
         elif args.command == "show":
             entity = query.show(args.name)

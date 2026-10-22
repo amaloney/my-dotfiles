@@ -26,4 +26,19 @@ next: <stage>
 
 Never paste code. `unavailable` is not a no-match; main may proceed on the explicit user request without rebuilding the index.
 
+## Pre-Create Duplicate Check
+
+Before creating a new function, class, or constant, query the index:
+
+```bash
+python3 .harness/code_index/query_temporal.py duplicates | grep -i "<name>"
+```
+
+If the name exists elsewhere:
+- **Reuse**: Import and use the existing implementation
+- **Refactor**: If existing is insufficient, modify it rather than creating parallel
+
+The `find_duplicates()` command returns same-name entities in different files. High-similarity names (e.g.,
+`fetch_metadata` vs `get_metadata`) warrant manual review via semantic search.
+
 Build or refresh only in a separate main-agent action, following `scripts/README.md`.

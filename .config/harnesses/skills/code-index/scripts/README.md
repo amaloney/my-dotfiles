@@ -14,8 +14,14 @@ python3 build_index_temporal.py
 python3 query_temporal.py search "build container"
 python3 query_temporal.py callers my_function
 python3 query_temporal.py changes 7d
+python3 export_graph.py
+```
 
-# Flywheel
+The graph explorer is written to `viz/index.html`. It has module, object, and hypergraph views. Module and object edges point from each source node to its dependency; hyperedges connect an object to the modules that define or use it. Filter objects in the hypergraph view to see where they are used.
+
+## Flywheel
+
+```bash
 python3 flywheel.py status
 python3 flywheel.py skills --bayesian
 python3 flywheel.py recommend missing_module
@@ -30,6 +36,8 @@ python3 flywheel.py meta
 | `build_index_temporal.py` | AST extraction with bi-temporal tracking                     |
 | `query_temporal.py`       | Semantic + relational + temporal queries                     |
 | `flywheel.py`             | Probabilistic skill learning with meta-knowledge             |
+| `export_graph.py`         | Directed module, object, and hypergraph exporter              |
+| `viz_template.html`       | Browser explorer with dependency arrows and hyperedges       |
 
 ## Probabilistic Flywheel
 

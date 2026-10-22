@@ -62,6 +62,65 @@ is sugar — the field declarations already say it. Delete it; keep one line sta
 one-liners earn their place only when semantics are non-obvious (threshold, clamp, computed unit) — and the doc must
 name the non-obvious part, not rephrase the name.
 
+## Inheritance Contracts (Template Method)
+
+When a base class defines a method subclasses must override, use the `_method` / `method` split:
+
+```python
+class BaseScreen:
+    def _validate_prerequisites(self) -> tuple[bool, str]:
+        msg = "To be implemented by the inheriting class"
+        raise NotImplementedError(msg)
+
+    def validate_prerequisites(self) -> tuple[bool, str]:
+        """Check if prerequisites for this screen are met."""
+        return self._validate_prerequisites()
+```
+
+**Why this pattern:**
+- Public API (`validate_prerequisites`) stays stable — callers never change
+- Private hook (`_validate_prerequisites`) is the override point — subclasses implement this
+- Base can wrap with common logic (logging, caching, error handling) without subclasses repeating it
+- `NotImplementedError` enforces the contract at runtime — forgetting to override fails loudly
+
+**When to use:** Any method that subclasses MUST implement. Prefer this over `@abstractmethod` when the base class isn't
+fully abstract or when you want to add wrapper logic later without breaking subclasses.
+
+## Single Source of Truth
+
+**Constants**: One `constants.py` per package. Never define the same constant in multiple files.
+
+```python
+# BAD - constants scattered
+# utils/pypi.py
+TIMEOUT_PYPI_REQUEST = 30
+
+# services/constants.py
+TIMEOUT_PYPI_REQUEST = 10  # Conflict!
+
+# GOOD - single source
+# services/constants.py
+TIMEOUT_PYPI_REQUEST = 30
+
+# utils/pypi.py
+from package.services.constants import TIMEOUT_PYPI_REQUEST
+```
+
+**Aggregation Classes**: One canonical aggregation per domain. Document it in CLAUDE.md or AGENTS.md.
+
+```python
+# BAD - parallel aggregation systems
+class AggregatedMetadata: ...  # data_models.py
+class PackageMetadata: ...     # services/metadata.py - overlapping!
+def generate_feedstock():      # inline aggregation - third copy!
+
+# GOOD - single aggregation
+class AggregatedMetadata: ...  # data_models.py - the ONE source
+# Other code imports and uses this class
+```
+
+Before creating a new class or constant, query the code index for existing implementations.
+
 ## Call Sites
 
 Prefer `keyword=value` for value arguments — constructors and function calls alike. Positional is fine for a
