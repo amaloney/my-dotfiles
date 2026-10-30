@@ -4,7 +4,11 @@ import os
 import re
 import time
 from pathlib import Path
-from typing import Self
+
+try:
+    from typing import Self
+except ImportError:
+    from typing import Self
 
 SECRET_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
     ("private-key", re.compile(r"-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?-----END [A-Z ]*PRIVATE KEY-----")),

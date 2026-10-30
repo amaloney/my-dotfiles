@@ -78,7 +78,7 @@
           },
           {
             "type": "command",
-            "command": "$HOME/.config/harnesses/scripts/skill-vectors-refresh.sh",
+            "command": "python3 $HOME/.config/harnesses/scripts/llm-skills-network build --skill-vectors --if-stale",
             "timeout": 120
           }
         ]
@@ -95,7 +95,7 @@
           },
           {
             "type": "command",
-            "command": "$HOME/.config/harnesses/scripts/skill-vectors-refresh.sh",
+            "command": "python3 $HOME/.config/harnesses/scripts/llm-skills-network build --skill-vectors --if-stale",
             "timeout": 120
           }
         ]

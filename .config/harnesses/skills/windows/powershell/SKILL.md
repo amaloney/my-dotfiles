@@ -68,6 +68,22 @@ $env:_SCRIPT_RUNNING = "1"
 try { <# body #> } finally { $env:_SCRIPT_RUNNING = $null }
 ```
 
+## Command Injection Prevention
+
+When interpolating values into `-Command` strings, escape single quotes to prevent injection:
+
+```powershell
+# Escape ASCII ' plus typographic variants (U+2018, U+2019, U+201A, U+201B)
+# Use single-quoted string so \u escapes pass to .NET regex (PS 5.1 doesn't parse \u in double quotes)
+# This is encoding-independent (PS 5.1 reads BOM-less UTF-8 as ANSI, corrupting literal Unicode chars)
+$quotePattern = '[''‘’‚‛]'
+$safeValue = $userInput -replace $quotePattern, '$0$0'
+
+Start-Process powershell.exe -ArgumentList @(
+    '-Command', "Write-Host '$safeValue'"
+)
+```
+
 ## Gotchas
 
 | Pattern        | Notes                                      |
