@@ -1,9 +1,9 @@
 # Environment name
-ENV ?= default
+ENV ?= dev
 
 # Paths derived from ENV
-PREFIX := ./.conda/$(ENV)
-ifeq ($(ENV),default)
+PREFIX := ./.conda/envs/$(ENV)
+ifeq ($(ENV),dev)
   LOCK := conda-lock.yml
   SPEC := environment.yml
 else
@@ -23,12 +23,10 @@ help:
 	@echo "  make env [ENV=name]    rebuild ./.conda/<name> from lockfile"
 	@echo "  make lock [ENV=name]   sync environment and regenerate lockfile"
 	@echo "  make clean [ENV=name]  delete ./.conda/<name>"
-	@echo "  make viz               export code graph to .harness/code_index/viz/"
-	@echo ""
-	@echo "Environments: default (Python 3.14)"
+	@echo "  make viz               creates a network visualization"
 	@echo ""
 	@echo "Examples:"
-	@echo "  make env               # build default environment"
+	@echo "  make env               # build dev environment"
 
 env:
 	@mkdir -p ./.conda && echo '**/*' > ./.conda/.gitignore
@@ -55,4 +53,3 @@ clean:
 
 viz:
 	python3 .harness/code_index/export_graph.py
-

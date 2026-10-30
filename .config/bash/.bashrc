@@ -53,7 +53,7 @@ LOCAL_HOME=$HOME/.local
 MINICONDA=$HOME/miniconda3
 PIXI=$HOME/.pixi
 
-# ━━ macOS ━━
+# macOS
 if [[ $OSTYPE == darwin* ]]; then
     # turn off brew analytics
     export HOMEBREW_NO_ANALYTICS=1
@@ -82,7 +82,7 @@ if [[ $OSTYPE == darwin* ]]; then
 
 fi
 
-# ━━ Linux ━━
+# Linux
 if [[ $OSTYPE == linux* ]]; then
     # bash completions
     source /usr/share/bash-completion/completions/git
@@ -114,15 +114,15 @@ pixi-activate() {
     local manifest_path="${1:-.}"
     local env_arg=""
     [[ -n "$2" ]] && env_arg="--environment $2"
-    eval "$(pixi shell-hook --manifest-path "$manifest_path" $env_arg)"
+    eval "$(pixi shell-hook --manifest-path "$manifest_path" "$env_arg")"
     # set CONDA_DEFAULT_ENV for starship (project-env format)
     if [[ -n "$PIXI_PROJECT_NAME" ]]; then
         export CONDA_DEFAULT_ENV="${PIXI_PROJECT_NAME}-${PIXI_ENVIRONMENT_NAME}"
     fi
 }
 
-append_path $PIXI/bin
-append_path $CARGO_HOME/bin
-append_path $LOCAL_HOME/bin
-append_path $GEM_HOME/bin
+append_path "$PIXI"/bin
+append_path "$CARGO_HOME"/bin
+append_path "$LOCAL_HOME"/bin
+append_path "$GEM_HOME"/bin
 export PATH

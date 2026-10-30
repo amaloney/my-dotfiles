@@ -1,7 +1,13 @@
 dependencies:
   - python>=3.12,<3.15
-  - chromadb>=1.5.9,<2
-  - sentence-transformers>=5.6.0,<6
+  - conda>=26
+  - pip>=26
+
   # formatting, linting, type checking, and testing
   - ruff>=0.16.8,<0.17
   - pytest>=8.2.0,<9
+
+  # harnesses
+  - sentence-transformers
+  - pip:
+      - chromadb

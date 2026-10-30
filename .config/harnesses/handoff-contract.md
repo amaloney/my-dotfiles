@@ -13,7 +13,10 @@ Rules for multi-agent pipelines. The main agent is an orchestrator only.
 - Do one thing, then hand off.
 - Input contract: file path + stage spec. Hydrate from disc — never from prompt-embedded code.
 - Output contract: exactly one short result — status + artifact path + `next: <stage>`.
-- Full-scope create/audit/hygiene stages run `style-gates.sh` and report command + pass/fail; do not paste full successful output. Focused scope runs one targeted check.
+- Research/explore subagents return only concise findings with `file:line` pointers; no pasted code, narration, or broad
+  file summaries.
+- Full-scope create/audit/hygiene stages run `style-gates.sh` and report command + pass/fail; do not paste full
+  successful output. Focused scope runs one targeted check.
 - Read own pattern memory only when relevant; save novel patterns only.
 - Fan-out: sub-subagents invisible to main; only aggregates return.
 
@@ -29,7 +32,7 @@ Handoff edges (`next:`) form a DAG. Reference links (`[[...]]`) transfer no cont
 | Rank | Stage         | Skills                                                                                                                                                                                                                                                                                                                                    |
 | ---- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 0    | route         | `python`, `rust`, `windows`, `conda`                                                                                                                                                                                                                                                                                                      |
-| 1    | diagnose/plan | `debugging`, `writing-plans`, `research`, `code-index`, `python/recon`, `python/repo-init`, `python/pixi-pyproject`, `python/modern-tooling`, `rust/recon`, `rust/repo-init`, `rust/tooling`                                                                                                                                              |
+| 1    | diagnose/plan | `debugging`, `writing-plans`, `research`, `code-index`, `python/recon`, `python/repo-init`, `python/pixi-migration-reference`, `python/modern-tooling`, `rust/recon`, `rust/repo-init`, `rust/tooling`                                                                                                                                    |
 | 2    | create        | `python/style`, `python/types`, `python/naming`, `python/structure`, `python/errors`, `python/org`, `python/security`, `rust/style`, `rust/types`, `rust/naming`, `rust/structure`, `rust/errors`, `rust/org`, `rust/security`, `test-driven-development`, `bash-shell`, `markdown`, `artifacts`, `accessibility`, `windows/*`, `conda/*` |
 | 3    | audit         | `bug`, `ast-check`                                                                                                                                                                                                                                                                                                                        |
 | 4    | hygiene       | `code-hygiene`, `discouraged-patterns`, `python/violations`, `rust/violations`                                                                                                                                                                                                                                                            |

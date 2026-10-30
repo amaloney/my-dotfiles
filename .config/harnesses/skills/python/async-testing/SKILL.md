@@ -10,7 +10,8 @@ Handoff: `next: done`.
 
 ## Setup
 
-`uv add --group test pytest-asyncio`. Config: `asyncio_mode = "auto"` or `@pytest.mark.asyncio` per test.
+Install `pytest-asyncio` with Conda into the active environment. Config: `asyncio_mode = "auto"` or
+`@pytest.mark.asyncio` per test.
 
 ## Basic Patterns
 

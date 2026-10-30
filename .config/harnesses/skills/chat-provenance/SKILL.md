@@ -99,5 +99,5 @@ No git repo → exit 1, skip logging. Empty stdin → exit 2. Fetch error → ex
 ## Rules
 
 Verbatim = verbatim. One entry per event. Redaction in `scripts/shared.py`. `basis:` honest. Legacy entries tolerated.
-PDF/papers → `research` skill. Tests: `pixi run -e dev pytest`.
+PDF/papers → `research` skill. Tests: `conda run -n <env> pytest`.
 ```

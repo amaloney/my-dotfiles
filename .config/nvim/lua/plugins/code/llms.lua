@@ -44,15 +44,35 @@ local function claude_toggle(layout, cmd_args)
    terminal.toggle({ snacks_win_opts = claude_win_opts(layout) }, cmd_args)
 end
 
+-- ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+-- Kilo terminal layouts (sidekick.nvim window options)
+-- ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+local kilo_layouts = {
+   vertical = { layout = "right", width = 0.35 },
+   horizontal = { layout = "bottom", height = 0.4 },
+}
+
+local kilo_layout = "vertical"
+
+local function kilo_win_opts(layout)
+   return kilo_layouts[layout] or kilo_layouts.vertical
+end
+
+--- Toggle the Kilo terminal using the given layout.
+---@param layout? "vertical"|"horizontal" Defaults to the last used layout.
+local function kilo_toggle(layout)
+   layout = layout or kilo_layout
+   kilo_layout = layout
+   require("sidekick.cli").toggle({ name = "kilo", focus = true, win = kilo_win_opts(layout) })
+end
+
 return {
    {
       "folke/sidekick.nvim",
       lazy = true,
       opts = {
          cli = {
-            win = {
-               layout = "bottom",
-            },
+            win = kilo_win_opts(kilo_layout),
             tools = {
                kilo = { cmd = { "sh", "-c", "kilo auth login && kilo" } },
                claude = { cmd = { "claude" } },
@@ -69,46 +89,75 @@ return {
                      return item == current_cli and item .. " (current)" or item
                   end,
                }, function(choice)
-                  if choice then current_cli = choice end
+                  if choice then
+                     current_cli = choice
+                  end
                end)
             end,
             desc = "Select AI CLI",
          },
          {
             "<leader>kk",
-            function() require("sidekick.cli").toggle({ name = current_cli, focus = true }) end,
+            function()
+               kilo_toggle()
+            end,
             desc = "Toggle Kilo CLI",
          },
          {
+            "<leader>kV",
+            function()
+               kilo_toggle("vertical")
+            end,
+            desc = "Toggle Kilo (vertical split)",
+         },
+         {
+            "<leader>kH",
+            function()
+               kilo_toggle("horizontal")
+            end,
+            desc = "Toggle Kilo (horizontal split)",
+         },
+         {
             "<leader>kd",
-            function() require("sidekick.cli").close() end,
+            function()
+               require("sidekick.cli").close()
+            end,
             desc = "Detach Kilo CLI",
          },
          {
             "<leader>kt",
-            function() require("sidekick.cli").send({ name = current_cli, msg = "{this}" }) end,
+            function()
+               require("sidekick.cli").send({ name = current_cli, msg = "{this}" })
+            end,
             mode = { "x", "n" },
             desc = "Send This to Kilo",
          },
          {
             "<leader>kf",
-            function() require("sidekick.cli").send({ name = current_cli, msg = "{file}" }) end,
+            function()
+               require("sidekick.cli").send({ name = current_cli, msg = "{file}" })
+            end,
             desc = "Send File to Kilo",
          },
          {
             "<leader>kv",
-            function() require("sidekick.cli").send({ name = current_cli, msg = "{selection}" }) end,
+            function()
+               require("sidekick.cli").send({ name = current_cli, msg = "{selection}" })
+            end,
             mode = { "x" },
             desc = "Send Selection to Kilo",
          },
          {
             "<leader>kp",
-            function() require("sidekick.cli").prompt({ name = current_cli }) end,
+            function()
+               require("sidekick.cli").prompt({ name = current_cli })
+            end,
             mode = { "n", "x" },
             desc = "Kilo Prompt",
          },
       },
    },
+
    {
       "coder/claudecode.nvim",
       dependencies = { "folke/snacks.nvim" },
@@ -122,15 +171,50 @@ return {
       config = true,
       keys = {
          { "<leader>a", nil, desc = "AI/Claude Code" },
-         { "<leader>ac", function() claude_toggle() end, desc = "Toggle Claude" },
-         { "<leader>av", function() claude_toggle("vertical") end, desc = "Toggle Claude (vertical split)" },
-         { "<leader>ah", function() claude_toggle("horizontal") end, desc = "Toggle Claude (horizontal split)" },
+         {
+            "<leader>ac",
+            function()
+               claude_toggle()
+            end,
+            desc = "Toggle Claude",
+         },
+         {
+            "<leader>av",
+            function()
+               claude_toggle("vertical")
+            end,
+            desc = "Toggle Claude (vertical split)",
+         },
+         {
+            "<leader>ah",
+            function()
+               claude_toggle("horizontal")
+            end,
+            desc = "Toggle Claude (horizontal split)",
+         },
          { "<leader>af", "<CMD>ClaudeCodeFocus<CR>", desc = "Focus Claude" },
-         { "<leader>ar", function() claude_toggle(nil, "--resume") end, desc = "Resume Claude" },
-         { "<leader>aC", function() claude_toggle(nil, "--continue") end, desc = "Continue Claude" },
+         {
+            "<leader>ar",
+            function()
+               claude_toggle(nil, "--resume")
+            end,
+            desc = "Resume Claude",
+         },
+         {
+            "<leader>aC",
+            function()
+               claude_toggle(nil, "--continue")
+            end,
+            desc = "Continue Claude",
+         },
          { "<leader>am", "<CMD>ClaudeCodeSelectModel<CR>", desc = "Select Claude model" },
          { "<leader>ab", "<CMD>ClaudeCodeAdd %<CR>", desc = "Add current buffer" },
-         { "<leader>as", "<CMD>ClaudeCodeSend<CR>", mode = "v", desc = "Send to Claude" },
+         {
+            "<leader>as",
+            "<CMD>ClaudeCodeSend<CR>",
+            mode = "v",
+            desc = "Send to Claude",
+         },
          {
             "<leader>as",
             "<CMD>ClaudeCodeTreeAdd<CR>",

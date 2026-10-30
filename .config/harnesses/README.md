@@ -5,17 +5,17 @@ dotfiles root.
 
 ## Layout
 
-| Path                  | Scope           | Contents                                                               |
-| --------------------- | --------------- | ---------------------------------------------------------------------- |
-| `AGENTS.md`           | shared          | Canonical global instructions — invariants + skill routing             |
-| `handoff-contract.md` | shared          | Multi-agent pipeline rules (create → bug → code-hygiene → pytest)      |
-| `agents/`             | shared          | Pipeline stage agents: bug, code-hygiene, code-index                   |
-| `skills/`             | shared          | All skills — see [skills/README.md](skills/README.md)                  |
-| `scripts/`            | shared          | Cross-skill scripts (skill-graph, skill vectors, pronoun check)        |
-| `plugins/`            | kilo + opencode | JS plugin-API files: harness-refresh, strip-blobs                      |
-| `kilo/`               | kilo only       | `kilo.jsonc`, `tui.json`                                               |
-| `claude/`             | claude only     | `settings.json`, `keybindings.json`, `README.md`                       |
-| `opencode/`           | opencode only   | `opencode.jsonc` — not linked out (Kilo warns on `~/.config/opencode`) |
+| Path                  | Scope           | Contents                                                                    |
+| --------------------- | --------------- | --------------------------------------------------------------------------- |
+| `AGENTS.md`           | shared          | Canonical global instructions — invariants + skill routing                  |
+| `handoff-contract.md` | shared          | Multi-agent pipeline rules (create → bug → code-hygiene → pytest)           |
+| `agents/`             | shared          | Pipeline agents (bug, code-hygiene, code-index) + read-only locator (scout) |
+| `skills/`             | shared          | All skills — see [skills/README.md](skills/README.md)                       |
+| `scripts/`            | shared          | Cross-skill scripts (skill-graph, skill vectors, pronoun check)             |
+| `plugins/`            | kilo + opencode | JS plugin-API files: harness-refresh, strip-blobs                           |
+| `kilo/`               | kilo only       | `kilo.jsonc`, `tui.json`                                                    |
+| `claude/`             | claude only     | `settings.json`, `keybindings.json`, `README.md`                            |
+| `opencode/`           | opencode only   | `opencode.jsonc` — not linked out (Kilo warns on `~/.config/opencode`)      |
 
 ## Skill vs agent
 

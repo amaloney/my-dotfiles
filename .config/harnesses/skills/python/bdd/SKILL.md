@@ -133,6 +133,7 @@ def step_config(context):
 
 ## Setup
 
-`pip install behave selenium`
+Install `behave` and `selenium` with Conda into the active environment. If either package is unavailable from configured
+Conda channels, stop and report it; do not use pip.
 
 [[python/testing]] [[python/mocking]] [[python/conftest]]

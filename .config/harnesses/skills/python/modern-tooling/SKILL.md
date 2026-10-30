@@ -1,39 +1,29 @@
 ---
 name: python/modern-tooling
-description: uv, Ruff, and ty Python tooling
+description: Conda-managed Ruff and ty Python tooling
 invocation: auto
 ---
 
-# Modern Python Tooling
+# Python Tooling
 
 Handoff: `next: python/style`.
 
+**Deprecated tools:** This skill documents Ruff and ty only; never use uv or pip for environment setup, dependencies, or
+execution.
+
 ## Tool Mapping
 
-pip/virtualenv/pip-tools → `uv`; pipx → `uv tool`; flake8/black/isort/pyupgrade → `ruff`; mypy/pyright → `ty`;
-pre-commit → `prek`.
+flake8/black/isort/pyupgrade → `ruff`; mypy/pyright → `ty`; pre-commit → `prek`.
 
-## uv Commands
-
-| Task                | Command                        | Replaces                           |
-| ------------------- | ------------------------------ | ---------------------------------- |
-| Create project      | `uv init myproject`            | —                                  |
-| Add dependency      | `uv add requests`              | `pip install requests`             |
-| Add dev dependency  | `uv add --dev pytest`          | —                                  |
-| Remove dependency   | `uv remove requests`           | `pip uninstall requests`           |
-| Sync environment    | `uv sync`                      | `pip install -e .` (auto editable) |
-| Run script          | `uv run python script.py`      | `python script.py`                 |
-| Export requirements | `uv export > requirements.txt` | `pip freeze`                       |
-| Install CLI tool    | `uv tool install ruff`         | `pipx install ruff`                |
-| Run CLI tool once   | `uvx ruff check .`             | `pipx run ruff`                    |
+Install and run these tools through the active Conda environment.
 
 ## ruff Commands
 
 ```bash
-ruff check .                    # lint
-ruff check --fix .              # lint + auto-fix
-ruff format .                   # format (replaces black)
-ruff check --select I --fix .   # fix imports only (replaces isort)
+conda run -n proj ruff check .                    # lint
+conda run -n proj ruff check --fix .              # lint + auto-fix
+conda run -n proj ruff format .                   # format (replaces black)
+conda run -n proj ruff check --select I --fix .   # fix imports only (replaces isort)
 ```
 
 ### pyproject.toml Config
@@ -72,7 +62,7 @@ convention = "google"
 ## ty Commands
 
 ```bash
-ty check .                      # type check (add --watch for watch mode)
+conda run -n proj ty check .                      # type check (add --watch for watch mode)
 ```
 
 ### pyproject.toml Config
@@ -88,41 +78,16 @@ strict = true
 
 ## Security Tools
 
-| Tool             | Purpose                    | Command                 |
-| ---------------- | -------------------------- | ----------------------- |
-| `pip-audit`      | Dependency vulnerabilities | `uv run pip-audit`      |
-| `detect-secrets` | Secrets in code            | `detect-secrets scan`   |
-| `bandit`         | Security lints             | `ruff check --select S` |
-| `zizmor`         | GitHub Actions audit       | `zizmor .github/`       |
-
-## PEP 723: Inline Script Metadata
-
-For single-file scripts with dependencies — no pyproject.toml needed:
-
-```python
-#!/usr/bin/env -S uv run --script
-# /// script
-# requires-python = ">=3.12"
-# dependencies = [
-#     "requests",
-#     "rich",
-# ]
-# ///
-```
-
-Commands: `uv init --script`, `uv add --script`, `uv run`. Single-file → PEP 723; multi-file → pyproject.toml.
-
-## Dependency Groups (PEP 735)
-
-Prefer `[dependency-groups]` over optional-deps: `dev = [{include-group = "lint"}, ...]`. `uv add --group dev pytest`,
-`uv sync --all-groups`.
-
-## pyproject.toml Full Example
-
-See [references/pyproject.md](references/pyproject.md).
+| Tool             | Purpose                    | Command                                   |
+| ---------------- | -------------------------- | ----------------------------------------- |
+| `pip-audit`      | Dependency vulnerabilities | `conda run -n proj pip-audit`             |
+| `detect-secrets` | Secrets in code            | `conda run -n proj detect-secrets scan`   |
+| `bandit`         | Security lints             | `conda run -n proj ruff check --select S` |
+| `zizmor`         | GitHub Actions audit       | `zizmor .github/`                         |
 
 ## Decision Tree
 
-Single-file → PEP 723. Multi-file → `uv init`. Package → `uv init --package`.
+Single-file → run with `conda run -n <env> python script.py`. Multi-file → use the repository's Conda environment.
+Package → use its Conda recipe.
 
-[[python/pixi-pyproject]] [[python/violations]] [[python/style]]
+[[python/violations]] [[python/style]]

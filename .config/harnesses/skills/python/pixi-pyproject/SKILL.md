@@ -1,15 +1,17 @@
 ---
-name: python/pixi-pyproject
-description: Pixi-based Python pyproject setup
+name: python/pixi-migration-reference
+description: Reference for migrating Pixi-based Python projects to Conda
 invocation: auto
 keywords: ["pixi", "pyproject.toml", "pixi.toml"]
 ---
 
-# Pixi pyproject.toml
+# Pixi Project Migration Reference
 
 Handoff: `next: python/style`.
 
-## Minimal
+This file is a legacy migration reference; do not apply to new work.
+
+## Existing Project Structure
 
 ```toml
 [project]
@@ -25,11 +27,11 @@ platforms = ["osx-arm64", "osx-64", "linux-64", "win-64"]
 ## Dependencies
 
 ```toml
-[tool.pixi.dependencies]           # prefer https://repo.anaconda.com/pkgs/main then conda-forge
+[tool.pixi.dependencies]           # Existing legacy declarations; translate to Conda environment files
 python = ">=3.12"
 numpy = ">=1.26"
 
-[tool.pixi.pypi-dependencies]      # PyPI fallback
+[tool.pixi.pypi-dependencies]       # Existing legacy declarations; do not install from PyPI
 my-project = { path = ".", editable = true }
 ```
 
@@ -38,7 +40,7 @@ Specifiers: `">=1.0"` `">=1.0,<2"` `"*"` `"==1.2.3"`
 ## Features/Environments
 
 ```toml
-[tool.pixi.feature.dev.dependencies]
+[tool.pixi.feature.dev.dependencies] # Existing declarations; translate to Conda environment files
 pytest = ">=8.0"
 ruff = ">=0.4"
 
@@ -63,8 +65,9 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 ```
 
-## Commands
+## Migration
 
-`pixi init` | `pixi add pkg` | `pixi add --pypi pkg` | `pixi add --feature dev pkg` | `pixi run task` | `pixi shell`
+Inspect `pyproject.toml` for existing `[tool.pixi.*]` sections and translate dependencies, environments, and tasks into
+Conda equivalents. Do not invoke Pixi commands or retain Pixi as the environment manager.
 
 [[python/modern-tooling]] [[python/style]]

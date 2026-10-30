@@ -76,17 +76,15 @@ cat .harness/code_index/profile.json | jq '.patterns.config_py_path'
 ## Testing
 
 ```bash
-# Targeted only — never full suite
-pytest tests/path/test_specific.py -x
+conda run -n proj pytest tests/path/test_specific.py -x
 ```
 
 ## Tools
 
 ```bash
-ruff check .          # Lint
-ruff format .         # Format
-uv run pytest         # If using uv
-pixi run test         # If using pixi
+conda run -n proj ruff check .
+conda run -n proj ruff format .
+conda run -n proj pytest
 ```
 ````
 

@@ -66,6 +66,35 @@ docstrings) even where they do nothing.
 
 **Rule**: Trace to origin; patch there.
 
+## Strings
+
+| Smell                                      | Fix                                            |
+| ------------------------------------------ | ---------------------------------------------- |
+| Triple-quoted string for multiline message | Parenthesized concat with explicit `\n`        |
+| f-string with embedded newlines            | Break into concat lines with `\n` at line ends |
+
+**Rule**: Explicit `\n` makes whitespace visible; triple-quoted strings hide leading/trailing newlines and make
+indentation ambiguous.
+
+```python
+# Preferred
+message = (
+    f"Error in '{name}'\n\n"
+    "To fix:\n"
+    "  1. Do this\n"
+    "  2. Do that\n"
+)
+
+# Avoid
+message = f"""
+Error in '{name}'
+
+To fix:
+  1. Do this
+  2. Do that
+"""
+```
+
 ## Structure
 
 | Smell                                           | Fix                                           |
