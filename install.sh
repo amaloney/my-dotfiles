@@ -1,80 +1,74 @@
 #!/usr/bin/env bash
-# macOS/Linux Dotfiles Installation Script
-# Run as: bash install.sh [-f|--force] [-n|--dry-run] [--skip-tools] [-u|--update] [-s|--system]
-# Use --system (requires sudo) to install to /etc/xdg for all users
-
-set -e
+# macOS/Linux dotfiles installer: symlinks configs into place, optionally installs tools.
+# --system (needs sudo) installs to /etc/xdg for all users, plus the Linux NAS/borgmatic backup files.
+# Short flags (mkdir -p, rm -f, ln -s) on purpose: macOS BSD tools don't accept the long forms.
+set -o errexit -o nounset -o pipefail
 
 DOTFILES="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly DOTFILES
+readonly HARNESSES="$DOTFILES/.config/harnesses"
+
+# ANSI colors for terminal output
+readonly RED=$'\033[31m'
+readonly GREEN=$'\033[32m'
+readonly YELLOW=$'\033[33m'
+readonly MAGENTA=$'\033[35m'
+readonly CYAN=$'\033[36m'
+readonly NORMAL=$'\033[0m'
+
+# Options (set by parse_args; FORCE may also be set by the overwrite prompt)
 FORCE=false
 DRY_RUN=false
 SKIP_TOOLS=false
 UPDATE=false
 SYSTEM=false
+CONFIG_BASE="$HOME/.config"
 
-while [[ $# -gt 0 ]]; do
-    case $1 in
-        -f|--force) FORCE=true; shift ;;
-        -n|--dry-run) DRY_RUN=true; shift ;;
-        -s|--system) SYSTEM=true; shift ;;
-        --skip-tools) SKIP_TOOLS=true; shift ;;
-        -u|--update) UPDATE=true; shift ;;
-        *) echo "Unknown option: $1"; exit 1 ;;
-    esac
-done
+usage() {
+    cat << EOF
+Usage: $(basename "$0") [options]
 
-if $SYSTEM && [[ $EUID -ne 0 ]]; then
-    echo "Error: --system requires root privileges. Run with sudo."
-    exit 1
-fi
+  -f, --force      replace existing files and links without asking
+  -n, --dry-run    show what would change, change nothing
+  -u, --update     settings only, no tool installation
+      --skip-tools skip tool installation
+  -s, --system     install for all users to /etc/xdg (run with sudo)
+  -h, --help       show this help
+EOF
+}
 
-status() { echo -e "\033[36m:: $1\033[0m"; }
-skip() { echo -e "   \033[33mSKIP: $1\033[0m"; }
-done_msg() { echo -e "   \033[32mOK: $1\033[0m"; }
-error_msg() { echo -e "   \033[31mERROR: $1\033[0m"; }
-manual_msg() { echo -e "   \033[33mMANUAL: $1\033[0m"; }
+# ---------- output ----------
+
+status() { echo "${CYAN}:: $1${NORMAL}"; }
+skip() { echo "   ${YELLOW}SKIP: $1${NORMAL}"; }
+done_msg() { echo "   ${GREEN}OK: $1${NORMAL}"; }
+error_msg() { echo "   ${RED}ERROR: $1${NORMAL}" >&2; }
+manual_msg() { echo "   ${YELLOW}MANUAL: $1${NORMAL}"; }
+would() { echo "   Would $1"; }
+heading() {
+    echo ""
+    echo "${MAGENTA}$1${NORMAL}"
+    echo "${MAGENTA}${1//?/=}${NORMAL}"
+}
+
+# ---------- checks ----------
 
 command_exists() { command -v "$1" &>/dev/null; }
-
 is_macos() { [[ "$(uname)" == "Darwin" ]]; }
 
-install_tool() {
-    local name="$1"
-    local command="$2"
-    local brew_pkg="$3"
-    local apt_pkg="$4"
+# ---------- file helpers ----------
 
-    status "$name"
-
-    if command_exists "$command"; then
-        skip "$name already installed"
-        return
+# Remove an existing path before replacing it. Returns 1 (caller skips) unless --force or the prompt allowed it.
+clear_existing() {
+    local path="$1"
+    if ! $FORCE; then
+        skip "$path exists (use -f to overwrite)"
+        return 1
     fi
-
     if $DRY_RUN; then
-        if is_macos; then
-            echo "   Would install: brew install $brew_pkg"
-        else
-            echo "   Would install: sudo apt install $apt_pkg"
-        fi
-        return
-    fi
-
-    echo "   Installing $name..."
-    if is_macos; then
-        if command_exists brew; then
-            brew install "$brew_pkg"
-            done_msg "$name installed"
-        else
-            manual_msg "Homebrew not found. Install from https://brew.sh"
-        fi
+        would "remove: $path"
     else
-        if command_exists apt; then
-            sudo apt install -y "$apt_pkg"
-            done_msg "$name installed"
-        else
-            manual_msg "apt not found. Install $name with your package manager"
-        fi
+        rm -rf "$path"
     fi
 }
 
@@ -82,241 +76,175 @@ symlink() {
     local target="$1"
     local link="$2"
 
-    mkdir -p "$(dirname "$link")"
-
-    if [[ -L "$link" ]]; then
-        local current_target
-        current_target="$(readlink "$link")"
-        if [[ "$current_target" == "$target" ]]; then
-            skip "$link already linked correctly"
-            return
-        fi
-        # Symlink exists but points to wrong target (or is broken)
-        if $FORCE; then
-            if $DRY_RUN; then
-                echo "   Would remove: $link"
-            else
-                rm -f "$link"
-            fi
-        else
-            skip "$link exists (use -f to overwrite)"
-            return
-        fi
-    elif [[ -e "$link" ]]; then
-        # Regular file or directory exists
-        if $FORCE; then
-            if $DRY_RUN; then
-                echo "   Would remove: $link"
-            else
-                rm -rf "$link"
-            fi
-        else
-            skip "$link exists (use -f to overwrite)"
-            return
-        fi
+    if [[ -L "$link" && "$(readlink "$link")" == "$target" ]]; then
+        skip "$link already linked correctly"
+        return 0
+    fi
+    if [[ -L "$link" || -e "$link" ]]; then
+        clear_existing "$link" || return 0
     fi
 
     if $DRY_RUN; then
-        echo "   Would link: $link -> $target"
+        would "link: $link -> $target"
     else
+        mkdir -p "$(dirname "$link")"
         ln -s "$target" "$link"
         done_msg "$link -> $target"
     fi
 }
 
-# Copy a file (not symlink) if the destination differs. Reports divergence so the
-# user can reconcile repo copy vs local edits.
+# Copy (not link) a file whose installed copy is meant to diverge locally, e.g. settings.json.
+# A diverged copy is only replaced with --force (or a yes at the prompt), like symlink().
 copy_file() {
     local source="$1"
     local dest="$2"
 
-    if [[ -f "$dest" ]] && diff -q "$source" "$dest" &>/dev/null; then
-        skip "$dest up to date"
-        return
+    # An old symlink from before this file was copied: always replace it
+    if [[ -L "$dest" ]]; then
+        if $DRY_RUN; then
+            would "remove old link: $dest"
+        else
+            rm -f "$dest"
+        fi
+    fi
+
+    if [[ -f "$dest" && ! -L "$dest" ]]; then
+        if diff -q "$source" "$dest" &>/dev/null; then
+            skip "$dest up to date"
+            return 0
+        fi
+        if ! $FORCE; then
+            skip "$dest differs from the repo copy (use -f to overwrite; reconcile manually)"
+            return 0
+        fi
     fi
 
     if $DRY_RUN; then
-        if [[ -f "$dest" ]]; then
-            echo "   Would copy: $source -> $dest (diverged)"
-        else
-            echo "   Would copy: $source -> $dest"
-        fi
-        return
+        would "copy: $source -> $dest"
+    else
+        mkdir -p "$(dirname "$dest")"
+        cp "$source" "$dest"
+        done_msg "$dest (copied)"
     fi
-
-    mkdir -p "$(dirname "$dest")"
-    cp "$source" "$dest"
-    if [[ -L "$dest" ]]; then
-        : # cp followed symlink; already handled above
-    fi
-    done_msg "$dest (copied — local edits will diverge; reconcile manually)"
 }
 
-# Remove symlinks pointing into $DOTFILES whose source no longer exists in the repo.
-# Only touches: (a) broken symlinks, (b) whose resolved target path is under $DOTFILES.
-# Never removes real files or links pointing outside the dotfiles repo.
+# Install a root-owned copy (never a symlink): root must not execute or read config from a user-writable
+# repo, or any user-level compromise becomes root. Linux only (GNU install/stat).
+install_root_file() {
+    local source="$1"
+    local dest="$2"
+    local mode="$3"
+
+    if [[ -f "$dest" ]] && diff --brief "$source" "$dest" &>/dev/null \
+        && [[ "$(stat --format=%a "$dest")" == "$mode" ]]; then
+        skip "$dest up to date"
+    elif $DRY_RUN; then
+        would "install: $source -> $dest (root:root $mode)"
+    else
+        install -D --owner=root --group=root --mode="$mode" "$source" "$dest"
+        done_msg "$dest (root:root $mode)"
+    fi
+}
+
+# Remove top-level symlinks in each dir that point into $DOTFILES at a path that no longer exists.
+# Never touches real files or links pointing outside the repo.
 prune_stale_links() {
-    local dir
+    local dir entry target
     for dir in "$@"; do
         [[ -d "$dir" ]] || continue
-        # Top-level entries only
         for entry in "$dir"/*; do
             [[ -L "$entry" ]] || continue
-            local target
             target="$(readlink "$entry")"
-            # Must point into the dotfiles repo
-            [[ "$target" == "$DOTFILES/"* ]] || continue
-            # Prune only if the source is gone
-            if [[ ! -e "$target" ]]; then
-                if $DRY_RUN; then
-                    echo "   Would prune: $entry -> $target (source deleted)"
-                else
-                    rm -f "$entry"
-                    done_msg "pruned $entry (source deleted)"
-                fi
+            [[ "$target" == "$DOTFILES/"* && ! -e "$target" ]] || continue
+            if $DRY_RUN; then
+                would "prune: $entry -> $target (source deleted)"
+            else
+                rm -f "$entry"
+                done_msg "pruned $entry (source deleted)"
             fi
         done
     done
 }
 
-echo ""
-echo -e "\033[35mDotfiles Installer for macOS/Linux\033[0m"
-echo -e "\033[35m===================================\033[0m"
-echo "Source: $DOTFILES"
-echo "Config: $DOTFILES/.config"
-echo "Method: Symlinks"
-$DRY_RUN && echo -e "\033[33m(DRY RUN - no changes will be made)\033[0m"
-$UPDATE && echo -e "\033[33m(UPDATE MODE - settings only, no tool installation)\033[0m"
-$SYSTEM && echo -e "\033[33m(SYSTEM-WIDE - installing to /etc/xdg for all users)\033[0m"
-echo ""
+# ---------- setup ----------
 
-# Prompt to overwrite existing files (unless -f already passed or dry run)
-if ! $FORCE && ! $DRY_RUN; then
-    echo -e "\033[33mExisting config files will be skipped by default.\033[0m"
-    read -r -p "Replace existing files with symlinks? [y/N] " response
-    case "$response" in
-        [yY][eE][sS]|[yY]) FORCE=true ;;
-    esac
-    echo ""
-fi
-
-if $SYSTEM; then
-    CONFIG_BASE="/etc/xdg"
-else
-    CONFIG_BASE="$HOME/.config"
-fi
-
-# Neovim
-status "Neovim"
-symlink "$DOTFILES/.config/nvim" "$CONFIG_BASE/nvim"
-
-# Yazi file manager
-status "Yazi"
-symlink "$DOTFILES/.config/yazi" "$CONFIG_BASE/yazi"
-
-# Eza (ls replacement)
-status "Eza"
-symlink "$DOTFILES/.config/eza" "$CONFIG_BASE/eza"
-
-# Starship config
-status "Starship Config"
-symlink "$DOTFILES/.config/starship/starship.toml" "$CONFIG_BASE/starship.toml"
-
-# Pixi config
-status "Pixi Config"
-symlink "$DOTFILES/.config/pixi" "$CONFIG_BASE/pixi"
-
-# Conda config (user only, not system-wide)
-if ! $SYSTEM; then
-    status "Condarc"
-    symlink "$DOTFILES/.config/conda/.condarc" "$HOME/.condarc"
-fi
-
-# Claude Code config (user only, not system-wide)
-if ! $SYSTEM; then
-    status "Harnesses - canonical shared dir"
-    symlink "$DOTFILES/.config/harnesses" "$HOME/.config/harnesses"
-
-    status "Harness AGENTS.md - Claude Code"
-    symlink "$DOTFILES/.config/harnesses/AGENTS.md" "$HOME/.claude/CLAUDE.md"
-
-    status "Harness AGENTS.md - Kilo"
-    symlink "$DOTFILES/.config/harnesses/AGENTS.md" "$HOME/.config/kilo/AGENTS.md"
-
-    # Legacy cleanup: Kilo no longer falls back to opencode config.
-    # Remove our old symlink so Kilo stops warning about ~/.config/opencode.
-    if [[ -L "$HOME/.config/opencode/AGENTS.md" ]] && [[ "$(readlink "$HOME/.config/opencode/AGENTS.md")" == "$DOTFILES/"* ]]; then
-        if $DRY_RUN; then
-            echo "   Would remove: legacy ~/.config/opencode/AGENTS.md link"
-        else
-            rm -f "$HOME/.config/opencode/AGENTS.md"
-            rmdir "$HOME/.config/opencode" 2>/dev/null || true
-            done_msg "removed legacy opencode config link"
-        fi
-    fi
-
-    status "Claude Code - README.md"
-    symlink "$DOTFILES/.config/harnesses/claude/README.md" "$HOME/.claude/README.md"
-
-    status "Claude Code - keybindings.json"
-    symlink "$DOTFILES/.config/harnesses/claude/keybindings.json" "$HOME/.claude/keybindings.json"
-
-    status "Claude Code - settings.json"
-    # Replace symlink with real copy (user divergences live locally)
-    if [[ -L "$HOME/.claude/settings.json" ]]; then
-        $DRY_RUN || rm "$HOME/.claude/settings.json"
-    fi
-    copy_file "$DOTFILES/.config/harnesses/claude/settings.json" "$HOME/.claude/settings.json"
-
-    status "Kilo - kilo.jsonc"
-    if [[ -L "$HOME/.config/kilo/kilo.jsonc" ]]; then
-        $DRY_RUN || rm "$HOME/.config/kilo/kilo.jsonc"
-    fi
-    copy_file "$DOTFILES/.config/harnesses/kilo/kilo.jsonc" "$HOME/.config/kilo/kilo.jsonc"
-
-    status "Kilo - tui.json"
-    if [[ -L "$HOME/.config/kilo/tui.json" ]]; then
-        $DRY_RUN || rm "$HOME/.config/kilo/tui.json"
-    fi
-    copy_file "$DOTFILES/.config/harnesses/kilo/tui.json" "$HOME/.config/kilo/tui.json"
-
-    status "Claude Code - skills (shared)"
-    symlink "$DOTFILES/.config/harnesses/skills" "$HOME/.claude/skills"
-
-    status "Claude Code - scripts (shared)"
-    symlink "$DOTFILES/.config/harnesses/scripts" "$HOME/.claude/scripts"
-
-    status "Agents (shared) - Kilo"
-    symlink "$DOTFILES/.config/harnesses/agents" "$HOME/.config/kilo/agents"
-
-    status "Agents (shared) - Claude Code"
-    symlink "$DOTFILES/.config/harnesses/agents" "$HOME/.claude/agents"
-
-    status "Kilo - plugins (shared)"
-    symlink "$DOTFILES/.config/harnesses/plugins" "$HOME/.config/kilo/plugins"
-
-    status "Git pre-commit hook (skill graph gate)"
-    symlink "$DOTFILES/.config/harnesses/scripts/pre-commit" "$DOTFILES/.git/hooks/pre-commit"
-
-    # OpenCode prefs live in .config/harnesses/opencode/ but are intentionally
-    # NOT linked to ~/.config/opencode: Kilo warns on that dir (no fallback).
-
-    # Kilo loads skills from ~/.config/kilo/skills/; link each shared skill in.
-    status "Kilo - skills (shared)"
-    for skill_dir in "$DOTFILES/.config/harnesses/skills"/*/; do
-        skill_dir="${skill_dir%/}"
-        # synced/ is Claude's skill-sync output (gitignored), not a harness skill
-        [[ "$(basename "$skill_dir")" == "synced" ]] && continue
-        symlink "$skill_dir" "$HOME/.config/kilo/skills/$(basename "$skill_dir")"
+parse_args() {
+    while (( $# > 0 )); do
+        case "$1" in
+            -f|--force) FORCE=true ;;
+            -n|--dry-run) DRY_RUN=true ;;
+            -s|--system) SYSTEM=true ;;
+            --skip-tools) SKIP_TOOLS=true ;;
+            -u|--update) UPDATE=true ;;
+            -h|--help) usage; exit 0 ;;
+            *) error_msg "unknown option: $1"; usage >&2; exit 1 ;;
+        esac
+        shift
     done
 
-    # Prune stale dotfiles-managed links (source deleted from repo)
-    status "Pruning stale links"
-    prune_stale_links "$HOME/.claude" "$HOME/.config/kilo" "$HOME/.config/kilo/skills"
-fi
+    if $SYSTEM && (( EUID != 0 )); then
+        error_msg "--system requires root privileges. Run with sudo."
+        exit 1
+    fi
+    if $SYSTEM; then
+        CONFIG_BASE="/etc/xdg"
+    fi
+}
 
-# Bash config (user only, not system-wide)
-if ! $SYSTEM; then
+print_banner() {
+    heading "Dotfiles Installer for macOS/Linux"
+    echo "Source: $DOTFILES"
+    echo "Config: $DOTFILES/.config"
+    echo "Method: Symlinks"
+    if $DRY_RUN; then echo "${YELLOW}(DRY RUN - no changes will be made)${NORMAL}"; fi
+    if $UPDATE; then echo "${YELLOW}(UPDATE MODE - settings only, no tool installation)${NORMAL}"; fi
+    if $SYSTEM; then echo "${YELLOW}(SYSTEM-WIDE - installing to /etc/xdg for all users)${NORMAL}"; fi
+    echo ""
+}
+
+# Ask once whether to replace existing files (skipped with -f or --dry-run; "no" when there's no terminal)
+prompt_overwrite() {
+    if $FORCE || $DRY_RUN; then
+        return 0
+    fi
+    local response=""
+    echo "${YELLOW}Existing config files will be skipped by default.${NORMAL}"
+    read -r -p "Replace existing files with symlinks? [y/N] " response || response=""
+    case "$response" in
+        [yY][eE][sS]|[yY]) FORCE=true ;;
+        *) ;;
+    esac
+    echo ""
+}
+
+# ---------- configs ----------
+
+install_app_configs() {
+    status "Neovim"
+    symlink "$DOTFILES/.config/nvim" "$CONFIG_BASE/nvim"
+
+    status "Yazi"
+    symlink "$DOTFILES/.config/yazi" "$CONFIG_BASE/yazi"
+
+    status "Eza"
+    symlink "$DOTFILES/.config/eza" "$CONFIG_BASE/eza"
+
+    status "Starship Config"
+    symlink "$DOTFILES/.config/starship/starship.toml" "$CONFIG_BASE/starship.toml"
+
+    status "Pixi Config"
+    symlink "$DOTFILES/.config/pixi" "$CONFIG_BASE/pixi"
+}
+
+# User only, not system-wide
+install_user_configs() {
+    status "Condarc"
+    symlink "$DOTFILES/.config/conda/.condarc" "$HOME/.condarc"
+
+    # Keeps every repo's .harness/ out of git status
+    status "Git global ignore"
+    symlink "$DOTFILES/.config/git/ignore" "$HOME/.config/git/ignore"
+
     status "Bash Profile"
     symlink "$DOTFILES/.config/bash/.bash_profile" "$HOME/.bash_profile"
 
@@ -331,146 +259,334 @@ if ! $SYSTEM; then
 
     status "Inputrc"
     symlink "$DOTFILES/.config/input/.inputrc" "$HOME/.inputrc"
-fi
+}
 
-# Install tools (unless skipped or update-only mode)
-if ! $SKIP_TOOLS && ! $UPDATE; then
-    echo ""
-    echo -e "\033[35mInstalling Tools\033[0m"
-    echo -e "\033[35m================\033[0m"
-    echo ""
+# Kilo no longer falls back to opencode config: remove our old link so Kilo stops warning about ~/.config/opencode
+remove_legacy_opencode_link() {
+    local link="$HOME/.config/opencode/AGENTS.md"
+    [[ -L "$link" && "$(readlink "$link")" == "$DOTFILES/"* ]] || return 0
+    if $DRY_RUN; then
+        would "remove: legacy ~/.config/opencode/AGENTS.md link"
+    else
+        rm -f "$link"
+        rmdir "$HOME/.config/opencode" 2>/dev/null || true
+        done_msg "removed legacy opencode config link"
+    fi
+}
 
-    install_tool "Neovim" "nvim" "neovim" "neovim"
-    install_tool "Git" "git" "git" "git"
-    install_tool "Python" "python3" "python" "python3"
+# Claude Code + Kilo harness config (user only). OpenCode prefs live in harnesses/opencode/ but are intentionally
+# NOT linked to ~/.config/opencode: Kilo warns on that dir.
+install_harness_configs() {
+    status "Harnesses - canonical shared dir"
+    symlink "$HARNESSES" "$HOME/.config/harnesses"
 
-    # Yazi with dependencies
+    status "Harness AGENTS.md - Claude Code"
+    symlink "$HARNESSES/AGENTS.md" "$HOME/.claude/CLAUDE.md"
+
+    status "Harness AGENTS.md - Kilo"
+    symlink "$HARNESSES/AGENTS.md" "$HOME/.config/kilo/AGENTS.md"
+
+    remove_legacy_opencode_link
+
+    status "Claude Code - README.md"
+    symlink "$HARNESSES/claude/README.md" "$HOME/.claude/README.md"
+
+    status "Claude Code - keybindings.json"
+    symlink "$HARNESSES/claude/keybindings.json" "$HOME/.claude/keybindings.json"
+
+    # Copied, not linked: local divergences (model, provider) live in the installed copy
+    status "Claude Code - settings.json"
+    copy_file "$HARNESSES/claude/settings.json" "$HOME/.claude/settings.json"
+
+    status "Kilo - kilo.jsonc"
+    copy_file "$HARNESSES/kilo/kilo.jsonc" "$HOME/.config/kilo/kilo.jsonc"
+
+    status "Kilo - tui.json"
+    copy_file "$HARNESSES/kilo/tui.json" "$HOME/.config/kilo/tui.json"
+
+    status "Claude Code - skills (shared)"
+    symlink "$HARNESSES/skills" "$HOME/.claude/skills"
+
+    status "Claude Code - scripts (shared)"
+    symlink "$HARNESSES/scripts" "$HOME/.claude/scripts"
+
+    status "Agents (shared) - Kilo"
+    symlink "$HARNESSES/agents" "$HOME/.config/kilo/agents"
+
+    status "Agents (shared) - Claude Code"
+    symlink "$HARNESSES/agents" "$HOME/.claude/agents"
+
+    status "Kilo - plugins (shared)"
+    symlink "$HARNESSES/plugins" "$HOME/.config/kilo/plugins"
+
+    status "Git pre-commit hook (skill graph gate)"
+    symlink "$HARNESSES/scripts/pre-commit" "$DOTFILES/.git/hooks/pre-commit"
+
+    # Kilo loads skills from ~/.config/kilo/skills/: link each shared skill in
+    status "Kilo - skills (shared)"
+    local skill_dir name
+    for skill_dir in "$HARNESSES/skills"/*/; do
+        name="$(basename "$skill_dir")"
+        # synced/ is Claude's skill-sync output (gitignored), not a harness skill
+        [[ "$name" != "synced" ]] || continue
+        symlink "${skill_dir%/}" "$HOME/.config/kilo/skills/$name"
+    done
+
+    status "Pruning stale links"
+    prune_stale_links "$HOME/.claude" "$HOME/.config/kilo" "$HOME/.config/kilo/skills"
+}
+
+# ---------- tools ----------
+
+install_tool() {
+    local name="$1"
+    local command="$2"
+    local brew_pkg="$3"
+    local apt_pkg="$4"
+
+    status "$name"
+    if command_exists "$command"; then
+        skip "$name already installed"
+        return 0
+    fi
+
+    if is_macos; then
+        if $DRY_RUN; then would "install: brew install $brew_pkg"; return 0; fi
+        if ! command_exists brew; then manual_msg "Homebrew not found. Install from https://brew.sh"; return 0; fi
+        echo "   Installing $name..."
+        brew install "$brew_pkg"
+    else
+        if $DRY_RUN; then would "install: sudo apt install $apt_pkg"; return 0; fi
+        if ! command_exists apt; then manual_msg "apt not found. Install $name with your package manager"; return 0; fi
+        echo "   Installing $name..."
+        sudo apt install -y "$apt_pkg"
+    fi
+    done_msg "$name installed"
+}
+
+install_yazi() {
+    local brew_pkgs=(yazi ffmpeg sevenzip jq poppler fd ripgrep fzf zoxide imagemagick)
+
     status "Yazi"
     if command_exists yazi; then
         skip "Yazi already installed"
-    elif $DRY_RUN; then
-        if is_macos; then
-            echo "   Would install: brew install yazi ffmpeg sevenzip jq poppler fd ripgrep fzf zoxide imagemagick"
-        else
-            echo "   Would install: cargo install --locked yazi-fm yazi-cli"
-        fi
-    else
+        return 0
+    fi
+
+    if is_macos; then
+        if $DRY_RUN; then would "install: brew install ${brew_pkgs[*]}"; return 0; fi
+        if ! command_exists brew; then manual_msg "Homebrew not found. Install from https://brew.sh"; return 0; fi
         echo "   Installing Yazi..."
-        if is_macos; then
-            if command_exists brew; then
-                brew install yazi ffmpeg sevenzip jq poppler fd ripgrep fzf zoxide imagemagick
-                done_msg "Yazi installed"
-            else
-                manual_msg "Homebrew not found. Install from https://brew.sh"
-            fi
-        else
-            if command_exists cargo; then
-                cargo install --locked yazi-fm yazi-cli
-                done_msg "Yazi installed"
-            else
-                manual_msg "Cargo not found. See https://yazi-rs.github.io/docs/installation"
-            fi
+        brew install "${brew_pkgs[@]}"
+    else
+        if $DRY_RUN; then would "install: cargo install --locked yazi-fm yazi-cli"; return 0; fi
+        if ! command_exists cargo; then
+            manual_msg "Cargo not found. See https://yazi-rs.github.io/docs/installation"
+            return 0
+        fi
+        echo "   Installing Yazi..."
+        cargo install --locked yazi-fm yazi-cli
+    fi
+    done_msg "Yazi installed"
+}
+
+# Download to a temp file first, so a failed download never leaves a partial zip in the cache
+download() {
+    local url="$1"
+    local dest="$2"
+    local partial="$dest.partial"
+
+    # Explicit returns: callers use `if ! download`, which turns off errexit inside this function
+    if command_exists curl; then
+        curl --fail --silent --show-error --location "$url" --output "$partial" || { rm -f "$partial"; return 1; }
+    elif command_exists wget; then
+        wget --quiet "$url" --output-document="$partial" || { rm -f "$partial"; return 1; }
+    else
+        error_msg "Neither curl nor wget found"
+        return 1
+    fi
+    mv "$partial" "$dest"
+}
+
+install_nerd_font() {
+    local font_url="https://github.com/ryanoasis/nerd-fonts/releases/latest/download/SourceCodePro.zip"
+    local font_zip="$HOME/Downloads/SourceCodePro.zip"
+    local font_dir="$HOME/.local/share/fonts"
+    if is_macos; then
+        font_dir="$HOME/Library/Fonts"
+    fi
+
+    status "Nerd Font (SauceCodePro)"
+    if compgen -G "$font_dir/SauceCodePro*.ttf" >/dev/null; then
+        skip "SauceCodePro Nerd Font already installed"
+        return 0
+    fi
+    if $DRY_RUN; then
+        would "download and install SauceCodePro Nerd Font"
+        return 0
+    fi
+
+    if [[ -f "$font_zip" ]]; then
+        echo "   Using cached download from $font_zip"
+    else
+        echo "   Downloading SauceCodePro Nerd Font..."
+        mkdir -p "$(dirname "$font_zip")"
+        if ! download "$font_url" "$font_zip"; then
+            manual_msg "Download from https://www.nerdfonts.com/font-downloads"
+            return 0
         fi
     fi
 
+    local unpack_dir
+    unpack_dir="$(mktemp -d)"
+    # RETURN trap: clean up however this function exits
+    trap 'rm -rf "$unpack_dir"; trap - RETURN' RETURN
+    unzip -q "$font_zip" -d "$unpack_dir"
+
+    mkdir -p "$font_dir"
+    local installed=0 ttf dest
+    for ttf in "$unpack_dir"/*.ttf; do
+        [[ -f "$ttf" ]] || continue
+        dest="$font_dir/$(basename "$ttf")"
+        if [[ ! -f "$dest" ]]; then
+            cp "$ttf" "$dest"
+            installed=$(( installed + 1 ))
+        fi
+    done
+
+    if ! is_macos && command_exists fc-cache; then
+        fc-cache -f "$font_dir"
+    fi
+
+    if (( installed > 0 )); then
+        done_msg "Installed $installed font files"
+    else
+        done_msg "Font files already in place"
+    fi
+}
+
+install_debugpy() {
+    status "debugpy"
+    local pip_cmd
+    if command_exists pip3; then
+        pip_cmd="pip3"
+    elif command_exists pip; then
+        pip_cmd="pip"
+    else
+        skip "pip not found (install Python first, then re-run)"
+        return 0
+    fi
+
+    if "$pip_cmd" show debugpy &>/dev/null; then
+        skip "debugpy already installed"
+    elif $DRY_RUN; then
+        would "install: $pip_cmd install debugpy"
+    else
+        echo "   Installing debugpy..."
+        "$pip_cmd" install debugpy
+        done_msg "debugpy installed"
+    fi
+}
+
+install_tools() {
+    heading "Installing Tools"
+    echo ""
+    install_tool "Neovim" "nvim" "neovim" "neovim"
+    install_tool "Git" "git" "git" "git"
+    install_tool "Python" "python3" "python" "python3"
+    install_yazi
     install_tool "Eza" "eza" "eza" "eza"
     install_tool "Starship" "starship" "starship" "starship"
+    install_nerd_font
+    install_debugpy
+}
 
-    # Nerd Font - download and install SauceCodePro Nerd Font
-    status "Nerd Font (SauceCodePro)"
-    if is_macos; then
-        FONT_DIR="$HOME/Library/Fonts"
-    else
-        FONT_DIR="$HOME/.local/share/fonts"
-    fi
+# ---------- NAS backups (Linux, --system) ----------
 
-    # Check if font files already exist
-    if ls "$FONT_DIR"/SauceCodePro*.ttf &>/dev/null 2>&1; then
-        skip "SauceCodePro Nerd Font already installed"
+# NAS mounts + borgmatic backups. Packages and one-time steps: etc/README.md
+install_nas_backup() {
+    status "NAS mounts + backups (borgmatic)"
+    install_root_file "$DOTFILES/etc/NetworkManager/dispatcher.d/50-nas-mounts" \
+        /etc/NetworkManager/dispatcher.d/50-nas-mounts 755
+    install_root_file "$DOTFILES/etc/borgmatic/config.yaml" /etc/borgmatic/config.yaml 600
+    install_root_file "$DOTFILES/etc/systemd/system/borgmatic-nas.service" \
+        /etc/systemd/system/borgmatic-nas.service 644
+    install_root_file "$DOTFILES/etc/systemd/system/borgmatic-nas.timer" \
+        /etc/systemd/system/borgmatic-nas.timer 644
+    local helper
+    for helper in due.sh run.sh notify.sh; do
+        install_root_file "$DOTFILES/usr/local/lib/borgmatic-nas/$helper" "/usr/local/lib/borgmatic-nas/$helper" 755
+    done
+
+    # pre-down.d entries run before the link drops; relative target stays valid if /etc is moved/mounted
+    local pre_down_link=/etc/NetworkManager/dispatcher.d/pre-down.d/50-nas-mounts
+    if [[ "$(readlink "$pre_down_link" 2>/dev/null || true)" == "../50-nas-mounts" ]]; then
+        skip "$pre_down_link already linked"
     elif $DRY_RUN; then
-        echo "   Would download and install SauceCodePro Nerd Font"
+        would "link: $pre_down_link -> ../50-nas-mounts"
     else
-        FONT_URL="https://github.com/ryanoasis/nerd-fonts/releases/latest/download/SourceCodePro.zip"
-        DOWNLOADS_DIR="$HOME/Downloads"
-        FONT_ZIP="$DOWNLOADS_DIR/SourceCodePro.zip"
-        TEMP_DIR="/tmp/SourceCodePro"
-
-        # Skip download if cached zip exists
-        if [[ -f "$FONT_ZIP" ]]; then
-            echo "   Using cached download from $FONT_ZIP"
-        else
-            echo "   Downloading SauceCodePro Nerd Font..."
-            if command_exists curl; then
-                curl -fsSL "$FONT_URL" -o "$FONT_ZIP"
-            elif command_exists wget; then
-                wget -q "$FONT_URL" -O "$FONT_ZIP"
-            else
-                error_msg "Neither curl nor wget found"
-                manual_msg "Download from https://www.nerdfonts.com/font-downloads"
-            fi
-        fi
-
-        if [[ -f "$FONT_ZIP" ]]; then
-            rm -rf "$TEMP_DIR"
-            mkdir -p "$TEMP_DIR"
-            unzip -q "$FONT_ZIP" -d "$TEMP_DIR"
-
-            mkdir -p "$FONT_DIR"
-            INSTALLED=0
-            for ttf in "$TEMP_DIR"/*.ttf; do
-                [[ -f "$ttf" ]] || continue
-                DEST="$FONT_DIR/$(basename "$ttf")"
-                if [[ ! -f "$DEST" ]]; then
-                    cp "$ttf" "$DEST"
-                    ((INSTALLED++))
-                fi
-            done
-
-            # Update font cache on Linux
-            if ! is_macos && command_exists fc-cache; then
-                fc-cache -f "$FONT_DIR"
-            fi
-
-            rm -rf "$TEMP_DIR"
-
-            if [[ $INSTALLED -gt 0 ]]; then
-                done_msg "Installed $INSTALLED font files"
-            else
-                done_msg "Font files already in place"
-            fi
-        fi
+        mkdir --parents "$(dirname "$pre_down_link")"
+        ln --symbolic --force --no-dereference ../50-nas-mounts "$pre_down_link"
+        done_msg "$pre_down_link -> ../50-nas-mounts"
     fi
 
-    # debugpy (Python package)
-    status "debugpy"
-    if ! command_exists pip3 && ! command_exists pip; then
-        skip "pip not found (install Python first, then re-run)"
+    if $DRY_RUN; then
+        would "run: systemctl daemon-reload"
+        would "run: systemctl enable NetworkManager-dispatcher.service borgmatic-nas.service borgmatic-nas.timer"
     else
-        PIP_CMD="pip3"
-        command_exists pip3 || PIP_CMD="pip"
-        if $PIP_CMD show debugpy &>/dev/null; then
-            skip "debugpy already installed"
-        elif $DRY_RUN; then
-            echo "   Would install: $PIP_CMD install debugpy"
-        else
-            echo "   Installing debugpy..."
-            $PIP_CMD install debugpy
-            done_msg "debugpy installed"
-        fi
+        systemctl daemon-reload
+        systemctl enable --now NetworkManager-dispatcher.service
+        systemctl enable borgmatic-nas.service borgmatic-nas.timer
+        done_msg "units enabled"
     fi
-fi
 
-echo ""
-echo -e "\033[32mInstallation complete!\033[0m"
-if $SYSTEM; then
-    echo -e "\033[32mConfig installed to $CONFIG_BASE (available to all users)\033[0m"
-fi
-echo ""
-echo -e "\033[36mNext steps:\033[0m"
-echo "  1. Restart terminal to apply font changes"
-echo "  2. Open Neovim and run :Mason to install LSP servers"
-if ! $SYSTEM; then
+    # The timer starts only once setup is finished, so it never runs against a missing passphrase
+    if [[ ! -f /etc/borgmatic/passphrase ]]; then
+        manual_msg "finish the one-time setup in etc/README.md (NAS squash, passphrase, repository)"
+    elif $DRY_RUN; then
+        would "run: systemctl start borgmatic-nas.timer"
+    else
+        systemctl start borgmatic-nas.timer
+    fi
+}
+
+# ---------- summary ----------
+
+print_summary() {
     echo ""
-    echo -e "\033[36mFor all users (admin/root):\033[0m"
-    echo "  Run: sudo bash install.sh --system"
-fi
+    echo "${GREEN}Installation complete!${NORMAL}"
+    if $SYSTEM; then
+        echo "${GREEN}Config installed to $CONFIG_BASE (available to all users)${NORMAL}"
+    fi
+    echo ""
+    echo "${CYAN}Next steps:${NORMAL}"
+    echo "  1. Restart terminal to apply font changes"
+    echo "  2. Open Neovim and run :Mason to install LSP servers"
+    if ! $SYSTEM; then
+        echo ""
+        echo "${CYAN}For all users (admin/root):${NORMAL}"
+        echo "  Run: sudo bash install.sh --system"
+    fi
+}
+
+main() {
+    parse_args "$@"
+    print_banner
+    prompt_overwrite
+    readonly FORCE DRY_RUN SKIP_TOOLS UPDATE SYSTEM CONFIG_BASE
+
+    install_app_configs
+    if ! $SYSTEM; then
+        install_user_configs
+        install_harness_configs
+    fi
+    if ! $SKIP_TOOLS && ! $UPDATE; then
+        install_tools
+    fi
+    if $SYSTEM && ! is_macos && command_exists systemctl; then
+        install_nas_backup
+    fi
+    print_summary
+}
+
+main "$@"

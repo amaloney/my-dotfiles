@@ -11,7 +11,7 @@ dotfiles root.
 | `handoff-contract.md` | shared          | Multi-agent pipeline rules (create → bug → code-hygiene → pytest)           |
 | `agents/`             | shared          | Pipeline agents (bug, code-hygiene, code-index) + read-only locator (scout) |
 | `skills/`             | shared          | All skills — see [skills/README.md](skills/README.md)                       |
-| `scripts/`            | shared          | Cross-skill scripts (skill-graph, skill vectors, pronoun check)             |
+| `scripts/`            | shared          | Hooks and tools for the harness; see [scripts/README.md](scripts/README.md) |
 | `plugins/`            | kilo + opencode | JS plugin-API files: harness-refresh, strip-blobs                           |
 | `kilo/`               | kilo only       | `kilo.jsonc`, `tui.json`                                                    |
 | `claude/`             | claude only     | `settings.json`, `keybindings.json`, `README.md`                            |
@@ -58,8 +58,9 @@ Config schemas differ (no shared-include). Code-index refresh: Kilo plugin + Cla
 ## Quick reference
 
 **Code index**: `query_temporal.py search|callers|impact|changes`. **Flywheel**: `flywheel.py status|skills|recommend`.
-**Skill graph**: `skill-graph.sh --check|--dependents`. **Edges**: `suggest_edges.py suggest|feedback|drift`.
-**Visualizer**: `node skill_network.js 7474`.
+**Skill graph**: `llm-skills-network build --graph --check|--dependents <skill>`. **Edges**:
+`llm-skills-network edges --suggest|--feedback|--compute-drift`. Overview of every script:
+[scripts/README.md](scripts/README.md). **Visualizer**: `node skill_network.js 7474`.
 
 ## Sources & inspirations
 

@@ -4,6 +4,8 @@
 # Python
 __pycache__
 *-lock.json
+
+# Image formats
 *.dot
 *.png
 *.svg
@@ -11,10 +13,3 @@ __pycache__
 # Conda
 conda-anaconda-tools.md
 conda-internal.md
-
-# Harness-generated
-.harness/
-.config/harnesses/vectors/
-
-# Claude skill sync output (lands in ~/.claude/skills/synced)
-.config/harnesses/skills/synced/

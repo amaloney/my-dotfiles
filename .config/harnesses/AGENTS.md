@@ -82,12 +82,13 @@ matching skill if not loaded. No match → proceed. New domains → author skill
 
 ## Locations
 
-| Type    | Source                    | Target                                              |
-| ------- | ------------------------- | --------------------------------------------------- |
-| Canon   | `.config/harnesses/`      | AGENTS.md, skills/, agents/, scripts/, plugins/     |
-| Symlink | (same)                    | ~/.config/harnesses/, ~/.claude/_, ~/.config/kilo/_ |
-| Copy    | harnesses/{kilo,claude}/* | ~/.config/kilo/, ~/.claude/settings.json            |
-| Repo    | `<repo>/.harness/`        | gitignored, regenerable                             |
+| Type    | Source                     | Target                                                |
+| ------- | -------------------------- | ----------------------------------------------------- |
+| Canon   | `.config/harnesses/`       | AGENTS.md, skills/, agents/, scripts/, plugins/       |
+| Symlink | (same)                     | ~/.config/harnesses/, ~/.claude/_, ~/.config/kilo/_   |
+| Copy    | harnesses/{kilo,claude}/\* | ~/.config/kilo/, ~/.claude/settings.json              |
+| Repo    | `<repo>/.harness/`         | gitignored, regenerable                               |
+| Plans   | `<repo>/.harness/plans/`   | `<YYYY-MM-DD>/<name>.md`; Claude stages in `.claude/` |
 
 Architecture: `.config/harnesses/README.md`. OpenCode prefs not linked — Kilo warns on `~/.config/opencode`.
 

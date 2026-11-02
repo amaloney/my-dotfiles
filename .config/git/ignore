@@ -1,0 +1,4 @@
+**/.claude/settings.local.json
+
+# Harness working files (code index, plans, research, chat logs): local to each clone, never committed
+.harness/

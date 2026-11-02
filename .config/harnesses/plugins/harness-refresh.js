@@ -4,7 +4,7 @@
 // Auto-loaded from ~/.config/kilo/plugins/ (global, all projects).
 
 const REFRESH = `${process.env.HOME}/.config/harnesses/skills/code-index/scripts/harness-refresh.sh`;
-const SKILL_VECTORS = `${process.env.HOME}/.config/harnesses/scripts/skill-vectors-refresh.sh`;
+const SKILLS_NETWORK = `${process.env.HOME}/.config/harnesses/scripts/llm-skills-network`;
 
 let lastRun = 0;
 const DEBOUNCE_MS = 600_000;
@@ -12,7 +12,7 @@ const DEBOUNCE_MS = 600_000;
 async function refresh($, directory) {
   // skill-vectors self-filters (find-only unless a SKILL.md changed); run ungated
   try {
-    await $`${SKILL_VECTORS}`.quiet();
+    await $`python3 ${SKILLS_NETWORK} build --skill-vectors --if-stale`.quiet();
   } catch {
     // refresh failures are non-fatal
   }

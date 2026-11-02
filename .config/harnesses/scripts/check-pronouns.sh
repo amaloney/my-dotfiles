@@ -1,17 +1,19 @@
-#!/bin/bash
-# Hook: check for banned first-person pronouns in Claude responses
-# Returns non-zero if violations found
+#!/usr/bin/env bash
+# MessageDisplay hook: flag first-person pronouns in Claude's reply text (read from stdin).
+# Exit 1 with up to 3 highlighted lines on stderr when any are found; exit 0 otherwise.
+set -o errexit -o nounset -o pipefail
 
-# Patterns to check (word boundaries)
-BANNED='\b(I|I'\''ll|I'\''ve|I'\''m|I'\''d|Let me|me to|my |mine)\b'
+readonly BANNED='\b(I|I'\''ll|I'\''ve|I'\''m|I'\''d|Let me|me to|my |mine)\b'
 
-# Read from stdin (response text)
-input=$(cat)
+main() {
+    local input
+    input=$(cat)
 
-if echo "$input" | grep -qiE "$BANNED"; then
-    echo "⚠️  First-person pronoun violation detected" >&2
-    echo "$input" | grep -iE --color=always "$BANNED" | head -3 >&2
-    exit 1
-fi
+    if grep --quiet --ignore-case --extended-regexp "$BANNED" <<< "$input"; then
+        echo "⚠️  First-person pronoun violation detected" >&2
+        grep --ignore-case --extended-regexp --color=always "$BANNED" <<< "$input" | head -3 >&2 || true
+        exit 1
+    fi
+}
 
-exit 0
+main "$@"

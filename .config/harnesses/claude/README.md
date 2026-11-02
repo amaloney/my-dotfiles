@@ -15,6 +15,9 @@ Code-index theory + CLI: [../skills/code-index/scripts/README.md](../skills/code
 - `SessionStart` + `PostToolUse(Edit|Write)`: `harness-refresh.sh` — keeps the repo's `.harness/code_index/` fresh. Kilo
   achieves the same via `../plugins/harness-refresh.js`; both exist by design (different mechanism per harness).
 - `MessageDisplay`: `check-pronouns.sh`.
+- `SessionEnd` + `SessionStart`: `plan-archive.sh` — plan mode writes to `<repo>/.harness/plans/.claude/`
+  (`plansDirectory`); the hook files each plan as `.harness/plans/<YYYY-MM-DD>/<name>.md` when the session ends. The
+  `SessionStart` pass (`--min-age 12h`) catches plans left by a crashed session without touching a running one.
 
 ## Links into shared config
 

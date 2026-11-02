@@ -80,6 +80,22 @@
             "type": "command",
             "command": "python3 $HOME/.config/harnesses/scripts/llm-skills-network build --skill-vectors --if-stale",
             "timeout": 120
+          },
+          {
+            "type": "command",
+            "command": "$HOME/.config/harnesses/scripts/plan-archive.sh --min-age 12h",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.config/harnesses/scripts/plan-archive.sh",
+            "timeout": 10
           }
         ]
       }
@@ -101,28 +117,24 @@
         ]
       },
       {
-        "matcher": {
-          "tool": "Edit",
-          "file_path": "**/*.py"
-        },
+        "matcher": "Edit|Write|MultiEdit",
         "hooks": [
           {
             "type": "command",
-            "command": "$HOME/.config/harnesses/scripts/python-edit-blocker.sh",
-            "timeout": 5
+            "command": "$HOME/.config/harnesses/scripts/python-edit-gate.sh --after",
+            "timeout": 60
           }
         ]
-      },
+      }
+    ],
+    "PreToolUse": [
       {
-        "matcher": {
-          "tool": "Write",
-          "file_path": "**/*.py"
-        },
+        "matcher": "Edit|Write|MultiEdit",
         "hooks": [
           {
             "type": "command",
-            "command": "$HOME/.config/harnesses/scripts/python-edit-blocker.sh",
-            "timeout": 5
+            "command": "$HOME/.config/harnesses/scripts/python-edit-gate.sh --before",
+            "timeout": 10
           }
         ]
       }
@@ -132,7 +144,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "jq -r '.message.content // empty' | ~/.claude/scripts/check-pronouns.sh",
+            "command": "jq -r '.message.content // empty' | $HOME/.config/harnesses/scripts/check-pronouns.sh",
             "timeout": 5
           }
         ]
@@ -143,6 +155,7 @@
     "lua-lsp@claude-plugins-official": true
   },
   "additionalDirectories": ["/tmp", "/private/tmp"],
+  "plansDirectory": ".harness/plans/.claude",
   "recap": false,
   "awaySummaryEnabled": false
 }

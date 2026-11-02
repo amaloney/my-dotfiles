@@ -65,9 +65,15 @@ An unavailable index is not a no-match; main may proceed on explicit user reques
 
 ## Python File Edits
 
-Main agent NEVER directly edits `.py` files. All Python edits are delegated:
+A subagent costs >10k tokens before it starts, so only changes that need a fresh context are delegated. Enforced by
+`scripts/python-edit-gate.sh` (Claude Code `PreToolUse` + `PostToolUse` hooks):
 
-- Focused no-behavior change (1–3 lines, single file): `code-hygiene`, `scope: focused`; targeted check, then done.
-- Feature/refactor/behavior change: full create → bug → hygiene → test → verify pipeline.
+- Small edit (≤ 40 changed lines, existing file): main agent edits in place. `style-gates.sh` runs on the file after
+  every edit; findings come back as a hook error and are fixed in the same turn.
+- New `.py` file, or a change over 40 lines: blocked in the main thread. Delegate a focused no-behavior change to
+  `code-hygiene` (`scope: focused`); a feature/refactor/behavior change to the full create → bug → hygiene → test →
+  verify pipeline.
+- Subagents (`agent_id` in the hook input) are never blocked. Override: `ALLOW_DIRECT_PYTHON_EDIT=1`; limit:
+  `PY_EDIT_MAX_LINES`.
 
 Focused scope skips audit fan-out, full lint, and test generation. Full scope retains the mandatory pipeline.

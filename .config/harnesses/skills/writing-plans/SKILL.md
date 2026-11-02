@@ -10,7 +10,7 @@ adapted-from: obra/superpowers v6.4.2 (MIT)
 Handoff: `next: done`.
 
 Plans for engineers who haven't seen the codebase. Document: files, names, signatures, spec values, tests. DRY. YAGNI.
-TDD. Save: `.harness/plans/YYYY-MM-DD-<feature>.md`. Multiple subsystems → separate plans.
+TDD. Save: `.harness/plans/YYYY-MM-DD/<feature>.md`. Multiple subsystems → separate plans.
 
 ## Plan Header (required)
 
