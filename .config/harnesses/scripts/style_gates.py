@@ -12,6 +12,7 @@ Usage:
   style_gates.py --event stop      # hook: exit 2 keeps the (sub)agent working until clean
   style_gates.py PATH [PATH ...]   # CLI / pre-commit / CI: stop tier, exit 1 on findings
 """
+
 from __future__ import annotations
 
 import argparse
@@ -25,8 +26,8 @@ from collections.abc import Callable
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from ast_rules import check_file, load_index  # noqa: E402
-from naming_check import py_files  # noqa: E402
+from ast_rules import check_file, load_index  # pyrefly: ignore[missing-import]
+from naming_check import py_files  # pyrefly: ignore[missing-import]
 
 MAX_STOP_ROUNDS = 3
 TOOL_TIMEOUT_SECONDS = 60
@@ -59,7 +60,12 @@ def run_tool(name: str, *args: str) -> list[str]:
         warn(f"{name} not found, gate skipped")
         return []
     try:
-        result = subprocess.run([executable, *args], capture_output=True, text=True, timeout=TOOL_TIMEOUT_SECONDS)
+        result = subprocess.run(
+            [executable, *args],
+            capture_output=True,
+            text=True,
+            timeout=TOOL_TIMEOUT_SECONDS,
+        )
     except subprocess.TimeoutExpired:
         return [f"{name}: timed out after {TOOL_TIMEOUT_SECONDS}s"]
     if result.returncode == 0:
@@ -68,7 +74,7 @@ def run_tool(name: str, *args: str) -> list[str]:
     return [output or f"{name}: exited {result.returncode} with no output"]
 
 
-def project_root() -> Path:
+def project_root() -> Path:  # style:allow named for clarity
     return Path(os.environ.get("CLAUDE_PROJECT_DIR", ".")).resolve()
 
 
@@ -88,7 +94,19 @@ def run_gates(files: list[Path], tier: str) -> list[str]:
 
     def ruff_gate() -> list[str]:
         run_tool("ruff", "format", "--quiet", *names)
-        return run_tool("ruff", "check", "--fix", "--quiet", "--output-format", "concise", *names)
+        return run_tool(
+            "ruff",
+            "check",
+            "--fix",
+            "--quiet",
+            "--output-format",
+            "concise",
+            "--extend-select",
+            "TID252",
+            "--config",
+            "lint.flake8-tidy-imports.ban-relative-imports = 'all'",
+            *names,
+        )
 
     def style_gate() -> list[str]:
         index = code_index() if tier == "stop" else None
@@ -109,7 +127,7 @@ def run_gates(files: list[Path], tier: str) -> list[str]:
     return report
 
 
-def state_path(session_id: str) -> Path:
+def state_path(session_id: str) -> Path:  # style:allow named for clarity
     return Path(tempfile.gettempdir()) / f"style-gates-{session_id or 'default'}.json"
 
 

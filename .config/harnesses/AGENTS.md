@@ -75,6 +75,20 @@ Legend: O = orchestrator, L = leaf, S = stage
 matching skill if not loaded. No match → proceed. New domains → author skill, never grow this file. Handoff:
 `handoff-contract.md`.
 
+## Skills vs Agents
+
+**Skills** are documentation/procedures loaded into context. They load automatically:
+- By file extension: edit `.py` → `python` skill loads
+- By keyword: mention "pytest" → `python/testing` may load
+- By agent decision: debugging task → load `debugging` skill
+
+**Agents** (in `agents/`) are for internal delegation — users don't invoke them directly:
+- `python-implementer`: main agent delegates Python implementation; searches code_index first
+- `scout`: read-only file/symbol lookup
+
+**User perspective**: Just describe what you need. Skill/agent routing is automatic. Don't say "load python-implementer"
+— that's internal. Say "write a function that does X" and the agent handles routing.
+
 ## Session Start
 
 1. **Skills before exploring** — task matches Skill Routing → load skill first.

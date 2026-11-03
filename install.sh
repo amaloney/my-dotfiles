@@ -234,6 +234,9 @@ install_app_configs() {
 
     status "Pixi Config"
     symlink "$DOTFILES/.config/pixi" "$CONFIG_BASE/pixi"
+
+    status "Ruff Config"
+    symlink "$DOTFILES/.config/ruff" "$CONFIG_BASE/ruff"
 }
 
 # User only, not system-wide

@@ -1,0 +1,44 @@
+# Global ruff config for harness style gates
+# Extends project configs; these rules always apply
+
+line-length = 120
+indent-width = 4
+target-version = "py311"
+
+[lint]
+extend-select = [
+    "A",      # disallow shadowing builtins
+    "ARG",    # disallow unused function arguments
+    "B",      # bugbear
+    "C4",     # comprehensions
+    "COM",    # commas
+    "E",      # pycodestyle errors
+    "EM",     # exception messages
+    "F",      # pyflakes
+    "FLY",    # f-strings
+    "I",      # isort
+    "ICN",    # import conventions
+    "LOG",    # logging
+    "N",      # pep8-naming
+    "PERF",   # performance
+    "PTH",    # pathlib
+    "RET",    # return statements
+    "RSE",    # raise statements
+    "SIM",    # simplify
+    "T20",    # print statements
+    "TCH",    # type-checking imports
+    "TID252", # ban relative imports
+]
+fixable = ["ALL"]
+
+[lint.flake8-tidy-imports]
+ban-relative-imports = "all"
+
+[lint.flake8-quotes]
+docstring-quotes = "double"
+
+[format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"
+docstring-code-format = true
