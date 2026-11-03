@@ -5,6 +5,7 @@ dependencies:
 
   # formatting, linting, type checking, and testing
   - ruff>=0.16.8,<0.17
+  - pyrefly>=1.0.0,<1.1
   - pytest>=8.2.0,<9
 
   # harnesses

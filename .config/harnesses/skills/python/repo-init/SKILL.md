@@ -1,6 +1,6 @@
 ---
 name: python/repo-init
-description: Bootstrap Python repo instructions and profile
+description: Bootstrap Python repo instructions, profile, and project recon
 ---
 
 # Python Repo Init
@@ -17,9 +17,30 @@ User asks to set up / onboard / initialize a Python project for harness-assisted
 ## Steps
 
 1. Write the repo instructions below to `<repo>/AGENTS.md`. If one exists, merge — never overwrite silently.
-2. Load [[python/recon]] and run it to generate `.harness/code_index/profile.json`.
+2. Run project recon (see below) to generate `.harness/code_index/profile.json`.
 3. Ensure `.harness/` is in the repo's `.gitignore` (generated state, never committed).
 4. Offer the code index: `~/.config/harnesses/skills/code-index/scripts/install.sh <repo>`.
+
+## Project Recon
+
+Run FIRST before other Python skills. Outputs `.harness/code_index/profile.json`.
+
+**When to run:** Session start in Python repo, after major refactor, or when profile.json missing/stale (>7 days).
+
+```bash
+~/.config/harnesses/skills/python/recon/scripts/profile.sh
+```
+
+Review/fill `.harness/code_index/profile.json`: the script populates version, generated, and project fields; fill
+structure, patterns, testing, and linting from the scan results.
+
+**Staleness check:**
+
+```bash
+find .harness/code_index/profile.json -mtime +7 2>/dev/null && echo "stale"
+```
+
+Skills read profile.json instead of rescanning: constants should be in `{profile.patterns.config_py_path}`.
 
 ## Repo instructions (write to AGENTS.md)
 
@@ -60,7 +81,7 @@ cat .harness/code_index/profile.json | jq '.patterns.config_py_path'
 
 | Task            | Load                                              |
 | --------------- | ------------------------------------------------- |
-| New code        | python/style → python/violations → debugging      |
+| New code        | python/style → debugging                          |
 | Tests           | python/testing + python/conftest + python/mocking |
 | Property tests  | python/property-testing                           |
 | Bug fix         | debugging → verify with test                      |
@@ -88,4 +109,4 @@ conda run -n proj pytest
 ```
 ````
 
-[[python]] [[python/recon]]
+[[python]] [[python/structure]]

@@ -1,6 +1,6 @@
 ---
 name: python/structure
-description: Python imports, layout, and line length
+description: Python imports, layout, exceptions, and file organization
 invocation: auto
 ---
 
@@ -21,13 +21,19 @@ computation). Multiple returns for simple conditionals add cognitive load; conso
 # 5. Classes (attrs → methods)
 ```
 
-**Constants:** [[python/org]].
+**Constants:** see File Organization section below.
 
 ## Imports
 
 **Absolute imports always.** Never `from .` / `from ..` — relative imports break when a file is exec'd as a script
 (`panel serve`, `python file.py`), hide the package boundary from grep, and turn moves/renames into silent breakage.
 Applies to packages too: `from xray.report import build_workbook`, never `from .report import build_workbook`.
+
+**`__future__` annotations: pick one style per project.** Two valid approaches:
+1. Use `from __future__ import annotations` everywhere → forward refs like `-> MyClass` work unquoted (PEP 563 lazy eval)
+2. Don't use it → quote forward refs as `-> "MyClass"`
+
+Don't mix styles within a project. For scripts with no forward references, omit the import — it adds no value.
 
 Enforcement gap — tooling does not catch this. Ruff/isort sort relative imports happily; flagging them is a mandatory
 review-time gate, run on every file you create or edit:
@@ -36,8 +42,9 @@ review-time gate, run on every file you create or edit:
 grep -nE '^\s*from \.' <file>    # clean output = pass
 ```
 
-Enforced by `~/.config/harnesses/scripts/style-gates.sh` (relative-import gate included; suppression marker
-`# naming:allow` on a legitimate match).
+**Enforcement**: Hooks run `style_gates.py` automatically — `private_rule` flags underscore-prefixed functions,
+`wrapper_rule` flags one-line wrappers. Relative imports are documentation-only (not yet hook-enforced). Suppress:
+`# style:allow`.
 
 ## Functions
 
@@ -152,4 +159,48 @@ Docstrings are first-class — written with the signature, not after. Public fun
 ([pyguide](https://google.github.io/styleguide/pyguide.html#docstrings)) with `Args:` and `Returns:` (`Raises:` when
 applicable). One-liner only for trivial helpers whose signature says everything.
 
-[[python/org]] [[python/types]]
+## Exceptions
+
+Always `except Exception as error:` + log. Never bare `except:` or silent `pass`.
+
+**Multi-failure fetch pattern:** One logical result with several failure modes → single exit:
+
+```python
+data = None
+try:
+    data = fetch(...)
+except FileNotFoundError:
+    logger.warning(...)
+except ValueError as error:
+    logger.warning(...)
+
+if data and cache_dir:
+    write_cache(...)
+
+return data
+```
+
+**Scoped exceptions:** Catch the narrowest exception the library exposes — `requests.RequestException`,
+`json.JSONDecodeError`, `subprocess.CalledProcessError` — over broad `except Exception`. Broad catches mask programming
+errors (typos, attribute errors) as fetch failures. Broad `except Exception` is reserved for aggregator boundaries where
+one source must never sink the whole result.
+
+## File Organization
+
+| Scope                                         | Location                           |
+| --------------------------------------------- | ---------------------------------- |
+| Shared by 2+ modules, or project-wide setting | `config.py`                        |
+| Used by exactly one module                    | Top of that module (after imports) |
+| Inline/mid-file                               | **NEVER**                          |
+
+**config.py** holds only constants/settings/type aliases/enums with cross-module reach. A constant imported by one module
+lives in that module — config.py is not a default dumping ground. **utils.py**: shared functions.
+
+**Path-valued constants:** Config constants that are paths are `pathlib.Path` instances, never `str` — call sites compose
+with `/` instead of `os.path.join`. Example: `METADATA_DIR: Path = Path("metadata")`.
+
+**Cache directory convention:** Fetchers take `cache_dir: Path | None`; `None` maps to a source-specific default
+subdirectory under the project's metadata dir (`METADATA_DIR / "pypi"`, `/ "github"`). Callers pass nothing for the
+default; tests pass `tmp_path`.
+
+[[python/naming]] [[debugging/references/python]]

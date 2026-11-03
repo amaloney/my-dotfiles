@@ -7,7 +7,7 @@ keywords: ["pixi", "pyproject.toml", "pixi.toml"]
 
 # Pixi Project Migration Reference
 
-Handoff: `next: python/style`.
+Handoff: `next: python/structure`.
 
 This file is a legacy migration reference; do not apply to new work.
 
@@ -70,4 +70,4 @@ build-backend = "hatchling.build"
 Inspect `pyproject.toml` for existing `[tool.pixi.*]` sections and translate dependencies, environments, and tasks into
 Conda equivalents. Do not invoke Pixi commands or retain Pixi as the environment manager.
 
-[[python/modern-tooling]] [[python/style]]
+[[python/modern-tooling]] [[python/structure]]

@@ -8,6 +8,8 @@ invocation: auto
 
 Handoff: `next: done`.
 
+**All rules below are enforced by `style_gates.py` hooks.** This skill documents rationale and exceptions.
+
 | Rule                     | Good                    | Bad                    |
 | ------------------------ | ----------------------- | ---------------------- |
 | No single-letter vars    | `for item in items`     | `for i in items`       |
@@ -34,7 +36,8 @@ Spell out. If reader must expand mentally, name is wrong. Applies to all binding
 
 Allowed: `args`, `kwargs`, `argv`, `url`, `api`, `id` (established vocabulary).
 
-**Enforcement**: `style-gates.sh` runs `grep -nE '\b(rec|req|resp|fh|exc|ret|hdr|buf)\b'`. Suppress: `# naming:allow`.
+**Enforcement**: `style_gates.py` runs AST-based checks after every edit (naming, private, wrapper). Suppress:
+`# naming:allow` or `# style:allow`.
 
 ## Underscore Prefix
 
@@ -60,4 +63,4 @@ No true private in Python. `__all__` controls API. **Default: NO underscore.** O
 
 **Module functions**: NO underscore default. Only: `@property` backing field or explicit internal API.
 
-[[python/types]] [[debugging/references/python]]
+[[debugging/references/python]]

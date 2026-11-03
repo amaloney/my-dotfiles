@@ -12,6 +12,10 @@ Handoff: `next: done`.
 Patterns that score well in RLHF but degrade code quality. Models add the _look_ of care (try/except, named constants,
 docstrings) even where they do nothing.
 
+**Enforcement:**
+- **Hook-enforced:** redundant comments (`comment_rule`), redundant docstrings (`docstring_rule`)
+- **Documentation-only:** single-use abstractions, error handling patterns, cross-file duplication
+
 ## Comments
 
 | Smell                                | Fix                     |

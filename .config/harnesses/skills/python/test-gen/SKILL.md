@@ -43,4 +43,4 @@ Handoff: `next: verify`.
 | regression  | testing + conftest           |
 | property    | property-testing + testing   |
 
-[[python/testing]] [[python/conftest]] [[python/mocking]] [[python/property-testing]] [[python/style]]
+[[python/testing]] [[python/conftest]] [[python/mocking]] [[python/property-testing]]

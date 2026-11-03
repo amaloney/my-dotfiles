@@ -72,4 +72,4 @@ Report: default feeds signing/encryption/session/token. Skip: per-boot random, c
 Report: broken primitive for passwords/tokens/encryption. Skip: checksums, ETags, cache keys, test vectors. Algorithm
 alone not the finding — trace to use site. MD5 for cache OK; MD5 for password vulnerable.
 
-[[debugging]] [[python/testing]] [[python/violations]]
+[[debugging]] [[python/testing]]

@@ -26,6 +26,7 @@ agents do not load it.
   `.harness/research/` before relying on the content
 - Verification (reviews, tests, plans): assume wrong, hunt; approval is failure. Not for research/generation.
 - Code for humans — meaningful names, "why" comments, intentional structure
+- Descriptive loop variables (`for contact in contacts`), not single letters or cryptic abbreviations
 - For Python environments, dependency management, and Python task execution, use Conda only (`conda` / `conda run`); do
   not use `pip`, `pixi`, `uv`, or another Python environment/dependency manager. If a package is unavailable from
   configured Conda channels, stop and report instead of falling back, even if project files or skills recommend another
@@ -35,6 +36,11 @@ agents do not load it.
 - Use the read-only `scout` agent for file-finding; fan out only for independent subtasks, and use one agent for
   overlapping search scopes.
 - Subagent results are at most 10 lines with `file:line` pointers; never paste code.
+- Prefer `scout` agent over built-in `Explore` for file-finding (scout: 3 tools vs Explore: 20+ tools).
+- Plan mode forces Explore agents (50k+ tokens each); exit plan mode early for token-sensitive tasks.
+- Fork (`subagent_type: "fork"`) shares prompt cache; use for context-heavy research.
+- Delegate Python implementation to `python-implementer` agent; include relevant existing functions from code_index in
+  the brief — extending existing code is preferred over creating new functions.
 
 Output style, banned phrases, abbreviation rules: `token-efficiency` skill.
 
@@ -55,7 +61,7 @@ Legend: O = orchestrator, L = leaf, S = stage
 | Bash            | `bash-shell`              | L    | tool search, scratch files           |
 | Output          | `token-efficiency`        | L    | style, compression                   |
 | Artifacts       | `artifacts`               | L    | images, mermaid                      |
-| Markdown        | `markdown`                | L    | prettier formatting                  |
+| Markdown        | (hook: prettier)          | -    | auto-format on edit                  |
 | Code search     | `code-index`              | L    | semantic search; run before new code |
 | Research        | `research`                | L    | papers, notes, sources               |
 | Accessibility   | `accessibility`           | L    | a11y                                 |

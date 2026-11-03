@@ -7,8 +7,10 @@ Hooks and tools shared by Claude Code, Kilo and OpenCode. This folder is reached
 
 | File                                         | What it does                                                                                | Who runs it                                                   | Run by hand                                                     |
 | -------------------------------------------- | ------------------------------------------------------------------------------------------- | ------------------------------------------------------------- | --------------------------------------------------------------- |
-| `python-edit-gate.sh`                        | Small `.py` edits happen in place and get checked; new files and big edits go to a subagent | Claude `PreToolUse` (`--before`) + `PostToolUse` (`--after`)  | `python-edit-gate.sh --after < hook.json`                       |
-| `style-gates.sh`                             | Python style checks: ruff, naming, single-letter names, relative imports, AST structure     | `python-edit-gate.sh --after`; `verify` and `python/*` skills | `style-gates.sh <file-or-dir>...`                               |
+| `style_gates.py`                             | Two-tier Python style enforcement (edit: ruff + AST rules; stop: + reuse + pyrefly)        | Claude `PostToolUse`, `SubagentStop`, `Stop`                  | `python3 style_gates.py <file-or-dir>...`                       |
+| `ast_rules.py`                               | AST-based rules: naming, private, wrapper, comment, docstring, reuse                        | imported by `style_gates.py`                                  | (library, not standalone)                                       |
+| `naming_check.py`                            | Cryptic/single-letter name detection at binding sites                                       | imported by `ast_rules.py`                                    | `python3 naming_check.py <file-or-dir>...`                      |
+| `docblocks.py`                               | Insert docstring skeletons via vim-doge-helper                                              | imported by `style_gates.py`                                  | (library, not standalone)                                       |
 | `check-pronouns.sh`                          | Flags first-person pronouns in Claude's replies                                             | Claude `MessageDisplay`                                       | `printf 'text' \| check-pronouns.sh`                            |
 | `plan-archive.sh`                            | Files plan-mode plans into `<repo>/.harness/plans/<YYYY-MM-DD>/<name>.md`                   | Claude `SessionEnd`, `SessionStart` (`--min-age 12h`)         | `plan-archive.sh --dry-run <repo>`                              |
 | `llm-skills-network`, `llm_skills_network/`  | Skill graph check, skill vector index, edge suggestions                                     | Claude `SessionStart` + `PostToolUse`; Kilo plugin            | `llm-skills-network build --graph --check`                      |
@@ -24,13 +26,10 @@ Hooks and tools shared by Claude Code, Kilo and OpenCode. This folder is reached
 Claude Code hooks are set in `../claude/settings.json`, which `install.sh` copies to `~/.claude/settings.json`. The copy
 can differ locally, so after changing hooks in the repo, merge the change into the installed copy too.
 
-- **Python edits** (`python-edit-gate.sh`): a subagent costs over 10k tokens before it does anything, so most `.py`
-  edits stay in the main thread. The rule:
-  - **Before an edit:** a new `.py` file, or a change over 40 lines, is blocked with a message to delegate it. Small
-    edits and anything inside a subagent go through.
-  - **After an edit:** `style-gates.sh` runs on the file. Problems are sent back to Claude to fix straight away.
-  - **Settings:** `PY_EDIT_MAX_LINES` sets the limit. Starting a session with `ALLOW_DIRECT_PYTHON_EDIT=1` turns the
-    limit off. The full rule is in `../handoff-contract.md` § Python File Edits.
+- **Python style** (`style_gates.py`): two-tier enforcement
+  - **edit tier** (PostToolUse): fast per-file checks — ruff format/check, naming, private, wrapper, comment, docstring
+  - **stop tier** (SubagentStop/Stop): full session check — adds reuse rule against code_index + pyrefly
+  - Exit 2 feeds findings back to the agent; max 3 rounds at stop tier before letting the agent stop
 - **Plans** (`plan-archive.sh`): plan mode writes to `<repo>/.harness/plans/.claude/` (`plansDirectory`). When a session
   ends, each plan moves to a dated folder. A plan that was filed before replaces its earlier copy.
 - **Pronouns** (`check-pronouns.sh`): flags lines with "I", "my", "Let me" and similar.
@@ -39,7 +38,7 @@ can differ locally, so after changing hooks in the repo, merge the change into t
   `llm-skills-network build --skill-vectors --if-stale`. Kilo runs the same two through `../plugins/harness-refresh.js`.
 
 All hooks exit 0 when something unexpected happens, so a broken hook never blocks a session. The one exception is a
-deliberate block (exit 2) from `python-edit-gate.sh`.
+deliberate block (exit 2) from `style_gates.py`.
 
 ## Skill graph and vectors
 

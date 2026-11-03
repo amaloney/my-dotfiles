@@ -1,19 +1,19 @@
 ---
 name: python/modern-tooling
-description: Conda-managed Ruff and ty Python tooling
+description: Conda-managed Ruff and pyrefly Python tooling
 invocation: auto
 ---
 
 # Python Tooling
 
-Handoff: `next: python/style`.
+Handoff: `next: python/structure`.
 
-**Deprecated tools:** This skill documents Ruff and ty only; never use uv or pip for environment setup, dependencies, or
-execution.
+**Deprecated tools:** This skill documents Ruff and pyrefly only; never use uv or pip for environment setup,
+dependencies, or execution.
 
 ## Tool Mapping
 
-flake8/black/isort/pyupgrade → `ruff`; mypy/pyright → `ty`; pre-commit → `prek`.
+flake8/black/isort/pyupgrade → `ruff`; mypy/pyright → `pyrefly`; pre-commit → `prek`.
 
 Install and run these tools through the active Conda environment.
 
@@ -59,21 +59,20 @@ convention = "google"
 "tests/**" = ["S101", "S310"]  # assert + urlopen in tests
 ```
 
-## ty Commands
+## pyrefly Commands
 
 ```bash
-conda run -n proj ty check .                      # type check (add --watch for watch mode)
+conda run -n proj pyrefly check .                 # type check
 ```
 
 ### pyproject.toml Config
 
 ```toml
-[tool.ty]
+[tool.pyrefly]
 python-version = "3.12"
-strict = true
 
-[tool.ty.overrides]
-"tests/**" = { strict = false }
+[tool.pyrefly.overrides]
+"tests/**" = { ignore_errors = ["*"] }
 ```
 
 ## Security Tools
@@ -90,4 +89,4 @@ strict = true
 Single-file → run with `conda run -n <env> python script.py`. Multi-file → use the repository's Conda environment.
 Package → use its Conda recipe.
 
-[[python/violations]] [[python/style]]
+[[python/structure]]

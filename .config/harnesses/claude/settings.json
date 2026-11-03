@@ -40,7 +40,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 $HOME/.config/harnesses/skills/chat-provenance/scripts/claude-hook.py --event user",
+            "command": "python $HOME/.config/harnesses/skills/chat-provenance/scripts/claude-hook.py --event user",
             "timeout": 10
           }
         ]
@@ -51,8 +51,13 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 $HOME/.config/harnesses/skills/chat-provenance/scripts/claude-hook.py --event stop",
+            "command": "python $HOME/.config/harnesses/skills/chat-provenance/scripts/claude-hook.py --event stop",
             "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "python $HOME/.config/harnesses/scripts/style_gates.py --event stop",
+            "timeout": 120
           }
         ]
       }
@@ -62,8 +67,13 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 $HOME/.config/harnesses/skills/chat-provenance/scripts/claude-hook.py --event subagent",
+            "command": "python $HOME/.config/harnesses/skills/chat-provenance/scripts/claude-hook.py --event subagent",
             "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "python $HOME/.config/harnesses/scripts/style_gates.py --event stop",
+            "timeout": 120
           }
         ]
       }
@@ -78,7 +88,7 @@
           },
           {
             "type": "command",
-            "command": "python3 $HOME/.config/harnesses/scripts/llm-skills-network build --skill-vectors --if-stale",
+            "command": "python $HOME/.config/harnesses/scripts/llm-skills-network build --skill-vectors --if-stale",
             "timeout": 120
           },
           {
@@ -111,7 +121,7 @@
           },
           {
             "type": "command",
-            "command": "python3 $HOME/.config/harnesses/scripts/llm-skills-network build --skill-vectors --if-stale",
+            "command": "python $HOME/.config/harnesses/scripts/llm-skills-network build --skill-vectors --if-stale",
             "timeout": 120
           }
         ]
@@ -121,19 +131,18 @@
         "hooks": [
           {
             "type": "command",
-            "command": "$HOME/.config/harnesses/scripts/python-edit-gate.sh --after",
+            "command": "python $HOME/.config/harnesses/scripts/style_gates.py --event edit",
             "timeout": 60
           }
         ]
-      }
-    ],
-    "PreToolUse": [
+      },
       {
-        "matcher": "Edit|Write|MultiEdit",
+        "matcher": "Edit|Write",
+        "pattern": "**/*.{md,json,jsonc,js,ts,jsx,tsx}",
         "hooks": [
           {
             "type": "command",
-            "command": "$HOME/.config/harnesses/scripts/python-edit-gate.sh --before",
+            "command": "command -v prettier >/dev/null && prettier --write \"$CLAUDE_FILE_PATH\" 2>/dev/null || true",
             "timeout": 10
           }
         ]

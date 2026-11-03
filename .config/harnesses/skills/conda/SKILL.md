@@ -11,11 +11,10 @@ Handoff: `next: done`.
 
 ## Registry
 
-| Skill                    | Purpose                   | Triggers                                   |
-| ------------------------ | ------------------------- | ------------------------------------------ |
-| [[conda-packaging]]      | Package building          | recipe, meta.yaml, pinnings, build         |
-| [[conda-internal]]       | Anaconda-internal tooling | aggregate, PBP, AnacondaRecipes            |
-| [[conda-anaconda-tools]] | Anaconda enterprise tools | auth, client, audit, menuinst, constructor |
+| Skill                    | Purpose                              | Triggers                                            |
+| ------------------------ | ------------------------------------ | --------------------------------------------------- |
+| [[conda-packaging]]      | Package building                     | recipe, meta.yaml, pinnings, build                  |
+| [[conda-anaconda-tools]] | Anaconda enterprise tools + internal | auth, client, audit, menuinst, constructor, PBP     |
 
 ## Conda Environment Policy
 

@@ -5,11 +5,6 @@ import re
 import time
 from pathlib import Path
 
-try:
-    from typing import Self
-except ImportError:
-    from typing import Self
-
 SECRET_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
     ("private-key", re.compile(r"-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?-----END [A-Z ]*PRIVATE KEY-----")),
     ("aws-access-key", re.compile(r"AKIA[0-9A-Z]{16}")),
@@ -51,7 +46,7 @@ class FileLock:
         except ImportError:
             self._use_fcntl = False
 
-    def __enter__(self) -> Self:
+    def __enter__(self) -> FileLock:
         if self._use_fcntl:
             import fcntl
 

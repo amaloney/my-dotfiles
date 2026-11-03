@@ -15,7 +15,7 @@ Rules for multi-agent pipelines. The main agent is an orchestrator only.
 - Output contract: exactly one short result — status + artifact path + `next: <stage>`.
 - Research/explore subagents return only concise findings with `file:line` pointers; no pasted code, narration, or broad
   file summaries.
-- Full-scope create/audit/hygiene stages run `style-gates.sh` and report command + pass/fail; do not paste full
+- Full-scope create/audit/hygiene stages run `style_gates.py` and report command + pass/fail; do not paste full
   successful output. Focused scope runs one targeted check.
 - Read own pattern memory only when relevant; save novel patterns only.
 - Fan-out: sub-subagents invisible to main; only aggregates return.
@@ -32,11 +32,11 @@ Handoff edges (`next:`) form a DAG. Reference links (`[[...]]`) transfer no cont
 | Rank | Stage         | Skills                                                                                                                                                                                                                                                                                                                                    |
 | ---- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 0    | route         | `python`, `rust`, `windows`, `conda`                                                                                                                                                                                                                                                                                                      |
-| 1    | diagnose/plan | `debugging`, `writing-plans`, `research`, `code-index`, `python/recon`, `python/repo-init`, `python/pixi-migration-reference`, `python/modern-tooling`, `rust/recon`, `rust/repo-init`, `rust/tooling`                                                                                                                                    |
-| 2    | create        | `python/style`, `python/types`, `python/naming`, `python/structure`, `python/errors`, `python/org`, `python/security`, `rust/style`, `rust/types`, `rust/naming`, `rust/structure`, `rust/errors`, `rust/org`, `rust/security`, `test-driven-development`, `bash-shell`, `markdown`, `artifacts`, `accessibility`, `windows/*`, `conda/*` |
+| 1    | diagnose/plan | `debugging`, `writing-plans`, `research`, `code-index`, `python/repo-init`, `python/pixi-migration-reference`, `python/modern-tooling`, `rust/recon`, `rust/repo-init`, `rust/tooling`                                                                                                                                    |
+| 2    | create        | `python/naming`, `python/structure`, `python/security`, `rust/style`, `rust/types`, `rust/naming`, `rust/structure`, `rust/errors`, `rust/org`, `rust/security`, `test-driven-development`, `bash-shell`, `artifacts`, `accessibility`, `windows/*`, `conda/*` |
 | 3    | audit         | `bug`, `ast-check`                                                                                                                                                                                                                                                                                                                        |
-| 4    | hygiene       | `code-hygiene`, `discouraged-patterns`, `python/violations`, `rust/violations`                                                                                                                                                                                                                                                            |
-| 5    | test          | `python/testing`, `python/test-gen`, `python/conftest`, `python/mocking`, `python/property-testing`, `python/async-testing`, `python/bdd`, `rust/testing`, `rust/test-gen`, `rust/property-testing`, `windows/dotnet-testing`, `build-watch-fix`                                                                                          |
+| 4    | hygiene       | `code-hygiene`, `discouraged-patterns`, `rust/violations`                                                                                                                                                                                                                                                                                 |
+| 5    | test          | `python/testing`, `python/test-gen`, `python/conftest`, `python/mocking`, `python/property-testing`, `python/async-testing`, `rust/testing`, `rust/test-gen`, `rust/property-testing`, `windows/dotnet-testing`, `build-watch-fix`                                                                                          |
 | 6    | verify/ship   | `verify`, `git-commit`                                                                                                                                                                                                                                                                                                                    |
 
 Rules:
@@ -49,7 +49,7 @@ Rules:
 
 ## Hooks
 
-Format/lint + re-indexing fire on edit/write (orthogonal, not a stage). Hookless harnesses use `style-gates.sh`.
+Format/lint + re-indexing fire on edit/write (orthogonal, not a stage). Hookless harnesses use `style_gates.py`.
 
 ## Energy barrier
 
@@ -65,15 +65,14 @@ An unavailable index is not a no-match; main may proceed on explicit user reques
 
 ## Python File Edits
 
-A subagent costs >10k tokens before it starts, so only changes that need a fresh context are delegated. Enforced by
-`scripts/python-edit-gate.sh` (Claude Code `PreToolUse` + `PostToolUse` hooks):
+Enforced by `style_gates.py` hooks:
 
-- Small edit (≤ 40 changed lines, existing file): main agent edits in place. `style-gates.sh` runs on the file after
-  every edit; findings come back as a hook error and are fixed in the same turn.
-- New `.py` file, or a change over 40 lines: blocked in the main thread. Delegate a focused no-behavior change to
-  `code-hygiene` (`scope: focused`); a feature/refactor/behavior change to the full create → bug → hygiene → test →
-  verify pipeline.
-- Subagents (`agent_id` in the hook input) are never blocked. Override: `ALLOW_DIRECT_PYTHON_EDIT=1`; limit:
-  `PY_EDIT_MAX_LINES`.
+- **edit tier** (PostToolUse): `style_gates.py --event edit` runs ruff + AST rules (naming, private, wrapper, comment,
+  docstring) on each edited file. Findings feed back as hook errors and are fixed in the same turn.
+- **stop tier** (SubagentStop/Stop): `style_gates.py --event stop` runs the full suite on all files edited in the
+  session, adding the reuse check (against code_index) and pyrefly. Max 3 rounds before letting the agent stop.
+
+Delegate Python implementation to `python-implementer` agent. In the brief, include relevant existing functions from
+code_index — extending existing code is preferred over creating new functions.
 
 Focused scope skips audit fan-out, full lint, and test generation. Full scope retains the mandatory pipeline.
