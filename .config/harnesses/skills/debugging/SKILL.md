@@ -3,6 +3,11 @@ name: debugging
 description: Bug diagnosis methodology - feedback loop, reproduce, hypothesise, instrument, fix, cleanup
 invocation: auto
 adapted-from: obra/superpowers v6.4.2 (MIT)
+allowed-tools:
+  - Read
+  - Grep
+  - Glob
+  - Bash
 ---
 
 # Debugging

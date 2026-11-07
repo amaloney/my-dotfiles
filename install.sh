@@ -470,23 +470,18 @@ install_nerd_font() {
 
 install_debugpy() {
     status "debugpy"
-    local pip_cmd
-    if command_exists pip3; then
-        pip_cmd="pip3"
-    elif command_exists pip; then
-        pip_cmd="pip"
-    else
-        skip "pip not found (install Python first, then re-run)"
+    if ! command_exists conda; then
+        skip "conda not found (install conda first, then re-run)"
         return 0
     fi
 
-    if "$pip_cmd" show debugpy &>/dev/null; then
+    if conda list debugpy 2>/dev/null | grep -q debugpy; then
         skip "debugpy already installed"
     elif $DRY_RUN; then
-        would "install: $pip_cmd install debugpy"
+        would "install: conda pypi install debugpy"
     else
         echo "   Installing debugpy..."
-        "$pip_cmd" install debugpy
+        conda pypi install debugpy
         done_msg "debugpy installed"
     fi
 }

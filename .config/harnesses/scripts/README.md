@@ -7,6 +7,8 @@ Hooks and tools shared by Claude Code, Kilo and OpenCode. This folder is reached
 
 | File                                         | What it does                                                                                | Who runs it                                                   | Run by hand                                                     |
 | -------------------------------------------- | ------------------------------------------------------------------------------------------- | ------------------------------------------------------------- | --------------------------------------------------------------- |
+| `check-conda-python.sh`                      | Block Bash commands if Python resolves to system Python (not conda-managed)                 | Claude `PreToolUse(Bash)`                                     | (hook only)                                                     |
+| `skill_tool_guard.py`                        | Enforce `allowed-tools` from skill frontmatter; blocks unauthorized tool calls              | Claude `PreToolUse`                                           | (hook only — requires stdin JSON)                               |
 | `style_gates.py`                             | Two-tier Python style enforcement (edit: ruff + AST rules; stop: + reuse + pyrefly)        | Claude `PostToolUse`, `SubagentStop`, `Stop`                  | `python3 style_gates.py <file-or-dir>...`                       |
 | `ast_rules.py`                               | AST-based rules: naming, private, wrapper, comment, docstring, reuse                        | imported by `style_gates.py`                                  | (library, not standalone)                                       |
 | `naming_check.py`                            | Cryptic/single-letter name detection at binding sites                                       | imported by `ast_rules.py`                                    | `python3 naming_check.py <file-or-dir>...`                      |
@@ -33,6 +35,10 @@ can differ locally, so after changing hooks in the repo, merge the change into t
 - **Plans** (`plan-archive.sh`): plan mode writes to `<repo>/.harness/plans/.claude/` (`plansDirectory`). When a session
   ends, each plan moves to a dated folder. A plan that was filed before replaces its earlier copy.
 - **Pronouns** (`check-pronouns.sh`): flags lines with "I", "my", "Let me" and similar.
+- **System Python guard** (`check-conda-python.sh`): PreToolUse hook that blocks Bash commands invoking system Python.
+  All Python must run through conda environments. See [System Python guard](../README.md#system-python-guard).
+- **Skill tool guard** (`skill_tool_guard.py`): PreToolUse hook that enforces `allowed-tools` from skill frontmatter. See
+  [Skill tool enforcement](../README.md#skill-tool-enforcement) for the full flow.
 - **Code index and skill vectors:** on session start and after edits. The code index uses
   `../skills/code-index/scripts/harness-refresh.sh`; skill vectors use
   `llm-skills-network build --skill-vectors --if-stale`. Kilo runs the same two through `../plugins/harness-refresh.js`.

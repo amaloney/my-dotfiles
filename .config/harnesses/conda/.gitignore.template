@@ -1,0 +1,45 @@
+# XDG isolation (direnv)
+.local/
+.cache/
+.config/kilo/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+eggs/
+*.egg-info/
+*.egg
+.eggs/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.hypothesis/
+
+# Linting/formatting
+.ruff_cache/
+.mypy_cache/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Environment
+.env
+.env.*
+*.pem
+credentials.txt
+.secrets/
+
+# OS
+.DS_Store
+Thumbs.db

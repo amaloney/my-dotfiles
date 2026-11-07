@@ -8,8 +8,8 @@ invocation: auto
 
 Handoff: `next: python/structure`.
 
-**Deprecated tools:** This skill documents Ruff and pyrefly only; never use uv or pip for environment setup,
-dependencies, or execution.
+**Deprecated tools:** This skill documents Ruff and pyrefly only; never use uv or pip directly. For PyPI-only packages
+unavailable from Conda channels, use `conda pypi install <pkg>`.
 
 ## Tool Mapping
 

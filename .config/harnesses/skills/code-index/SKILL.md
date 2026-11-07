@@ -2,6 +2,11 @@
 name: code-index
 description: Query an existing code index
 invocation: manual
+allowed-tools:
+  - Read
+  - Grep
+  - Glob
+  - Bash
 ---
 
 # Code Index

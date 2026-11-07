@@ -27,6 +27,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from ast_rules import check_file, load_index  # pyrefly: ignore[missing-import]
+from docstring_check import check_file as check_docstrings  # pyrefly: ignore[missing-import]
 from naming_check import py_files  # pyrefly: ignore[missing-import]
 
 MAX_STOP_ROUNDS = 3
@@ -112,9 +113,22 @@ def run_gates(files: list[Path], tier: str) -> list[str]:
         index = code_index() if tier == "stop" else None
         return [str(finding) for file in files for finding in check_file(file, index)]
 
+    def docstring_gate() -> list[str]:
+        issues = []
+        for file in files:
+            for issue in check_docstrings(str(file)):
+                if issue["issue"] == "missing":
+                    issues.append(f"{file}:{issue['line']}: `{issue['name']}` has no docstring")
+                else:
+                    issues.append(
+                        f'{file}:{issue["line"]}: `{issue["name"]}` needs Args/Returns (has: "{issue["current"]}...")',
+                    )
+        return issues
+
     gates: list[tuple[str, Callable[[], list[str]]]] = [
         ("ruff", ruff_gate),
         ("style", style_gate),
+        ("docstring", docstring_gate),
     ]
     if tier == "stop":
         gates.append(("pyrefly", lambda: run_tool("pyrefly", "check", *names)))
@@ -174,9 +188,9 @@ def on_stop(state: dict) -> int:
                     "systemMessage": (
                         f"style-gates: still failing after {MAX_STOP_ROUNDS} rounds; letting the agent stop. "
                         f"Run style_gates.py on: {', '.join(map(str, files))}"
-                    )
-                }
-            )
+                    ),
+                },
+            ),
         )
         return 0
     print("\n".join([*report, FOOTER]), file=sys.stderr)

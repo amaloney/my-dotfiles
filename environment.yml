@@ -2,6 +2,7 @@ dependencies:
   - python>=3.12,<3.15
   - conda>=26
   - pip>=26
+  - jupyterlab
 
   # formatting, linting, type checking, and testing
   - ruff>=0.16.8,<0.17

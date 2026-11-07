@@ -8,7 +8,14 @@
     "ANTHROPIC_MODEL": "us.anthropic.claude-opus-4-5-20251101-v1:0"
   },
   "permissions": {
-    "allow": ["Edit(/tmp/**)", "Edit(/private/tmp/**)", "Bash(ls ~/.claude/skills/*)", "Bash(find ~/.claude/skills/*)"],
+    "allow": [
+      "Edit(/tmp/**)",
+      "Edit(/private/tmp/**)",
+      "Bash(ls ~/.claude/skills/*)",
+      "Bash(find ~/.claude/skills/*)",
+      "Bash(scripts/crun python *)",
+      "Skill(conda-project-init)"
+    ],
     "deny": [
       "Read(./.coverage/**/*)",
       "Read(./.hypothesis/**/*)",
@@ -34,13 +41,14 @@
       "Bash(pass:*)"
     ]
   },
+  "model": "opus",
   "hooks": {
     "UserPromptSubmit": [
       {
         "hooks": [
           {
             "type": "command",
-            "command": "python $HOME/.config/harnesses/skills/chat-provenance/scripts/claude-hook.py --event user",
+            "command": "$HOME/.config/harnesses/scripts/crun python $HOME/.config/harnesses/skills/chat-provenance/scripts/claude-hook.py --event user",
             "timeout": 10
           }
         ]
@@ -51,12 +59,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python $HOME/.config/harnesses/skills/chat-provenance/scripts/claude-hook.py --event stop",
+            "command": "$HOME/.config/harnesses/scripts/crun python $HOME/.config/harnesses/skills/chat-provenance/scripts/claude-hook.py --event stop",
             "timeout": 10
           },
           {
             "type": "command",
-            "command": "python $HOME/.config/harnesses/scripts/style_gates.py --event stop",
+            "command": "$HOME/.config/harnesses/scripts/crun python $HOME/.config/harnesses/scripts/style_gates.py --event stop",
             "timeout": 120
           }
         ]
@@ -67,12 +75,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python $HOME/.config/harnesses/skills/chat-provenance/scripts/claude-hook.py --event subagent",
+            "command": "$HOME/.config/harnesses/scripts/crun python $HOME/.config/harnesses/skills/chat-provenance/scripts/claude-hook.py --event subagent",
             "timeout": 10
           },
           {
             "type": "command",
-            "command": "python $HOME/.config/harnesses/scripts/style_gates.py --event stop",
+            "command": "$HOME/.config/harnesses/scripts/crun python $HOME/.config/harnesses/scripts/style_gates.py --event stop",
             "timeout": 120
           }
         ]
@@ -83,12 +91,22 @@
         "hooks": [
           {
             "type": "command",
+            "command": "mkdir -p \"$CLAUDE_PROJECT_DIR/.harness/session\" && : > \"$CLAUDE_PROJECT_DIR/.harness/session/loaded_skills.txt\" && echo '**/*' > \"$CLAUDE_PROJECT_DIR/.harness/.gitignore\"",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "cd \"$CLAUDE_PROJECT_DIR\" && command -v direnv >/dev/null && direnv export bash >> \"$CLAUDE_ENV_FILE\" || true",
+            "timeout": 10
+          },
+          {
+            "type": "command",
             "command": "$HOME/.config/harnesses/skills/code-index/scripts/harness-refresh.sh",
             "timeout": 60
           },
           {
             "type": "command",
-            "command": "python $HOME/.config/harnesses/scripts/llm-skills-network build --skill-vectors --if-stale",
+            "command": "$HOME/.config/harnesses/scripts/crun python $HOME/.config/harnesses/scripts/llm-skills-network build --skill-vectors --if-stale",
             "timeout": 120
           },
           {
@@ -110,6 +128,33 @@
         ]
       }
     ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.config/harnesses/scripts/check-conda-python.sh",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "if jq -r '.tool_input.command' | grep -Eq 'conda (run|activate)'; then echo 'Use scripts/crun instead of conda run/activate' >&2; exit 2; fi",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write|Bash|Agent",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.config/harnesses/scripts/crun python $HOME/.config/harnesses/scripts/skill_tool_guard.py",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
     "PostToolUse": [
       {
         "matcher": "Edit|Write",
@@ -121,7 +166,7 @@
           },
           {
             "type": "command",
-            "command": "python $HOME/.config/harnesses/scripts/llm-skills-network build --skill-vectors --if-stale",
+            "command": "$HOME/.config/harnesses/scripts/crun python $HOME/.config/harnesses/scripts/llm-skills-network build --skill-vectors --if-stale",
             "timeout": 120
           }
         ]
@@ -131,19 +176,38 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python $HOME/.config/harnesses/scripts/style_gates.py --event edit",
+            "command": "$HOME/.config/harnesses/scripts/crun python $HOME/.config/harnesses/scripts/style_gates.py --event edit",
             "timeout": 60
           }
         ]
       },
       {
         "matcher": "Edit|Write",
-        "pattern": "**/*.{md,json,jsonc,js,ts,jsx,tsx}",
         "hooks": [
           {
             "type": "command",
             "command": "command -v prettier >/dev/null && prettier --write \"$CLAUDE_FILE_PATH\" 2>/dev/null || true",
             "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "Read",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if echo \"$CLAUDE_FILE_PATH\" | grep -q 'SKILL.md$'; then echo \"$CLAUDE_FILE_PATH\" >> \"$CLAUDE_PROJECT_DIR/.harness/session/loaded_skills.txt\" 2>/dev/null || true; fi",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "Skill",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.skill // empty' | while read -r s; do [ -n \"$s\" ] && echo \"skill:$s\" >> \"$CLAUDE_PROJECT_DIR/.harness/session/loaded_skills.txt\"; done 2>/dev/null || true",
+            "timeout": 5
           }
         ]
       }
@@ -163,8 +227,11 @@
   "enabledPlugins": {
     "lua-lsp@claude-plugins-official": true
   },
-  "additionalDirectories": ["/tmp", "/private/tmp"],
+  "awaySummaryEnabled": false,
   "plansDirectory": ".harness/plans/.claude",
-  "recap": false,
-  "awaySummaryEnabled": false
+  "additionalDirectories": [
+    "/tmp",
+    "/private/tmp"
+  ],
+  "recap": false
 }

@@ -1,20 +1,19 @@
-# Environment name (default, lint, etc.)
-ENV ?= default
+ENV ?= dev
 
 # Paths derived from ENV
 PREFIX := ./.conda/$(ENV)
-ifeq ($(ENV),default)
-  LOCK := conda-lock.yml
-  SPEC := environment.yml
+ifeq ($(ENV),dev)
+  LOCK := $(or $(firstword $(wildcard conda-lock.yaml conda-lock.yml)),conda-lock.yaml)
+  SPEC := $(or $(firstword $(wildcard environment.yaml environment.yml)),environment.yaml)
 else
-  LOCK := conda-lock-$(ENV).yml
-  SPEC := environment-$(ENV).yml
+  LOCK := $(or $(firstword $(wildcard conda-lock-$(ENV).yaml conda-lock-$(ENV).yml)),conda-lock-$(ENV).yaml)
+  SPEC := $(or $(firstword $(wildcard environment-$(ENV).yaml environment-$(ENV).yml)),environment-$(ENV).yaml)
 endif
 
 export CONDARC := $(CURDIR)/.condarc
 
 .PHONY: help env lock clean
-.DEFAULT_GOAL := help
+.dev_GOAL := help
 
 help:
 	@echo "Requires conda 26.5+ (built-in lockfiles)."
@@ -24,10 +23,8 @@ help:
 	@echo "  make lock [ENV=name]   sync environment and regenerate lockfile"
 	@echo "  make clean [ENV=name]  delete ./.conda/<name>"
 	@echo ""
-	@echo "Environments: default (Python 3.13), lint (Python 3.10)"
-	@echo ""
 	@echo "Examples:"
-	@echo "  make env               # build default environment"
+	@echo "  make env               # build dev environment"
 	@echo "  make env ENV=lint      # build lint environment"
 
 env:
@@ -35,7 +32,7 @@ env:
 	rm -rf $(PREFIX)
 	@if [ -f $(LOCK) ]; then \
 		conda create --yes -p $(PREFIX) --file $(LOCK); \
-		conda pypi install --editable .
+		conda pypi install --editable .; \
 	else \
 		echo "No $(LOCK) yet; solving from $(SPEC). Run 'make lock' and commit it."; \
 		conda env create --yes -p $(PREFIX) -f $(SPEC); \

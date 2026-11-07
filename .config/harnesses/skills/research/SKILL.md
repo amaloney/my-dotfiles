@@ -2,6 +2,11 @@
 name: research
 description: Structured research with source tracking, paper management, and git workflow
 invocation: manual
+allowed-tools:
+  - Read
+  - WebFetch
+  - WebSearch
+  - Write
 ---
 
 # Research Skill

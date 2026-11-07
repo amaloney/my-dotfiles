@@ -624,17 +624,17 @@ if (-not $SkipTools -and -not $Update) {
 
     # debugpy (Python package)
     Write-Status "debugpy"
-    if (-not (Test-CommandExists "pip")) {
-        Write-Skip "pip not found (install Python first, then re-run)"
+    if (-not (Test-CommandExists "conda")) {
+        Write-Skip "conda not found (install conda first, then re-run)"
     } else {
-        $debugpyCheck = pip show debugpy 2>$null
-        if ($LASTEXITCODE -eq 0) {
+        $debugpyCheck = conda list debugpy 2>$null | Select-String "debugpy"
+        if ($debugpyCheck) {
             Write-Skip "debugpy already installed"
         } elseif ($DryRun) {
-            Write-Host "   Would install: pip install debugpy" -ForegroundColor Gray
+            Write-Host "   Would install: conda pypi install debugpy" -ForegroundColor Gray
         } else {
             Write-Host "   Installing debugpy..." -ForegroundColor Gray
-            pip install debugpy
+            conda pypi install debugpy
             if ($LASTEXITCODE -eq 0) {
                 Write-Done "debugpy installed"
             }

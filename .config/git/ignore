@@ -1,4 +1,14 @@
-**/.claude/settings.local.json
-
-# Harness working files (code index, plans, research, chat logs): local to each clone, never committed
+# Harnesses
 .harness/
+**/.claude/settings.local.json
+.kilo
+
+# Python
+__pycache__
+.ipynb_checkpoints
+
+# macOS
+.DS_Store
+
+# Local conda environments
+.conda

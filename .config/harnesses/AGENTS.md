@@ -27,10 +27,11 @@ agents do not load it.
 - Verification (reviews, tests, plans): assume wrong, hunt; approval is failure. Not for research/generation.
 - Code for humans — meaningful names, "why" comments, intentional structure
 - Descriptive loop variables (`for contact in contacts`), not single letters or cryptic abbreviations
-- For Python environments, dependency management, and Python task execution, use Conda only (`conda` / `conda run`); do
-  not use `pip`, `pixi`, `uv`, or another Python environment/dependency manager. If a package is unavailable from
-  configured Conda channels, stop and report instead of falling back, even if project files or skills recommend another
-  manager. This shared rule applies to every harness.
+- For Python environments, dependency management, and Python task execution, use `scripts/crun <cmd>` (e.g.,
+  `scripts/crun pytest`). Never use `conda run -n ...`, `conda activate`, or the global conda — a PreToolUse guard
+  blocks these. If a project has `.conda/dev`, `crun` uses it; otherwise it falls back to global base. Do not use `pip`,
+  `pixi`, `uv`, or another Python environment/dependency manager directly. For PyPI packages unavailable from Conda
+  channels, use `conda pypi install <pkg>` (or `conda pypi install --editable .` for editable installs).
 - Subagent Task prompts contain only file paths and a concise spec, at most 50 words; omit narration and request
   restatements.
 - Use the read-only `scout` agent for file-finding; fan out only for independent subtasks, and use one agent for
@@ -105,8 +106,8 @@ matching skill if not loaded. No match → proceed. New domains → author skill
 | Type    | Source                     | Target                                                |
 | ------- | -------------------------- | ----------------------------------------------------- |
 | Canon   | `.config/harnesses/`       | AGENTS.md, skills/, agents/, scripts/, plugins/       |
-| Symlink | (same)                     | ~/.config/harnesses/, ~/.claude/_, ~/.config/kilo/_   |
-| Copy    | harnesses/{kilo,claude}/\* | ~/.config/kilo/, ~/.claude/settings.json              |
+| Symlink | (same)                     | ~/.config/harnesses/, ~/.claude/*, ~/.config/kilo/_   |
+| Copy    | harnesses/kilo/\*          | ~/.config/kilo/                                       |
 | Repo    | `<repo>/.harness/`         | gitignored, regenerable                               |
 | Plans   | `<repo>/.harness/plans/`   | `<YYYY-MM-DD>/<name>.md`; Claude stages in `.claude/` |
 

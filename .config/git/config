@@ -1,0 +1,5 @@
+[init]
+    defaultBranch = main
+[user]
+    name = Andy Maloney
+    email = amaloney@mailbox.org

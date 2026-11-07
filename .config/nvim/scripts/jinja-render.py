@@ -7,7 +7,7 @@ from pathlib import Path
 try:
     from jinja2 import Environment, FileSystemLoader, StrictUndefined
 except ImportError:
-    print("Error: jinja2 not installed. Run: pip install jinja2", file=sys.stderr)
+    print("Error: jinja2 not installed. Run: conda pypi install jinja2", file=sys.stderr)
     sys.exit(1)
 
 

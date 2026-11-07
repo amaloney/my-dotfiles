@@ -2,6 +2,9 @@
 name: verify
 description: Run verification commands before claiming completion. Evidence before claims.
 invocation: auto
+allowed-tools:
+  - Read
+  - Bash
 ---
 
 # Verification Before Completion

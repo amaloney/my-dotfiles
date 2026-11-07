@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# Run a command in the project-local conda env, regardless of cwd or PATH.
+# Falls back to global conda base if project has no .conda/dev.
+set -euo pipefail
+
+ROOT="${CLAUDE_PROJECT_DIR:-$(git -C "$(dirname "$0")" rev-parse --show-toplevel 2>/dev/null || echo "$PWD")}"
+PREFIX="$ROOT/.conda/dev"
+
+if [[ -d "$PREFIX" ]]; then
+    # Project-local conda env
+    export CONDARC="$ROOT/.condarc"
+    exec "$PREFIX/bin/conda" run -p "$PREFIX" --no-capture-output "$@"
+else
+    # Fallback to global conda base
+    exec conda run -n base --no-capture-output "$@"
+fi
