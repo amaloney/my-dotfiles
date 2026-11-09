@@ -1,4 +1,7 @@
 # vim: ft=bash
+# ======================================================================================================================
+# ~/.bashrc-functions
+# ======================================================================================================================
 
 # prevent duplicates in the path
 append_path() {
@@ -25,6 +28,6 @@ function y() {
 	local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
 	command yazi "$@" --cwd-file="$tmp"
 	IFS= read -r -d '' cwd < "$tmp"
-	[ -n "$cwd" ] && [ "$cwd" != "$PWD" ] && builtin cd -- "$cwd"
+	[ -n "$cwd" ] && [ "$cwd" != "$PWD" ] && builtin cd -- "$cwd" || exit
 	rm -f -- "$tmp"
 }

@@ -94,8 +94,9 @@ vim.opt.swapfile = false
 vim.opt.whichwrap:append("<,>,h,l,[,]")
 
 -- Keymaps
-vim.keymap.set("n", "<C-h>", "<CMD>tabp<CR>")
-vim.keymap.set("n", "<C-l>", "<CMD>tabn<CR>")
+vim.keymap.set("x", "p", '"_dP', { desc = "Paste without yanking replaced text" })
+vim.keymap.set("n", "<C-h>", "<CMD>bprev<CR>", { desc = "Previous buffer" })
+vim.keymap.set("n", "<C-l>", "<CMD>bnext<CR>", { desc = "Next buffer" })
 vim.keymap.set("n", "<C-n>", "<CMD>tabnew<CR>")
 vim.keymap.set("n", "<leader>R", "<CMD>e<CR>")
 vim.keymap.set("n", "<C-t><C-h>", "<CMD>botright split | terminal<CR>", { desc = "Terminal horizontal split" })
