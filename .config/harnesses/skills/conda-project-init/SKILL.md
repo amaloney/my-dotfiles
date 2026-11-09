@@ -2,7 +2,14 @@
 name: conda-project-init
 description: Scaffold a conda project in-place with src-layout, direnv, and pyproject.toml
 invocation: manual
-keywords: ["start conda project", "new conda project", "init conda", "create conda project", "scaffold"]
+keywords:
+  [
+    "start conda project",
+    "new conda project",
+    "init conda",
+    "create conda project",
+    "scaffold",
+  ]
 allowed-tools:
   - Bash
   - Read
@@ -18,6 +25,7 @@ Scaffold a conda project **in the current directory** with src-layout, direnv au
 ## When
 
 User asks to:
+
 - "create a new conda project" (in current directory)
 - "init conda project"
 - "scaffold conda project"
@@ -30,9 +38,11 @@ User asks to:
 ```
 
 **Arguments:**
+
 - `[name]` — Package name (optional, defaults to directory name with hyphens → underscores)
 
 **Flags:**
+
 - `--kilo-isolated` — Isolate kilo config to project
 - `--full-xdg` — Full XDG isolation (all apps)
 
@@ -60,21 +70,21 @@ User asks to:
 ## After Scaffold (tell user)
 
 1. `direnv allow` — auto-activates `.conda/dev` on cd
-2. Edit `environment.yaml` — uncomment/add dependencies
+2. Edit `environment.yaml` — add dependencies (lock auto-regenerates on next cd)
 3. Edit `pyproject.toml` — fill in TODO placeholders (description, authors, license)
-4. Run `make lock && make env` to rebuild with new dependencies
+4. For manual refresh without cd: `make update` (regenerates lock + rebuilds env)
 
 ## Templates
 
 Templates live at `~/.config/harnesses/conda/` (part of the harnesses symlink):
 
-| File                 | Purpose                                    |
-| -------------------- | ------------------------------------------ |
-| `.envrc`             | direnv config with XDG isolation options   |
-| `.condarc`           | project-local conda channels and settings  |
-| `Makefile`           | env, lock, clean targets                   |
-| `environment.yaml`   | conda deps with common packages commented  |
-| `pyproject.toml`     | full config: ruff, pytest, hatch           |
-| `.gitignore.template`| comprehensive Python/conda ignores         |
+| File                  | Purpose                                   |
+| --------------------- | ----------------------------------------- |
+| `.envrc`              | direnv config with XDG isolation options  |
+| `.condarc`            | project-local conda channels and settings |
+| `Makefile`            | env, lock, clean targets                  |
+| `environment.yaml`    | conda deps with common packages commented |
+| `pyproject.toml`      | full config: ruff, pytest, hatch          |
+| `.gitignore.template` | comprehensive Python/conda ignores        |
 
 [[conda]]

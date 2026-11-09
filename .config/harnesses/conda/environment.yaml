@@ -1,9 +1,20 @@
 dependencies:
   - python>=3.12,<3.15
   - conda>=26
+  - pip>=26
 
   # Development
+  - make
   - pre-commit
   - pyrefly
   - pytest
   - ruff
+
+  # Jupyter
+  - black
+  - isort
+  - jupyterlab
+  - jupyterlab_code_formatter
+  - pip:
+      - jupyterlab-spellchecker
+      - jupyterlab-unfold

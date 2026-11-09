@@ -11,11 +11,11 @@ Handoff: `next: done`.
 
 ## Registry
 
-| Skill                    | Purpose                              | Triggers                                            |
-| ------------------------ | ------------------------------------ | --------------------------------------------------- |
-| [[conda-project-init]]   | Scaffold new conda project           | start/create/init conda project                     |
-| [[conda-packaging]]      | Package building                     | recipe, meta.yaml, pinnings, build                  |
-| [[conda-anaconda-tools]] | Anaconda enterprise tools + internal | auth, client, audit, menuinst, constructor, PBP     |
+| Skill                    | Purpose                              | Triggers                                        |
+| ------------------------ | ------------------------------------ | ----------------------------------------------- |
+| [[conda-project-init]]   | Scaffold new conda project           | start/create/init conda project                 |
+| [[conda-packaging]]      | Package building                     | recipe, meta.yaml, pinnings, build              |
+| [[conda-anaconda-tools]] | Anaconda enterprise tools + internal | auth, client, audit, menuinst, constructor, PBP |
 
 ## Conda Environment Policy
 
@@ -70,34 +70,38 @@ Conda only. Environments only. Lock for prod. Full paths. No venv. Commit enviro
 
 ## Troubleshooting
 
-| Problem           | Fix                                                        |
-| ----------------- | ---------------------------------------------------------- |
-| Command not found | Use full path: `$(which cmd)`                              |
-| Slow solver       | libmamba solver is default (conda 23.10+); try `mamba`     |
-| Dep conflicts     | Fresh env, install one-by-one                              |
-| Package missing   | Use `conda pypi install pkg` for PyPI-only packages        |
+| Problem           | Fix                                                    |
+| ----------------- | ------------------------------------------------------ |
+| Command not found | Use full path: `$(which cmd)`                          |
+| Slow solver       | libmamba solver is default (conda 23.10+); try `mamba` |
+| Dep conflicts     | Fresh env, install one-by-one                          |
+| Package missing   | Use `conda pypi install pkg` for PyPI-only packages    |
 
 ## Project-Local Environments with direnv
 
-Projects use `.envrc` + direnv for automatic environment activation:
+Projects use `.envrc` + direnv for automatic environment activation and sync:
 
-```bash
-# .envrc — copy from ~/.config/harnesses/conda/.envrc
-export CONDARC="$PWD/.condarc"
-watch_file environment.{yaml,yml} conda-lock.{yaml,yml} .condarc
-eval "$(conda shell.bash hook)"
-if [ ! -d .conda/dev/conda-meta ]; then
-    make env || return 1
-fi
-conda activate ./.conda/dev
-eval "$(./.conda/dev/bin/conda shell.bash hook)"
-```
+| Condition                                       | Action                                           |
+| ----------------------------------------------- | ------------------------------------------------ |
+| `conda-lock.yaml` missing                       | `make lock` generates it from `environment.yaml` |
+| `environment.yaml` newer than `conda-lock.yaml` | `make lock` regenerates the lockfile             |
+| `conda-lock.yaml` newer than `.conda/dev/`      | `make env` rebuilds the environment              |
+| Everything fresh                                | Instant activation, no rebuilds                  |
+
+**Manual control (no cd needed)**:
+
+- `make update` — force regenerate lock and rebuild env
+- `make sync` — auto-update lock and env if stale
+- `make lock` — always regenerate lockfile
+- `make env` — always rebuild environment
 
 **Directory structure**:
+
 - `.conda/dev/` — project-local environment (gitignored)
 - `.condarc` — project-local conda config
-- `environment.yml` — environment definition (committed)
-- `Makefile` — `make env` creates `.conda/dev` from lockfile or environment.yml
+- `environment.yaml` — environment definition (committed)
+- `conda-lock.yaml` — locked dependencies (committed)
+- `Makefile` — env, lock, sync, update, clean targets
 
 **XDG isolation** (optional, for kilo): Uncomment `XDG_CONFIG_HOME` lines in `.envrc` to isolate kilo config to project.
 
