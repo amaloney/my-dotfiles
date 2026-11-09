@@ -10,6 +10,8 @@ keywords: ["batch"]
 
 Handoff: `next: done`.
 
+**Line limit**: 120 characters max. Break long lines with `^` continuation at end of line.
+
 ## Essentials
 
 ```batch

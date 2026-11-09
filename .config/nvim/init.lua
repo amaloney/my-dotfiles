@@ -104,6 +104,20 @@ vim.keymap.set("n", "<C-t><C-t>", "<CMD>terminal<CR>", { desc = "Terminal in cur
 vim.keymap.set("t", "<C-d>", "<C-\\><C-n>:bd!<CR>", { desc = "Close terminal" })
 vim.keymap.set("t", "<Esc><Esc>", "<C-\\><C-n>", { desc = "Exit terminal mode" })
 
+vim.keymap.set("v", "<leader>lL", function()
+   local input = vim.fn.input("Line length: ")
+   if input == "" then return end
+   local width = tonumber(input)
+   if not width then
+      vim.notify("Invalid number", vim.log.levels.ERROR)
+      return
+   end
+   local old_tw = vim.bo.textwidth
+   vim.bo.textwidth = width
+   vim.cmd("normal! gq")
+   vim.bo.textwidth = old_tw
+end, { desc = "Reformat selection to custom line length" })
+
 require("config.lazy")
 
 -- Colorscheme

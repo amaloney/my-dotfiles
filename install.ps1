@@ -348,6 +348,38 @@ if (-not (Test-Path $pixiSource)) {
     }
 }
 
+# psmux config (copy to %USERPROFILE%\.psmux.conf)
+Write-Status "psmux Config"
+$psmuxSource = "$dotfiles\.config\psmux\psmux.conf"
+$psmuxPath = "$env:USERPROFILE\.psmux.conf"
+if (-not (Test-Path $psmuxSource)) {
+    Write-Host "   ERROR: Source not found: $psmuxSource" -ForegroundColor Red
+} else {
+    if (Test-Path $psmuxPath) {
+        $sourceHash = (Get-FileHash $psmuxSource).Hash
+        $destHash = (Get-FileHash $psmuxPath).Hash
+        if ($sourceHash -eq $destHash) {
+            Write-Skip "$psmuxPath already up to date"
+        } elseif ($Force) {
+            if ($DryRun) {
+                Write-Host "   Would copy: $psmuxSource -> $psmuxPath" -ForegroundColor Gray
+            } else {
+                Copy-Item $psmuxSource $psmuxPath -Force
+                Write-Done "Updated $psmuxPath"
+            }
+        } else {
+            Write-Skip "$psmuxPath exists (use -Force to overwrite)"
+        }
+    } else {
+        if ($DryRun) {
+            Write-Host "   Would copy: $psmuxSource -> $psmuxPath" -ForegroundColor Gray
+        } else {
+            Copy-Item $psmuxSource $psmuxPath
+            Write-Done "Copied to $psmuxPath"
+        }
+    }
+}
+
 # Conda config (copy to %USERPROFILE%\.condarc)
 Write-Status "Condarc"
 $condaSource = "$dotfiles\.config\conda\.condarc"
@@ -556,6 +588,7 @@ if (-not $SkipTools -and -not $Update) {
     Install-Tool -Name "Tree-sitter" -WingetId "tree-sitter.tree-sitter" -Command "tree-sitter"
     Install-Tool -Name "Python" -WingetId "Python.Python.3.12" -Command "python"
     Install-Tool -Name "Git" -WingetId "Git.Git" -Command "git"
+    Install-Tool -Name "psmux" -WingetId "marlocarlo.psmux" -Command "psmux"
 
     # Nerd Font - download and install SauceCodePro Nerd Font
     Write-Status "Nerd Font (SauceCodePro)"
@@ -605,7 +638,13 @@ if (-not $SkipTools -and -not $Update) {
             $regPath = "HKCU:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Fonts"
             Get-ChildItem "$userFonts\SauceCodePro*.ttf" -ErrorAction SilentlyContinue | ForEach-Object {
                 $fontName = [System.IO.Path]::GetFileNameWithoutExtension($_.Name)
-                Set-ItemProperty -Path $regPath -Name "$fontName (TrueType)" -Value $_.FullName -ErrorAction SilentlyContinue
+                $fontParams = @{
+                    Path = $regPath
+                    Name = "$fontName (TrueType)"
+                    Value = $_.FullName
+                    ErrorAction = "SilentlyContinue"
+                }
+                Set-ItemProperty @fontParams
             }
 
             # Keep the zip in Downloads for future runs, only clean up extract dir

@@ -26,7 +26,11 @@ fi
 real_python=$(realpath "$python_path" 2>/dev/null || readlink -f "$python_path" 2>/dev/null || echo "$python_path")
 
 # Check if it's a conda-managed Python
-if [[ "$real_python" == *"/conda/"* ]] || [[ "$real_python" == *"/miniforge/"* ]] || [[ "$real_python" == *"/anaconda/"* ]] || [[ "$real_python" == *"/miniconda/"* ]] || [[ "$real_python" == *"/.conda/"* ]]; then
+if [[ "$real_python" == *"/conda/"* ]] || \
+   [[ "$real_python" == *"/miniforge/"* ]] || \
+   [[ "$real_python" == *"/anaconda/"* ]] || \
+   [[ "$real_python" == *"/miniconda/"* ]] || \
+   [[ "$real_python" == *"/.conda/"* ]]; then
     exit 0
 fi
 

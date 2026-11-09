@@ -10,6 +10,8 @@ keywords: ["bash", "shell script", "posix"]
 
 Handoff: `next: done`.
 
+**Line limit**: 120 characters max. Break long pipelines/commands with `\` continuation.
+
 **Strict mode**: `set -o errexit -o nounset -o pipefail` **Shebang**: `#!/usr/bin/env bash` | **Flags**: Prefer
 spelled-out (`curl --silent --fail`)
 

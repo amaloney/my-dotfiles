@@ -10,6 +10,8 @@ keywords: ["powershell"]
 
 Handoff: `next: done`.
 
+**Line limit**: 120 characters max. Break long lines with backtick `` ` `` continuation or splatting.
+
 - **Error handling**: `$ErrorActionPreference = "Stop"`
 - **Parameters**: Full names (`Get-ChildItem -Recurse` not `gci -r`)
 - **Exit**: Always `exit 0` or `exit 1` explicitly
