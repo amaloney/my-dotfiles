@@ -42,6 +42,7 @@
     ]
   },
   "model": "opus",
+  "idleCompaction": false,
   "hooks": {
     "UserPromptSubmit": [
       {
@@ -229,9 +230,6 @@
   },
   "awaySummaryEnabled": false,
   "plansDirectory": ".harness/plans/.claude",
-  "additionalDirectories": [
-    "/tmp",
-    "/private/tmp"
-  ],
+  "additionalDirectories": ["/tmp", "/private/tmp"],
   "recap": false
 }
