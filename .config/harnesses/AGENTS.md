@@ -71,6 +71,7 @@ Legend: O = orchestrator, L = leaf, S = stage
 | Commits         | `git-commit`              | L    | staging, attribution                 |
 | Code hygiene    | `code-hygiene`            | S    | after bug, before pytest             |
 | AI code smells  | `discouraged-patterns`    | S    | RLHF noise, single-use abstractions  |
+| CLI flags       | `cli-verification`        | S    | verify flags before completion       |
 
 **Artifact routing**: skills declare `extensions:` + `keywords:` in SKILL.md frontmatter. Before write/edit, load
 matching skill if not loaded. No match → proceed. New domains → author skill, never grow this file. Handoff:

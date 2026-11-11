@@ -57,6 +57,9 @@ function Test-ComponentSelected {
 $ErrorActionPreference = "Stop"
 $ProgressPreference = "SilentlyContinue"
 
+# GitHub and other HTTPS sources require TLS 1.2 (Windows PowerShell 5.1 defaults to TLS 1.0/1.1)
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+
 # Log file shared between user and admin phases
 $script:LogPath = if ($LogFile) { $LogFile } else { Join-Path $env:TEMP "vdi-setup.log" }
 
@@ -1105,8 +1108,10 @@ function Install-AdminTools {
             Write-Log "  Installing Tree-sitter CLI..." "Gray"
             $tsArgs = @(
                 "install", "tree-sitter.tree-sitter-cli",
-                "--silent", "--accept-package-agreements",
-                "--accept-source-agreements", "--source", "winget"
+                "--silent",
+                "--accept-package-agreements",
+                "--accept-source-agreements",
+                "--source", "winget"
             )
             & winget @tsArgs
             Test-WinGetResult "Tree-sitter CLI"
@@ -1130,70 +1135,28 @@ function Install-AdminTools {
         }
     }
 
-    # PowerShell 7+ - modern cross-platform PowerShell
+    # PowerShell 7+ - modern cross-platform PowerShell (non-fatal on VDI)
     if (Test-ComponentSelected "PowerShell7") {
-        # Query GitHub API for latest stable version
-        $latestVersion = $null
-        try {
-            $apiUrl = "https://api.github.com/repos/PowerShell/PowerShell/releases/latest"
-            $releaseInfo = Invoke-RestMethod -Uri $apiUrl -UseBasicParsing
-            $latestVersion = $releaseInfo.tag_name -replace '^v', ''
-        } catch {
-            Write-Log "WARNING: Could not query latest PowerShell version from GitHub: $_" "Yellow"
-            Write-Log "  Skipping PowerShell 7 installation - run script again when GitHub is reachable" "Yellow"
-        }
-
-        if ($latestVersion) {
-            # Check if installed and get current version
-            $pwshCmd = Get-Command pwsh -ErrorAction SilentlyContinue
-            $pwshExePath = Join-Path $env:ProgramFiles "PowerShell\7\pwsh.exe"
-            $installedVersion = $null
-            $needsInstall = $true
-
-            if ($pwshCmd) {
-                $installedVersion = (& $pwshCmd.Source --version 2>$null) -replace 'PowerShell ', ''
-            } elseif (Test-Path $pwshExePath) {
-                $installedVersion = (& $pwshExePath --version 2>$null) -replace 'PowerShell ', ''
-            }
-
-            if ($installedVersion) {
-                if ([version]$installedVersion -ge [version]$latestVersion) {
-                    Write-Log "  PowerShell 7 is up to date ($installedVersion), skipping..." "Yellow"
-                    $needsInstall = $false
-                } else {
-                    Write-Log "  PowerShell 7 upgrade available: $installedVersion -> $latestVersion" "Cyan"
-                }
-            }
-
-            if ($needsInstall) {
-                Write-Log "  Installing PowerShell $latestVersion via MSI..." "Gray"
-                # Use MSI installer directly - winget MSIX can fail on some VDI configurations
-                $pwshVersion = $latestVersion
-                $pwshMsiUrl = "https://github.com/PowerShell/PowerShell/releases/download/" +
-                    "v$pwshVersion/PowerShell-$pwshVersion-win-x64.msi"
-                $pwshMsiPath = Join-Path $env:TEMP "PowerShell-$pwshVersion-win-x64.msi"
-
-                try {
-                    if (-not (Test-Path $pwshMsiPath)) {
-                        Write-Log "    Downloading PowerShell $pwshVersion MSI..." "Gray"
-                        Invoke-WebRequest -Uri $pwshMsiUrl -OutFile $pwshMsiPath -UseBasicParsing
-                    }
-
-                    Write-Log "    Running MSI installer (silent)..." "Gray"
-                    $msiArgs = "/i `"$pwshMsiPath`" /quiet " +
-                        "ADD_EXPLORER_CONTEXT_MENU_OPENPOWERSHELL=1 " +
-                        "ADD_FILE_CONTEXT_MENU_RUNPOWERSHELL=1 " +
-                        "ENABLE_PSREMOTING=0 REGISTER_MANIFEST=1 USE_MU=0 ENABLE_MU=0"
-                    $msiProcess = Start-Process msiexec.exe -ArgumentList $msiArgs -Wait -PassThru
-                    if ($msiProcess.ExitCode -ne 0) {
-                        Write-Log "ERROR: PowerShell 7 MSI install failed (code: $($msiProcess.ExitCode))" "Red"
-                        exit $msiProcess.ExitCode
-                    }
-                    Write-Log "  PowerShell 7 installed successfully" "Gray"
-                } catch {
-                    Write-Log "ERROR: Failed to install PowerShell 7: $_" "Red"
-                    throw
-                }
+        $pwshCmd = Get-Command pwsh -ErrorAction SilentlyContinue
+        if ($pwshCmd) {
+            Write-Log "  PowerShell 7 already installed, skipping..." "Yellow"
+        } else {
+            Write-Log "  Installing PowerShell 7 via winget..." "Gray"
+            $pwshArgs = @(
+                "install",
+                "--id", "Microsoft.PowerShell",
+                "--source", "winget",
+                "--silent",
+                "--accept-source-agreements",
+                "--accept-package-agreements",
+                "--installer-type", "wix"
+            )
+            & winget @pwshArgs
+            # Non-fatal: MSIX installs often fail on VDI due to App-V restrictions
+            $successCodes = @(0, -1978335189, -1978335212)
+            if ($LASTEXITCODE -notin $successCodes) {
+                Write-Log "WARNING: PowerShell 7 install failed (code: $LASTEXITCODE) - continuing..." "Yellow"
+                Write-Log "  Install manually: winget install Microsoft.PowerShell" "Yellow"
             }
         }
     }

@@ -1,0 +1,213 @@
+# benothing.yaml - Single source of truth for conda cleanup scripts
+# Used by: benothing.sh (bash), benothing.ps1 (PowerShell)
+# Source: conda/base/context.py, conda/base/constants.py, conda/core/initialize.py
+
+# ==============================================================================
+# Common (all platforms)
+# ==============================================================================
+common:
+  # Files and directories to remove from user's home directory
+  user_profile_items:
+    - .anaconda
+    - .astropy
+    - .conda
+    - .condarc
+    - .continuum
+    - .copilot
+    - .ipynb_checkpoints
+    - .ipython
+    - .jupyter
+    - .matplotlib
+    - .python_history
+    - .virtual_documents
+
+  # Wildcard patterns to match in user's home directory
+  # WARNING: Review patterns carefully - wildcards can match unintended files
+  user_profile_patterns:
+    - ".spyder*"
+    - ".anaconda*"
+
+  # Conda installation directories (relative to $HOME or %USERPROFILE%)
+  # From: conda/base/context.py (root_prefix, envs_dirs, pkgs_dirs)
+  install_dirs:
+    - anaconda3
+    - miniconda3
+    - miniforge3
+    - mambaforge
+    - anaconda
+    - miniconda
+    - .conda
+
+  # User config directories (relative to config home)
+  user_config_dirs:
+    - conda
+
+  # Shell config files to clean (remove conda init blocks, not delete)
+  # From: conda/core/initialize.py (make_initialize_plan)
+  shell_configs_to_clean:
+    - .bashrc
+    - .bash_profile
+    - .zshrc
+    - .zprofile
+    - .config/fish/config.fish
+    - .xonshrc
+    - .tcshrc
+    - .profile
+
+  # Environment variables to remove
+  # From: conda source (comprehensive list)
+  env_vars:
+    # Core activation state
+    - CONDA_DEFAULT_ENV
+    - CONDA_PREFIX
+    - CONDA_SHLVL
+    - CONDA_EXE
+    - CONDA_PYTHON_EXE
+    - CONDA_PROMPT_MODIFIER
+    - _CE_CONDA
+    - _CE_M
+    # Configuration
+    - CONDARC
+    - CONDA_ROOT_PREFIX
+    - CONDA_ENVS_DIRS
+    - CONDA_PKGS_DIRS
+    - CONDA_CHANNELS
+    - CONDA_SUBDIR
+    - CONDA_BLD_PATH
+    # Prompt/display
+    - CONDA_CHANGEPS1
+    - CONDA_ENV_PROMPT
+    # Behavior flags
+    - CONDA_AUTO_ACTIVATE_BASE
+    - CONDA_AUTO_STACK
+    - CONDA_AUTO_UPDATE_CONDA
+    - CONDA_ALWAYS_YES
+    - CONDA_DRY_RUN
+    - CONDA_QUIET
+    - CONDA_VERBOSITY
+    - CONDA_JSON
+    # Network/auth
+    - CONDA_SSL_VERIFY
+    - CONDA_TOKEN
+    - CONDA_AUTH_USERNAME
+    - CONDA_AUTH_PASSWORD
+    # Solver/performance
+    - CONDA_SOLVER
+    - CONDA_EXPERIMENTAL_SOLVER
+    - CONDA_DEFAULT_THREADS
+    - CONDA_EXECUTE_THREADS
+    - CONDA_REPODATA_THREADS
+    - CONDA_VERIFY_THREADS
+    # Misc persisted settings
+    - CONDA_OFFLINE
+    - CONDA_CHANNEL_PRIORITY
+    - CONDA_CHANNEL_ALIAS
+    - CONDA_SAFETY_CHECKS
+    - CONDA_EXTRA_SAFETY_CHECKS
+    - CONDA_NO_PLUGINS
+    - CONDA_REGISTER_ENVS
+    - CONDA_SHORTCUTS
+
+# ==============================================================================
+# Linux and macOS
+# ==============================================================================
+unix:
+  # System-wide installation directories
+  install_dirs:
+    - /opt/anaconda3
+    - /opt/miniconda3
+    - /opt/miniforge3
+    - /opt/mambaforge
+    - /opt/conda
+
+  # System config directories (from conda/base/constants.py:SEARCH_PATH)
+  system_config_dirs:
+    - /etc/conda
+    - /var/lib/conda
+
+  # ~/.local/bin patterns (symlinks/scripts created by conda)
+  # WARNING: These wildcards could match unrelated tools - use --dry-run first!
+  local_bin_patterns:
+    - anaconda*
+    - conda*
+
+  # System-wide shell configs (require root)
+  shell_configs_system:
+    - /etc/profile.d/conda.sh
+    - /etc/profile.d/conda.csh
+    - /etc/xonshrc
+
+# ==============================================================================
+# Linux
+# ==============================================================================
+linux:
+  # XDG directories to clean ($XDG_DATA_HOME, $XDG_CONFIG_HOME, $XDG_CACHE_HOME)
+  xdg_items:
+    - jupyter
+    - conda
+
+  # Desktop entries
+  desktop_entry_patterns:
+    - anaconda*
+
+# ==============================================================================
+# macOS
+# ==============================================================================
+macos:
+  # ~/Library (direct children)
+  library:
+    - Jupyter
+
+  # ~/Library/Application Support
+  app_support:
+    - Anaconda
+    - conda
+    - ContinuumIO
+    - jupyter
+
+  # ~/Library/Caches
+  caches:
+    - Anaconda
+    - conda
+    - pip
+
+  # ~/Library/Preferences (plist patterns)
+  plist_patterns:
+    - "com.continuum*"
+    - "com.anaconda*"
+
+# ==============================================================================
+# Windows
+# ==============================================================================
+windows:
+  # System-wide installation directories
+  install_dirs:
+    - C:\ProgramData\anaconda3
+    - C:\ProgramData\miniconda3
+    - C:\ProgramData\miniforge3
+    - C:\ProgramData\Anaconda3
+    - C:\ProgramData\Miniconda3
+
+  # System config directories (from conda/base/constants.py:SEARCH_PATH)
+  system_config_dirs:
+    - C:\ProgramData\conda
+
+  # %LOCALAPPDATA% directories
+  appdata_local:
+    - conda
+    - conda-anaconda-tos
+    - ContinuumIO
+
+  # %APPDATA% directories
+  appdata_roaming:
+    - .anaconda
+    - jupyter
+
+  # Start Menu patterns
+  start_menu_patterns:
+    - Anaconda3*
+    - Miniconda3*
+
+  # System-wide shell configs
+  shell_configs_system:
+    - "%ALLUSERSPROFILE%\\xonsh\\xonshrc"
