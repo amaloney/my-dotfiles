@@ -55,6 +55,7 @@ function Test-ComponentSelected {
 }
 
 $ErrorActionPreference = "Stop"
+$ProgressPreference = "SilentlyContinue"
 
 # Log file shared between user and admin phases
 $script:LogPath = if ($LogFile) { $LogFile } else { Join-Path $env:TEMP "vdi-setup.log" }
@@ -371,11 +372,25 @@ function Install-UserTools {
                 if ($installedExtensions -contains $ext.Id) {
                     Write-Log "  VS Code $($ext.Name) extension already installed..." "Yellow"
                 } else {
-                    Write-Log "  Installing VS Code $($ext.Name) extension..." "Gray"
-                    & code --install-extension $ext.Id --force
-                    if ($LASTEXITCODE -ne 0) {
-                        Write-Log "ERROR: Failed to install $($ext.Name) extension" "Red"
-                        exit $LASTEXITCODE
+                    Write-Log "  Installing VS Code $($ext.Name) extension (may take a few minutes)..." "Gray"
+                    $timeoutSec = 300
+                    $job = Start-Job -ScriptBlock {
+                        param($extId)
+                        & code --install-extension $extId --force 2>&1
+                        $LASTEXITCODE
+                    } -ArgumentList $ext.Id
+                    $completed = Wait-Job $job -Timeout $timeoutSec
+                    if (-not $completed) {
+                        Stop-Job $job
+                        Remove-Job $job -Force
+                        Write-Log "WARNING: $($ext.Name) extension install timed out after ${timeoutSec}s, continuing..." "Yellow"
+                    } else {
+                        $result = Receive-Job $job
+                        Remove-Job $job
+                        $exitCode = $result[-1]
+                        if ($exitCode -ne 0) {
+                            Write-Log "WARNING: Failed to install $($ext.Name) extension (exit $exitCode), continuing..." "Yellow"
+                        }
                     }
                 }
             }
@@ -653,10 +668,22 @@ function Set-WindowsTerminalFont {
 
     try {
         $content = Get-Content $settingsPath -Raw
-        # Strip JSONC comments for parsing
-        $jsonContent = $content -replace '(?m)//.*$', '' -replace '/\*[\s\S]*?\*/', ''
+        # Strip JSONC comments for parsing (only // at line start, not :// in URLs)
+        $jsonContent = $content -replace '(?m)^\s*//.*$', '' -replace '/\*[\s\S]*?\*/', ''
         $jsonContent = $jsonContent -replace ',(\s*[}\]])', '$1'
-        $settings = $jsonContent | ConvertFrom-Json
+        try {
+            $settings = $jsonContent | ConvertFrom-Json
+        } catch {
+            Write-Log "  Windows Terminal settings corrupted, resetting to defaults..." "Yellow"
+            $settings = [PSCustomObject]@{
+                '$help' = 'https://aka.ms/terminal-documentation'
+                '$schema' = 'https://aka.ms/terminal-profiles-schema'
+                profiles = [PSCustomObject]@{
+                    defaults = [PSCustomObject]@{}
+                    list = @()
+                }
+            }
+        }
 
         # Check if font is already set
         if ($settings.profiles.defaults.font.face -eq "SauceCodePro Nerd Font Mono") {
@@ -890,7 +917,7 @@ function Install-Miniconda {
 
     # Run silent installation (/S = silent, /D = install directory, must be last argument)
     Write-Log "  Running Miniconda installer (silent)..." "Gray"
-    $installerArgs = "/InstallationType=JustMe /AddToPath=0 /RegisterPython=0 /S /D=`"$installPath`""
+    $installerArgs = "/InstallationType=JustMe /AddToPath=0 /RegisterPython=0 /NoShortcuts=1 /S /D=`"$installPath`""
     $process = Start-Process -FilePath $downloadPath -ArgumentList $installerArgs -Wait -PassThru
     if ($process.ExitCode -ne 0) {
         Write-Log "ERROR: Miniconda install failed (code: $($process.ExitCode))" "Red"
@@ -1078,8 +1105,8 @@ function Install-AdminTools {
             Write-Log "  Installing Tree-sitter CLI..." "Gray"
             $tsArgs = @(
                 "install", "tree-sitter.tree-sitter-cli",
-                "--source", "winget", "--silent",
-                "--accept-source-agreements", "--accept-package-agreements"
+                "--silent", "--accept-package-agreements",
+                "--accept-source-agreements", "--source", "winget"
             )
             & winget @tsArgs
             Test-WinGetResult "Tree-sitter CLI"

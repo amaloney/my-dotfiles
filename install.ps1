@@ -216,6 +216,11 @@ if (-not (Test-Path $yaziSource)) {
     Write-Host "   ERROR: Source not found: $yaziSource" -ForegroundColor Red
 } else {
     New-Junction -Link $yaziPath -Target $yaziSource
+    # Install gruvbox-dark theme via ya package manager
+    $yaCmd = Get-Command ya -ErrorAction SilentlyContinue
+    if ($yaCmd) {
+        & ya pkg add bennyyip/gruvbox-dark 2>$null
+    }
 }
 
 # Eza (ls replacement)
