@@ -25,12 +25,16 @@ const RANK_COLORS = {
 };
 
 function parseRanks() {
-  const md = fs.readFileSync(path.join(HARNESSES, "handoff-contract.md"), "utf8");
+  const md = fs.readFileSync(
+    path.join(HARNESSES, "handoff-contract.md"),
+    "utf8",
+  );
   const ranks = {};
   for (const line of md.split("\n")) {
     const m = line.match(/^\|\s*(\d)\s*\|[^|]*\|(.+)\|/);
     if (!m) continue;
-    for (const name of m[2].matchAll(/`([^`]+)`/g)) ranks[name[1]] = Number(m[1]);
+    for (const name of m[2].matchAll(/`([^`]+)`/g))
+      ranks[name[1]] = Number(m[1]);
   }
   return ranks;
 }
@@ -40,7 +44,8 @@ function rankOf(name, ranks) {
   for (const key of Object.keys(ranks)) {
     if (!key.endsWith("/*")) continue;
     const stem = key.slice(0, -2);
-    if (name.startsWith(stem + "/") || name.startsWith(stem + "-")) return ranks[key];
+    if (name.startsWith(stem + "/") || name.startsWith(stem + "-"))
+      return ranks[key];
   }
   return null;
 }
@@ -63,17 +68,22 @@ function buildGraph(simThreshold) {
   const degree = Object.fromEntries(skills.map((s) => [s, 0]));
 
   for (const skill of skills) {
-    const text = fs.readFileSync(path.join(SKILLS_DIR, skill, "SKILL.md"), "utf8");
+    const text = fs.readFileSync(
+      path.join(SKILLS_DIR, skill, "SKILL.md"),
+      "utf8",
+    );
     for (const m of text.matchAll(LINK_RE)) {
       if (m[1] !== skill && skills.includes(m[1])) {
         edges.push({ source: skill, target: m[1], type: "link" });
-        degree[skill]++; degree[m[1]]++;
+        degree[skill]++;
+        degree[m[1]]++;
       }
     }
     for (const m of text.matchAll(NEXT_RE)) {
       if (m[1] !== "done" && m[1] !== skill && skills.includes(m[1])) {
         edges.push({ source: skill, target: m[1], type: "next" });
-        degree[skill]++; degree[m[1]]++;
+        degree[skill]++;
+        degree[m[1]]++;
       }
     }
   }
@@ -81,7 +91,9 @@ function buildGraph(simThreshold) {
   if (simThreshold && fs.existsSync(SCORES_FILE)) {
     const history = JSON.parse(fs.readFileSync(SCORES_FILE, "utf8"));
     const scores = history.snapshots.at(-1)?.scores ?? {};
-    const existing = new Set(edges.map((e) => [e.source, e.target].sort().join("|")));
+    const existing = new Set(
+      edges.map((e) => [e.source, e.target].sort().join("|")),
+    );
     for (const [pair, score] of Object.entries(scores)) {
       if (score >= simThreshold && !existing.has(pair)) {
         const [a, b] = pair.split("|");

@@ -7,9 +7,10 @@ Rules:
   wrapper    one-line functions that only `return <expr>`
   comment    comments that restate the code they sit on
   docstring  one-line docstrings that restate the function or class name
-  todo       docstrings that still contain vim-doge `[TODO:...]` placeholders
+  todo       docstrings that still contain vim-doge placeholders
   reuse      new functions that look like existing ones in the code index
 """
+
 from __future__ import annotations
 
 import ast
@@ -23,9 +24,9 @@ from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
 
-from docblocks import PLACEHOLDER
-from naming_check import findings as naming_findings
-from naming_check import is_cryptic
+from docblocks import PLACEHOLDER  # pyrefly: ignore[missing-import]
+from naming_check import findings as naming_findings  # pyrefly: ignore[missing-import]
+from naming_check import is_cryptic  # pyrefly: ignore[missing-import]
 
 SUPPRESS_MARKERS = ("# style:allow", "# naming:allow")
 SKIP_COMMENT = re.compile(r"noqa|type:|pyrefly|style:allow|naming:allow|todo|fixme|pragma|fmt:|-\*-", re.IGNORECASE)
@@ -52,7 +53,7 @@ def stem(word: str) -> str:
     return word
 
 
-def words(text: str) -> set[str]:
+def words(text: str) -> set[str]:  # style:allow names a concept used 7x
     """Lowercased, crudely stemmed words from prose or snake/camel identifiers."""
     return {stem(match.lower()) for match in WORD.findall(text)}
 
@@ -75,15 +76,15 @@ def naming_rule(path: Path, tree: ast.AST) -> list[Finding]:
     return results
 
 
-def functions(tree: ast.AST) -> list[ast.FunctionDef | ast.AsyncFunctionDef]:
+def functions(tree: ast.AST) -> list[ast.FunctionDef | ast.AsyncFunctionDef]:  # style:allow
     return [node for node in ast.walk(tree) if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))]
 
 
-def is_dunder(name: str) -> bool:
+def is_dunder(name: str) -> bool:  # style:allow
     return name.startswith("__") and name.endswith("__")
 
 
-def private_rule(path: Path, tree: ast.AST) -> list[Finding]:
+def private_rule(path: Path, tree: ast.AST) -> list[Finding]:  # style:allow
     return [
         Finding(path, function.lineno, "private", f"`{function.name}` is underscore-prefixed; give it a public name")
         for function in functions(tree)
@@ -131,21 +132,46 @@ def next_code_line(lines: list[str], row: int) -> str:
     return ""
 
 
+def header_block_end(lines: list[str]) -> int:
+    """Return the 1-indexed line number where the file header block ends.
+
+    A header block is a contiguous run of comment/blank lines at the top of the file,
+    optionally preceded by a shebang or encoding declaration. Returns 0 if no header.
+    """
+    if not lines:
+        return 0
+    start = 0
+    first = lines[0].strip()
+    if first.startswith("#!") or first.startswith("# -*-") or first.startswith("# coding"):
+        start = 1
+    end = start
+    for i, line in enumerate(lines[start:], start=start):
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#"):
+            end = i + 1
+        else:
+            break
+    return end if end > start else 0
+
+
 def comment_rule(path: Path, source: str, lines: list[str]) -> list[Finding]:
     results = []
     try:
         tokens = list(tokenize.generate_tokens(io.StringIO(source).readline))
     except (tokenize.TokenError, SyntaxError):
         return results
+    header_end = header_block_end(lines)
     for token in tokens:
         if token.type != tokenize.COMMENT:
+            continue
+        row, column = token.start
+        if row <= header_end:
             continue
         text = token.string.lstrip("#").strip()
         if not text or text.startswith("!") or SKIP_COMMENT.search(text):
             continue
         if len(text.split()) > MAX_REDUNDANT_COMMENT_WORDS:
             continue
-        row, column = token.start
         own_line = lines[row - 1]
         code = next_code_line(lines, row) if own_line.strip().startswith("#") else own_line[:column]
         meaningful = words(text) - FILLER_WORDS
@@ -216,7 +242,7 @@ def load_index(index_path: Path) -> list[tuple[str, str]]:
     return [(name.rsplit(".", 1)[-1], location) for name, location in entries]
 
 
-def defined_names(tree: ast.AST) -> set[str]:
+def defined_names(tree: ast.AST) -> set[str]:  # style:allow
     return {function.name for function in functions(tree)}
 
 
@@ -270,7 +296,9 @@ def reuse_rule(path: Path, tree: ast.AST, index: list[tuple[str, str]]) -> list[
             reverse=True,
         )
         candidates = [
-            f"`{name}` ({location})" for score, name, location in scored[:REUSE_MAX_CANDIDATES] if score >= REUSE_MIN_SCORE
+            f"`{name}` ({location})"
+            for score, name, location in scored[:REUSE_MAX_CANDIDATES]
+            if score >= REUSE_MIN_SCORE
         ]
         if candidates:
             results.append(
@@ -285,7 +313,7 @@ def reuse_rule(path: Path, tree: ast.AST, index: list[tuple[str, str]]) -> list[
     return results
 
 
-def suppressed(lines: list[str], line: int) -> bool:
+def suppressed(lines: list[str], line: int) -> bool:  # style:allow
     return 0 < line <= len(lines) and any(marker in lines[line - 1] for marker in SUPPRESS_MARKERS)
 
 

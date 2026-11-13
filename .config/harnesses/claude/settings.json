@@ -154,6 +154,16 @@
             "timeout": 5
           }
         ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "mkdir -p /tmp/claude-file-hashes && git hash-object \"$CLAUDE_FILE_PATH\" 2>/dev/null > \"/tmp/claude-file-hashes/$(echo \"$CLAUDE_FILE_PATH\" | md5sum | cut -d' ' -f1)\" || true",
+            "timeout": 5
+          }
+        ]
       }
     ],
     "PostToolUse": [
@@ -187,7 +197,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "command -v prettier >/dev/null && prettier --write \"$CLAUDE_FILE_PATH\" 2>/dev/null || true",
+            "command": "HASH_FILE=\"/tmp/claude-file-hashes/$(echo \"$CLAUDE_FILE_PATH\" | md5sum | cut -d' ' -f1)\"; OLD_HASH=$(cat \"$HASH_FILE\" 2>/dev/null); NEW_HASH=$(git hash-object \"$CLAUDE_FILE_PATH\" 2>/dev/null); if [ -n \"$OLD_HASH\" ] && [ \"$OLD_HASH\" != \"$NEW_HASH\" ]; then command -v prettier >/dev/null && prettier --write \"$CLAUDE_FILE_PATH\" 2>/dev/null || true; fi; rm -f \"$HASH_FILE\"",
             "timeout": 10
           }
         ]
