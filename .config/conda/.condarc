@@ -17,6 +17,14 @@ override_channels_enabled: true
 no_lock: true
 channel_priority: strict
 
+# PACKAGES
+always_copy: true
+pkgs_dirs:
+  - ./.conda/pkgs
+
+# AUTH
+#add_anaconda_token: true
+
 # NETWORK CONFIGURATION
 offline: false
 ssl_verify: true
