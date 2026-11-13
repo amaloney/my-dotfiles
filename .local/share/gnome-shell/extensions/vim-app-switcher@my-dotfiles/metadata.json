@@ -1,0 +1,6 @@
+{
+  "uuid": "vim-app-switcher@my-dotfiles",
+  "name": "Vim App Switcher",
+  "description": "Adds h/j/k/l navigation to the Super+Tab application switcher.",
+  "shell-version": ["49", "50", "51"]
+}
