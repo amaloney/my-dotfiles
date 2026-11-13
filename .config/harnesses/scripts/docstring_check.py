@@ -40,6 +40,28 @@ EXCLUDED_PATHS = (
 )
 
 
+def is_test_file(filepath: str) -> bool:
+    """Check if file is a test file (test_*.py, *_test.py, or conftest.py)."""
+    name = Path(filepath).name
+    return name.startswith("test_") or name.endswith("_test.py") or name == "conftest.py"
+
+
+def has_pytest_fixture_decorator(node: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
+    """Check if function has @pytest.fixture decorator."""
+    for decorator in node.decorator_list:
+        if isinstance(decorator, ast.Attribute) and decorator.attr == "fixture":
+            return True
+        if isinstance(decorator, ast.Name) and decorator.id == "fixture":
+            return True
+        if isinstance(decorator, ast.Call):
+            func = decorator.func
+            if isinstance(func, ast.Attribute) and func.attr == "fixture":
+                return True
+            if isinstance(func, ast.Name) and func.id == "fixture":
+                return True
+    return False
+
+
 def get_edited_file() -> str | None:
     """Get the file path from CLAUDE_FILE_PATH or CLAUDE_TOOL_INPUT env var.
 
@@ -96,13 +118,23 @@ def has_parameters_or_meaningful_return(node: ast.FunctionDef | ast.AsyncFunctio
     return not (isinstance(node.returns, ast.Constant) and node.returns.value is None)
 
 
-def check_function(node: ast.FunctionDef | ast.AsyncFunctionDef) -> dict | None:
+def check_function(node: ast.FunctionDef | ast.AsyncFunctionDef, in_test_file: bool = False) -> dict | None:
     """Check if a function needs a better docstring."""
     # Skip private/dunder methods
     if node.name.startswith("_") and not node.name.startswith("__init__"):
         return None
 
     docstring = ast.get_docstring(node)
+
+    # In test files: skip Args/Returns for test functions and fixtures
+    if in_test_file and (node.name.startswith("test_") or has_pytest_fixture_decorator(node)):
+        if docstring is None:
+            return {
+                "line": node.lineno,
+                "name": node.name,
+                "issue": "missing",
+            }
+        return None
 
     # No docstring at all
     if docstring is None:
@@ -175,9 +207,10 @@ def check_file(filepath: str) -> list[dict]:
     except (OSError, SyntaxError):
         return []
 
+    in_test = is_test_file(filepath)
     for node in ast.walk(tree):
         if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-            issue = check_function(node)
+            issue = check_function(node, in_test_file=in_test)
             if issue:
                 issues.append(issue)
 
