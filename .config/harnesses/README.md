@@ -33,10 +33,12 @@ Use 'scripts/crun' or activate a conda environment first.
 ```
 
 **Allowed:**
+
 - Python inside a conda environment (`CONDA_PREFIX` set)
 - Python path contains `/conda/`, `/miniforge/`, `/anaconda/`, `/miniconda/`, or `/.conda/`
 
 **How to run Python:**
+
 ```bash
 # Option 1: Use crun (auto-finds project env or falls back to base)
 scripts/crun python script.py
@@ -63,10 +65,10 @@ Skills can declare which tools they're allowed to use via frontmatter. A PreTool
 name: verify
 description: Run verification commands before claiming completion
 invocation: auto
-allowed-tools:      # whitelist — only these tools permitted
+allowed-tools: # whitelist — only these tools permitted
   - Read
   - Bash
-denied-tools:       # blacklist — explicit denials (optional)
+denied-tools: # blacklist — explicit denials (optional)
   - Edit
   - Write
 ---
@@ -161,8 +163,8 @@ The guard reads the **last entry** to determine the currently active skill.
 
 ## Project-local conda environments
 
-Projects use direnv + `.envrc` for automatic conda environment activation. Use the scaffold script or copy templates from
-`~/.config/harnesses/conda/` into your project root.
+Projects use direnv + `.envrc` for automatic conda environment activation. Use the scaffold script or copy templates
+from `~/.config/harnesses/conda/` into your project root.
 
 ```bash
 # Scaffold a new project
@@ -255,6 +257,7 @@ mkdir -p "$KILO_CONFIG_DIR"
 | Code-index tooling, flywheel + graph theory   | `skills/code-index/scripts/` (Rust extraction: `extract_rust.py`) |
 | Python repo bootstrap                         | `skills/python/repo-init`                                         |
 | Rust repo bootstrap                           | `skills/rust/repo-init`                                           |
+| Polars performance/memory rules, DuckDB gate  | `skills/polars`                                                   |
 
 ## Per-harness duplication
 
@@ -282,13 +285,15 @@ Config schemas differ (no shared-include). Code-index refresh: Kilo plugin + Cla
 
 ## Sources & inspirations
 
-| Repo                                                                                                    | What was used                                               |
-| ------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
-| [trailofbits/skills](https://github.com/trailofbits/skills)                                             | modern-python, property-testing, insecure-defaults patterns |
-| [LambdaTest/agent-skills](https://github.com/LambdaTest/agent-skills)                                   | pytest patterns, BDD patterns                               |
-| [Agent-Skills-for-Context-Engineering](https://github.com/davidpp/Agent-Skills-for-Context-Engineering) | memory-systems, multi-agent patterns, flywheel concept      |
-| [context-engineering-kit](https://github.com/anthropics/context-engineering-kit)                        | plugin architecture patterns                                |
-| [Roarpeng/GraphFlow](https://github.com/Roarpeng/GraphFlow)                                             | code knowledge graph, learning flywheel                     |
+<!-- prettier-ignore-start -->
+| Repo | What was used |
+| ---- | ------------- |
+| [trailofbits/skills](https://github.com/trailofbits/skills) | modern-python, property-testing, insecure-defaults patterns |
+| [LambdaTest/agent-skills](https://github.com/LambdaTest/agent-skills) | pytest patterns, BDD patterns |
+| [Agent-Skills-for-Context-Engineering](https://github.com/davidpp/Agent-Skills-for-Context-Engineering) | memory-systems, multi-agent patterns, flywheel concept |
+| [context-engineering-kit](https://github.com/anthropics/context-engineering-kit) | plugin architecture patterns |
+| [Roarpeng/GraphFlow](https://github.com/Roarpeng/GraphFlow) | code knowledge graph, learning flywheel |
+<!-- prettier-ignore-end -->
 
 | Concept        | Source                | Implementation                  |
 | -------------- | --------------------- | ------------------------------- |

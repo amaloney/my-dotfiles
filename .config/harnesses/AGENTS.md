@@ -64,6 +64,7 @@ Legend: O = orchestrator, L = leaf, S = stage
 | Artifacts       | `artifacts`               | L    | images, mermaid                      |
 | Markdown        | (hook: prettier)          | -    | auto-format on edit                  |
 | Code search     | `code-index`              | L    | semantic search; run before new code |
+| Data analysis   | `polars`                  | L    | speed/memory gates; DuckDB decision  |
 | Research        | `research`                | L    | papers, notes, sources               |
 | Accessibility   | `accessibility`           | L    | a11y                                 |
 | Verification    | `verify`                  | L    | verify claims                        |

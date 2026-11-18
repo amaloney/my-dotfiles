@@ -193,6 +193,16 @@
         ]
       },
       {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.config/harnesses/scripts/crun python $HOME/.config/harnesses/skills/polars/scripts/polars_gates.py --event edit",
+            "timeout": 30
+          }
+        ]
+      },
+      {
         "matcher": "Edit|Write",
         "hooks": [
           {

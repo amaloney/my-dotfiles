@@ -30,7 +30,11 @@ check = { depends-on = ["lint"] }
 test = "pytest"
 
 [tool.pytest.ini_options]
-testpaths = [".config/harnesses/skills/chat-provenance/tests", ".config/harnesses/skills/code-index/tests"]
+testpaths = [
+    ".config/harnesses/skills/chat-provenance/tests",
+    ".config/harnesses/skills/code-index/tests",
+    ".config/harnesses/skills/polars/scripts/tests",
+]
 
 [tool.ruff]
 line-length = 120
