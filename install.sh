@@ -585,6 +585,17 @@ install_nas_backup() {
     fi
 }
 
+# ---------- KVM lid switch (Linux, --system) ----------
+
+# HDMI/USB KVM: switching away drops the monitor, so the closed lid would suspend. Stay awake on AC; etc/README.md
+install_kvm_lid() {
+    status "KVM lid switch (logind)"
+    install_root_file "$DOTFILES/etc/systemd/logind.conf.d/50-kvm-lid.conf" \
+        /etc/systemd/logind.conf.d/50-kvm-lid.conf 644
+    # Restarting logind would end the session; HUP reloads its config in place
+    manual_msg "apply now with: sudo systemctl kill -s HUP systemd-logind (or reboot)"
+}
+
 # ---------- summary ----------
 
 print_summary() {
@@ -620,6 +631,7 @@ main() {
     fi
     if $SYSTEM && ! is_macos && command_exists systemctl; then
         install_nas_backup
+        install_kvm_lid
     fi
     print_summary
 }
