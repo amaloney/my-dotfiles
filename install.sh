@@ -7,6 +7,8 @@ set -o errexit -o nounset -o pipefail
 DOTFILES="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly DOTFILES
 readonly HARNESSES="$DOTFILES/.config/harnesses"
+# Generated from $HARNESSES/agents: Kilo and Claude Code disagree on the frontmatter shape of `tools`
+readonly KILO_AGENTS="$HARNESSES/kilo/agents"
 
 # ANSI colors for terminal output
 readonly RED=$'\033[31m'
@@ -166,6 +168,40 @@ prune_stale_links() {
     done
 }
 
+# Regenerate the Kilo-only agent tree from the shared one.
+# Claude Code wants `tools: Read, Grep, Glob`; Kilo's schema wants a map of tool id -> enabled and
+# rejects the string form, so the `tools` key alone is rewritten at install time.
+sync_kilo_agents() {
+    local source_file name
+
+    if $DRY_RUN; then
+        would "regenerate: $KILO_AGENTS from $HARNESSES/agents"
+        return 0
+    fi
+
+    mkdir -p "$KILO_AGENTS"
+    rm -f "$KILO_AGENTS"/*.md
+    for source_file in "$HARNESSES/agents"/*.md; do
+        [[ -f "$source_file" ]] || continue
+        name="$(basename "$source_file")"
+        # Only a line with a value after `tools:` is rewritten; an existing map is left alone.
+        awk '
+            /^tools:[ \t]/ {
+                count = split(substr($0, index($0, ":") + 1), names, ",")
+                print "tools:"
+                for (tool_index = 1; tool_index <= count; tool_index++) {
+                    tool = tolower(names[tool_index])
+                    gsub(/[ \t]/, "", tool)
+                    if (tool != "") print "  " tool ": true"
+                }
+                next
+            }
+            { print }
+        ' "$source_file" > "$KILO_AGENTS/$name"
+    done
+    done_msg "$KILO_AGENTS (generated)"
+}
+
 # ---------- setup ----------
 
 parse_args() {
@@ -314,7 +350,8 @@ install_harness_configs() {
     symlink "$HARNESSES/scripts" "$HOME/.claude/scripts"
 
     status "Agents (shared) - Kilo"
-    symlink "$HARNESSES/agents" "$HOME/.config/kilo/agents"
+    sync_kilo_agents
+    symlink "$KILO_AGENTS" "$HOME/.config/kilo/agents"
 
     status "Agents (shared) - Claude Code"
     symlink "$HARNESSES/agents" "$HOME/.claude/agents"
