@@ -86,6 +86,26 @@ Start-Process powershell.exe -ArgumentList @(
 )
 ```
 
+## Control Flow Style
+
+Multi-line braces for control flow statements:
+
+```powershell
+# Preferred
+if (-not $selection) {
+    return
+}
+
+# Avoid single-line block statements
+if (-not $selection) { return }
+```
+
+Inline conditional assignments are fine:
+
+```powershell
+$idx = if ($found -ge 0) { $found } else { 0 }
+```
+
 ## Gotchas
 
 | Pattern        | Notes                                      |

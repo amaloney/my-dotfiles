@@ -17,7 +17,7 @@ return {
       dependencies = {
          { "nvim-treesitter/nvim-treesitter-textobjects", branch = "main" },
          { "nvim-treesitter/nvim-treesitter-context", opts = { max_lines = 10 } },
-         { "williamboman/mason.nvim", opts = { install = { "tree-sitter-cli" } } },
+         { "WhoIsSethDaniel/mason-tool-installer.nvim", opts = { ensure_installed = { "tree-sitter-cli" } } },
       },
       build = function()
          if vim.fn.exepath("tree-sitter") == "" then
