@@ -100,10 +100,43 @@ if (-not $selection) {
 if (-not $selection) { return }
 ```
 
+**Exception**: Loop guards with `continue`/`break` are acceptable single-line:
+
+```powershell
+foreach ($item in $items) {
+    if (-not $item.IsValid) { continue }
+    if ($item.Count -eq 0) { continue }
+    # main logic
+}
+```
+
 Inline conditional assignments are fine:
 
 ```powershell
 $idx = if ($found -ge 0) { $found } else { 0 }
+```
+
+## Assignment Alignment
+
+Do not align `=` signs in consecutive assignments or hashtables:
+
+```powershell
+# Avoid
+$displayName   = $entry.Value
+$folderName    = $entry.Key
+$path          = $item.Path
+
+# Preferred
+$displayName = $entry.Value
+$folderName = $entry.Key
+$path = $item.Path
+
+# Same for hashtables
+@{
+    DisplayName = $entry.Value
+    FolderName = $folderName
+    Path = $entry.Key
+}
 ```
 
 ## Gotchas
@@ -160,6 +193,110 @@ Register-ScheduledTask -TaskName "DailyBackup" -Action $action -Trigger $trigger
 Unregister-ScheduledTask -TaskName "DailyBackup" -Confirm:$false
 Get-ScheduledTask | Where TaskName -like "*Backup*"
 ```
+
+## Performance
+
+### Pre-compile Regex
+
+For repeated regex operations, pre-compile at script scope:
+
+```powershell
+$script:myRegex = [regex]::new('^prefix-(\d+)$', 'Compiled')
+
+# In function (fast)
+$match = $script:myRegex.Match($input)
+if ($match.Success) { $match.Groups[1].Value }
+
+# Avoid in loops (recompiles each time)
+if ($input -match '^prefix-(\d+)$') { $Matches[1] }
+```
+
+### .NET Over Cmdlets
+
+For hot paths, .NET methods are faster (benchmarked in pwsh 7.5):
+
+| Cmdlet                        | .NET Alternative                        | Speedup |
+| ----------------------------- | --------------------------------------- | ------- |
+| `Get-Content $f -Raw`         | `[IO.File]::ReadAllText($f)`            | ~25x    |
+| `Get-Date`                    | `[datetime]::Now`                       | ~6x     |
+| `Split-Path $p -Parent`       | `[IO.Path]::GetDirectoryName($p)`       | ~3x     |
+| `Split-Path $p -Leaf`         | `[IO.Path]::GetFileName($p)`            | ~3x     |
+| `Set-Content $f $text`        | `[IO.File]::WriteAllText($f, $text)`    | ~10x    |
+| `Remove-Item $f`              | `[IO.File]::Delete($f)`                 | ~5x     |
+| `Test-Path $f`                | `[IO.File]::Exists($f)`                 | ~4x     |
+| `Test-Path $d -PathType Cont` | `[IO.Directory]::Exists($d)`            | ~4x     |
+| `Get-ChildItem $d`            | `[IO.Directory]::GetFiles($d, '*.ext')` | ~8x     |
+| `Join-Path $a $b`             | `[IO.Path]::Combine($a, $b)`            | ~3x     |
+
+### Loop Patterns
+
+```powershell
+# Fast - foreach statement
+foreach ($item in $collection) { Process $item }
+
+# Slow - pipeline overhead
+$collection | ForEach-Object { Process $_ }
+
+# Fast - indexed comparison
+for ($i = 0; $i -lt $arr1.Count; $i++) {
+    if ($arr1[$i] -ne $arr2[$i]) { $changed = $true; break }
+}
+
+# Slow - string join comparison
+if (($arr1 -join '|') -ne ($arr2 -join '|')) { $changed = $true }
+```
+
+### Cache Expensive Objects
+
+```powershell
+$script:wshell = $null
+
+function Get-ShortcutTarget($lnkPath) {
+    if ($null -eq $script:wshell) {
+        $script:wshell = New-Object -ComObject WScript.Shell
+    }
+    $script:wshell.CreateShortcut($lnkPath).TargetPath
+}
+```
+
+### String Methods Over Regex
+
+For simple checks, string methods are faster:
+
+```powershell
+# Fast
+if ($name.StartsWith('prefix')) { }
+if ($name.EndsWith('.txt')) { }
+if ($name.Contains('needle')) { }
+
+# Slower (regex compilation)
+if ($name -match '^prefix') { }
+```
+
+## Docker Testing
+
+Test scripts on PowerShell without a Windows machine:
+
+```bash
+# .NET SDK includes pwsh (smaller, faster pull)
+docker run -it mcr.microsoft.com/dotnet/sdk:9.0 pwsh
+
+# Syntax validation
+docker run --rm -v "$(pwd):/scripts:ro" mcr.microsoft.com/dotnet/sdk:9.0 pwsh -NoProfile -Command '
+$null = [System.Management.Automation.Language.Parser]::ParseFile(
+    "/scripts/myscript.ps1", [ref]$null, [ref]$errors)
+if ($errors) { $errors | ForEach-Object { Write-Error $_.Message }; exit 1 }
+Write-Output "Syntax OK"
+'
+
+# Standalone PowerShell image
+docker run -it mcr.microsoft.com/powershell:latest pwsh
+
+# Windows Server Core with PowerShell 5.1 (Windows containers only)
+docker run -it mcr.microsoft.com/windows/servercore:ltsc2022 powershell
+```
+
+Note: Linux containers run pwsh 7.x. Windows Forms/GUI scripts require Windows.
 
 ## Template
 

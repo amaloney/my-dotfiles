@@ -386,13 +386,15 @@ function Install-UserTools {
                     if (-not $completed) {
                         Stop-Job $job
                         Remove-Job $job -Force
-                        Write-Log "WARNING: $($ext.Name) extension install timed out after ${timeoutSec}s, continuing..." "Yellow"
+                        $msg = "$($ext.Name) extension install timed out after ${timeoutSec}s"
+                        Write-Log "WARNING: $msg, continuing..." "Yellow"
                     } else {
                         $result = Receive-Job $job
                         Remove-Job $job
                         $exitCode = $result[-1]
                         if ($exitCode -ne 0) {
-                            Write-Log "WARNING: Failed to install $($ext.Name) extension (exit $exitCode), continuing..." "Yellow"
+                            $msg = "Failed to install $($ext.Name) extension (exit $exitCode)"
+                            Write-Log "WARNING: $msg, continuing..." "Yellow"
                         }
                     }
                 }
@@ -1062,6 +1064,20 @@ function Install-AdminTools {
             )
             & winget @yaziArgs
             Test-WinGetResult "Yazi"
+        }
+
+        # Point yazi to Git's bundled file.exe for MIME detection
+        $gitFilePath = "$env:LOCALAPPDATA\Programs\Git\usr\bin\file.exe"
+        $existingYaziFile = [Environment]::GetEnvironmentVariable("YAZI_FILE_ONE", "User")
+        if ($existingYaziFile -eq $gitFilePath) {
+            Write-Log "  YAZI_FILE_ONE already configured, skipping..." "Yellow"
+        } elseif (Test-Path $gitFilePath) {
+            [Environment]::SetEnvironmentVariable("YAZI_FILE_ONE", $gitFilePath, "User")
+            $env:YAZI_FILE_ONE = $gitFilePath
+            Write-Log "  YAZI_FILE_ONE set to Git's file.exe" "Gray"
+        } else {
+            Write-Log "  WARNING: Git file.exe not found at $gitFilePath" "Yellow"
+            Write-Log "  Install Git first, or set YAZI_FILE_ONE manually" "Yellow"
         }
     }
 

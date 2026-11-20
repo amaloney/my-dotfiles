@@ -44,21 +44,9 @@ function pixi-activate {
     }
 }
 
-# Fix CONDA_DEFAULT_ENV to show just env name (not full path)
-function Fix-CondaEnvName {
-    if ($env:CONDA_DEFAULT_ENV -and $env:CONDA_DEFAULT_ENV -match '[\\/]') {
-        $env:CONDA_DEFAULT_ENV = Split-Path -Leaf $env:CONDA_DEFAULT_ENV
-    }
-}
-
-# Wrap conda to fix env name after activation
-if (Get-Command conda -ErrorAction SilentlyContinue) {
-    # Store original conda path
-    $script:CondaExe = (Get-Command conda -CommandType Application).Source
-    function conda {
-        & $script:CondaExe @args
-        Fix-CondaEnvName
-    }
+# Initialize conda shell hook (required for activate/deactivate to work)
+if (Get-Command conda.exe -ErrorAction SilentlyContinue) {
+    (& conda.exe shell.powershell hook) | Out-String | Invoke-Expression
 }
 
 # Starship prompt
